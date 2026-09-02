@@ -3,11 +3,11 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Strata Tutorial Dashboard</title>
+  <title>PNG Dashboard</title>
   <style>
     :root{
       --bg:#060a12; --panel:#0b1220; --panel2:#0d1626; --line:#1d2a3b;
-      --text:#f7f8fb; --muted:#9aa8bb; --pink:#ff3d81; --purple:#7448ff;
+      --text:#f7f8fb; --muted:#9aa8bb; --pink:#f31324; --purple:#9b0711;
       --shadow:0 18px 55px rgba(0,0,0,.38);
     }
     *{box-sizing:border-box}
@@ -16,7 +16,7 @@
     button{cursor:pointer}
     .topbar{height:74px;display:grid;grid-template-columns:220px minmax(260px,620px) 1fr;align-items:center;gap:24px;padding:0 24px;border-bottom:1px solid var(--line);background:rgba(5,9,16,.82);backdrop-filter:blur(16px);position:sticky;top:0;z-index:20}
     .brand{display:flex;align-items:center;gap:12px;font-weight:800;font-size:22px}
-    .logo{width:34px;height:34px;border:4px solid var(--pink);border-radius:9px 16px 9px 16px;transform:rotate(45deg);box-shadow:0 0 22px rgba(255,61,129,.25)}
+    .logo{width:34px;height:34px;border:4px solid var(--pink);border-radius:9px 16px 9px 16px;transform:rotate(45deg);box-shadow:0 0 22px rgba(243,19,36,.25)}
     .search{height:44px;border:1px solid var(--line);background:#0b1321;border-radius:12px;padding:0 16px;color:white;width:100%;outline:none}
     .profile{justify-self:end;color:var(--muted);font-size:14px}
     .layout{display:grid;grid-template-columns:210px minmax(0,1fr) 360px;gap:16px;padding:16px;min-height:calc(100vh - 74px)}
@@ -24,7 +24,7 @@
     .sidebar{padding:14px;display:flex;flex-direction:column}
     .nav{display:grid;gap:7px}
     .nav button{border:0;color:#dce3ed;background:transparent;text-align:left;padding:13px 14px;border-radius:10px}
-    .nav button.active{background:linear-gradient(90deg,rgba(255,61,129,.26),rgba(116,72,255,.16));color:white;border-left:3px solid var(--pink)}
+    .nav button.active{background:linear-gradient(90deg,rgba(243,19,36,.26),rgba(155,7,17,.16));color:white;border-left:3px solid var(--pink)}
     .support{margin-top:auto;border:1px solid var(--line);border-radius:12px;padding:14px;color:var(--muted);font-size:13px;line-height:1.5}
     .support strong{color:white;display:block;margin-bottom:6px}
     .main{padding:18px;overflow:hidden}
@@ -34,7 +34,7 @@
     h3{font-size:17px}
     .ghost{border:1px solid var(--line);background:#101a2b;color:#dce3ed;border-radius:9px;padding:9px 12px}
     .player{position:relative;aspect-ratio:16/8.2;border:1px solid #27364c;border-radius:14px;overflow:hidden;background:
-      radial-gradient(circle at 72% 48%,rgba(255,61,129,.35),transparent 25%),
+      radial-gradient(circle at 72% 48%,rgba(243,19,36,.35),transparent 25%),
       radial-gradient(circle at 28% 46%,rgba(52,91,255,.45),transparent 28%),
       linear-gradient(145deg,#142d79,#16112f 60%,#32102e)}
     .wave{position:absolute;left:-10%;right:-10%;top:45%;height:140px;border-radius:50%;border-top:22px solid rgba(164,63,255,.45);transform:rotate(3deg);filter:drop-shadow(0 0 22px rgba(255,61,190,.4))}
@@ -48,29 +48,19 @@
     .time{font-size:12px;color:#dce3ed}
     .carousel-wrap{margin-top:18px;border-top:1px solid var(--line);padding-top:16px}
     .carousel-head{display:flex;align-items:center;justify-content:space-between}
-    .carousel{height:265px;position:relative;display:flex;align-items:center;justify-content:center;perspective:1000px;margin-top:4px}
-    .card{position:absolute;width:210px;transition:.45s cubic-bezier(.2,.8,.2,1);transform-origin:center bottom;opacity:0;pointer-events:none}
-    .thumb{height:130px;border-radius:13px;border:1px solid #27364c;box-shadow:0 18px 35px rgba(0,0,0,.38);position:relative;overflow:hidden}
-    .thumb:after{content:"";position:absolute;left:-20%;right:-20%;top:48%;height:65px;border-radius:50%;border-top:12px solid rgba(255,255,255,.15);transform:rotate(-8deg)}
-    .duration{position:absolute;right:7px;bottom:7px;background:rgba(0,0,0,.8);padding:3px 6px;border-radius:5px;font-size:11px}
-    .card h4{margin:10px 0 4px;font-size:14px}
-    .card p{color:var(--muted);font-size:12px}
-    .card.active{opacity:1;transform:translateX(0) scale(1.18);z-index:5;pointer-events:auto}
-    .card.active .thumb{border-color:var(--pink);box-shadow:0 18px 45px rgba(255,61,129,.18)}
-    .card.left1{opacity:.86;transform:translateX(-190px) scale(.92);z-index:4;pointer-events:auto}
-    .card.left2{opacity:.48;transform:translateX(-330px) scale(.78);z-index:3;pointer-events:auto}
-    .card.right1{opacity:.86;transform:translateX(190px) scale(.92);z-index:4;pointer-events:auto}
-    .card.right2{opacity:.48;transform:translateX(330px) scale(.78);z-index:3;pointer-events:auto}
-    .arrow{position:absolute;top:100px;z-index:8;width:40px;height:40px;border-radius:50%;border:1px solid #35445a;background:#0b111b;color:white;font-size:22px}
-    .arrow.prev{left:2px}.arrow.next{right:2px}
-    .dots{display:flex;justify-content:center;gap:8px;margin-top:-4px}
-    .dot{width:8px;height:8px;border-radius:50%;background:#3e485a;border:0;padding:0}
-    .dot.active{background:var(--pink);box-shadow:0 0 12px rgba(255,61,129,.7)}
+    .carousel{display:flex;align-items:center;gap:16px;overflow-x:auto;overflow-y:hidden;padding:28px 24px 26px;scroll-snap-type:x proximity;scrollbar-width:thin;scrollbar-color:#f31324 #252a31;cursor:grab;height:265px}
+    .carousel:active{cursor:grabbing}.carousel::-webkit-scrollbar{height:7px}.carousel::-webkit-scrollbar-track{background:#252a31;border-radius:99px}.carousel::-webkit-scrollbar-thumb{background:#f31324;border-radius:99px}
+    .card{position:relative;flex:0 0 185px;scroll-snap-align:center;opacity:.62;transition:.3s;cursor:pointer;transform:scale(.86)}
+    .thumb{height:120px;border-radius:13px;border:1px solid #4a2024;box-shadow:0 18px 35px rgba(0,0,0,.38);position:relative;overflow:hidden}
+    .thumb:after{content:"";position:absolute;left:-20%;right:-20%;top:48%;height:65px;border-radius:50%;border-top:8px solid rgba(243,19,36,.72);filter:drop-shadow(0 0 8px #f31324);transform:rotate(-8deg)}
+    .duration{position:absolute;right:7px;bottom:7px;background:rgba(0,0,0,.8);padding:3px 6px;border-radius:5px;font-size:11px}.card h4{margin:10px 0 4px;font-size:14px}.card p{color:var(--muted);font-size:12px}
+    .card.active{opacity:1;transform:scale(1.16);z-index:5;margin:0 12px}.card.active .thumb{border-color:#f31324;box-shadow:0 0 0 1px #f31324,0 18px 45px rgba(243,19,36,.2)}
+    .arrow,.dots{display:none}
     .info{padding:22px}
     .info .desc{color:#b4bfce;line-height:1.65;font-size:14px}
     .meta{display:grid;grid-template-columns:1fr 1fr;gap:14px 12px;padding:18px 0;border-bottom:1px solid var(--line)}
     .label{color:var(--muted);font-size:13px}.value{font-size:13px}
-    .tag{display:inline-block;background:#4a2ca0;padding:5px 8px;border-radius:6px}
+    .tag{display:inline-block;background:#b30d19;padding:5px 8px;border-radius:6px}
     .topics{display:grid;gap:11px;margin:14px 0 22px;color:#c9d1dc;font-size:14px}
     .topics span:before{content:"✓";display:inline-grid;place-items:center;width:18px;height:18px;border:1px solid var(--purple);border-radius:50%;color:#a88cff;margin-right:9px;font-size:11px}
     .download{border:0;background:linear-gradient(90deg,#5a36c8,#7b45ff);color:white;border-radius:10px;padding:13px 16px;width:100%;font-weight:700}
@@ -80,7 +70,7 @@
 </head>
 <body>
   <header class="topbar">
-    <div class="brand"><span class="logo"></span><span>Strata</span></div>
+    <div class="brand"><span class="logo"></span><span>PNG</span></div>
     <input class="search" placeholder="Cari tutorial, FAQ, atau SOP..." />
     <div class="profile">● &nbsp; Admin · Administrator⌄</div>
   </header>
@@ -104,24 +94,24 @@
       <div class="section-title"><h2>Tutorial Video</h2><button class="ghost">← Kembali ke Daftar</button></div>
       <section class="player">
         <div class="wave"></div>
-        <div class="player-copy"><h1 id="heroTitle">Tutorial Penggunaan Sistem</h1><p>Strata Dashboard</p></div>
+        <div class="player-copy"><h1 id="heroTitle">Tutorial Penggunaan Sistem</h1><p>PNG Dashboard</p></div>
         <div class="controls"><button class="play">▶</button><span class="time">0:00 / <b id="heroDuration">8:45</b></span><div class="bar"><span></span></div><span>🔊</span><span>⚙</span><span>⛶</span></div>
       </section>
 
       <section class="carousel-wrap">
         <div class="carousel-head"><h3>Video Lainnya</h3><button class="ghost">Lihat semua ›</button></div>
         <div class="carousel" id="carousel">
-          <button class="arrow prev" aria-label="Sebelumnya">‹</button>
-          <button class="arrow next" aria-label="Berikutnya">›</button>
+          
+          
         </div>
-        <div class="dots" id="dots"></div>
+        
       </section>
     </main>
 
     <aside class="info">
       <h2>Informasi Video</h2>
       <h3 id="infoTitle">Tutorial Penggunaan Sistem</h3>
-      <p class="desc" id="infoDesc">Video ini menjelaskan langkah-langkah dasar dalam menggunakan sistem Strata Dashboard untuk kebutuhan sehari-hari.</p>
+      <p class="desc" id="infoDesc">Video ini menjelaskan langkah-langkah dasar dalam menggunakan sistem PNG Dashboard untuk kebutuhan sehari-hari.</p>
       <div class="meta">
         <div class="label">◷ Durasi</div><div class="value" id="infoDuration">8 menit 45 detik</div>
         <div class="label">▱ Kategori</div><div class="value"><span class="tag" id="infoCategory">Penggunaan Sistem</span></div>
@@ -138,46 +128,17 @@
   </div>
 
 <script>
-const videos = [
-  {title:"Cara Membuat Laporan", duration:"6:30", full:"6 menit 30 detik", category:"Laporan", desc:"Tutorial membuat laporan dengan cepat dan rapi.", bg:"linear-gradient(145deg,#123e72,#07192d 55%,#133f5e)"},
-  {title:"Manajemen Data", duration:"7:12", full:"7 menit 12 detik", category:"Manajemen Data", desc:"Panduan mengelola dan memperbarui data pada dashboard.", bg:"linear-gradient(145deg,#74172e,#2c0c24 55%,#d3314c)"},
-  {title:"Tutorial Penggunaan Sistem", duration:"8:45", full:"8 menit 45 detik", category:"Penggunaan Sistem", desc:"Video ini menjelaskan langkah-langkah dasar dalam menggunakan sistem Strata Dashboard untuk kebutuhan sehari-hari.", bg:"linear-gradient(145deg,#2731a5,#181044 55%,#8d1d89)"},
-  {title:"Pengaturan Akun", duration:"5:45", full:"5 menit 45 detik", category:"Akun", desc:"Pelajari pengaturan profil dan preferensi akun pengguna.", bg:"linear-gradient(145deg,#8c1024,#36091b 55%,#ba1832)"},
-  {title:"Laporan Bulanan", duration:"6:20", full:"6 menit 20 detik", category:"Laporan", desc:"Cara menyiapkan laporan bulanan untuk kebutuhan tim.", bg:"linear-gradient(145deg,#00546a,#08202e 55%,#0c6a7e)"}
-];
-let active = 2;
-const carousel = document.getElementById("carousel");
-const dots = document.getElementById("dots");
-
-function render(){
-  carousel.querySelectorAll(".card").forEach(el=>el.remove());
-  dots.innerHTML="";
-  videos.forEach((v,i)=>{
-    const d=i-active;
-    const card=document.createElement("article");
-    card.className="card "+(d===0?"active":d===-1?"left1":d===-2?"left2":d===1?"right1":d===2?"right2":"");
-    card.innerHTML=`<div class="thumb" style="background:${v.bg}"><span class="duration">${v.duration}</span></div><h4>${v.title}</h4><p>${i===active?"123 views • 2 hari lalu":"Video tutorial"}</p>`;
-    card.onclick=()=>{active=i; update();};
-    carousel.appendChild(card);
-    const dot=document.createElement("button");
-    dot.className="dot "+(i===active?"active":"");
-    dot.onclick=()=>{active=i;update()};
-    dots.appendChild(dot);
-  });
-}
-function update(){
-  const v=videos[active];
-  document.getElementById("heroTitle").textContent=v.title;
-  document.getElementById("heroDuration").textContent=v.duration;
-  document.getElementById("infoTitle").textContent=v.title;
-  document.getElementById("infoDuration").textContent=v.full;
-  document.getElementById("infoCategory").textContent=v.category;
-  document.getElementById("infoDesc").textContent=v.desc;
-  render();
-}
-document.querySelector(".prev").onclick=()=>{active=(active-1+videos.length)%videos.length;update()};
-document.querySelector(".next").onclick=()=>{active=(active+1)%videos.length;update()};
-update();
+const videos=[
+{title:"Cara Login ke Sistem",duration:"6:12",full:"6 menit 12 detik",category:"Login"},
+{title:"Cara Membuat Laporan",duration:"6:30",full:"6 menit 30 detik",category:"Laporan"},
+{title:"Tutorial Penggunaan Sistem",duration:"8:45",full:"8 menit 45 detik",category:"Penggunaan Sistem"},
+{title:"Manajemen Data",duration:"7:12",full:"7 menit 12 detik",category:"Manajemen Data"},
+{title:"Pengaturan Akun",duration:"5:45",full:"5 menit 45 detik",category:"Akun"},
+{title:"Keamanan Data",duration:"6:23",full:"6 menit 23 detik",category:"Keamanan"}];
+let active=2;const carousel=document.getElementById("carousel");
+function render(center=false){carousel.querySelectorAll(".card").forEach(x=>x.remove());videos.forEach((v,i)=>{let c=document.createElement("article");c.className="card "+(i===active?"active":"");c.innerHTML=`<div class="thumb" style="background:linear-gradient(145deg,#340307,#950811 55%,#250306)"><span class="duration">${v.duration}</span></div><h4>${v.title}</h4><p>${i===active?"123 views • 2 hari lalu":"Video tutorial"}</p>`;c.onclick=()=>{active=i;render(true)};carousel.appendChild(c)});let v=videos[active];heroTitle.textContent=v.title;heroDuration.textContent=v.duration;infoTitle.textContent=v.title;infoDuration.textContent=v.full;infoCategory.textContent=v.category;if(center)requestAnimationFrame(()=>carousel.querySelectorAll(".card")[active].scrollIntoView({behavior:"smooth",block:"nearest",inline:"center"}))}
+carousel.addEventListener("wheel",e=>{if(Math.abs(e.deltaY)>Math.abs(e.deltaX)){carousel.scrollLeft+=e.deltaY;e.preventDefault()}},{passive:false});
+render();requestAnimationFrame(()=>carousel.querySelectorAll(".card")[active].scrollIntoView({block:"nearest",inline:"center"}));
 </script>
-</body>
+<footer style='text-align:center;color:#8f98a5;padding:8px 0 20px;font-size:13px'>© 2024 <b style='color:#f31324'>PNG</b> Dashboard. Semua hak dilindungi.</footer></body>
 </html>
