@@ -50,7 +50,7 @@ button{cursor:pointer}
 .main{padding:13px;overflow:hidden}
 .main-head{display:flex;justify-content:space-between;align-items:center}
 .main-head h2{font-size:18px;margin:2px 0 12px}
-.main-btn{border:1px solid #731019;color:#ff3140;background:#07090c;border-radius:6px;padding:5px 9px;font-size:11px;line-height:1.2;cursor:pointer;white-space:nowrap;transition:.15s}.main-btn:hover{background:#19070a;border-color:#d31825}
+.back{border:1px solid #731019;color:#ff3140;background:#07090c;border-radius:8px;padding:8px 12px}
 
 .player{
   height:360px;position:relative;overflow:hidden;border-radius:12px;border:1px solid #391116;
@@ -175,32 +175,6 @@ footer b{color:var(--red)}
 .page-empty{padding:28px 12px;text-align:center;color:#929ba6;border:1px dashed #303640;border-radius:10px;margin-top:12px}
 .toast{position:fixed;right:18px;bottom:18px;background:#11161c;border:1px solid #333b46;color:#fff;padding:10px 13px;border-radius:9px;font-size:11px;z-index:200;opacity:0;transform:translateY(8px);pointer-events:none;transition:.18s}
 .toast.show{opacity:1;transform:none}
-
-.more-info-wrap{margin:8px 0 13px}
-.more-info-toggle{display:inline-flex;align-items:center;gap:5px;border:0;background:transparent;color:var(--red);padding:0;font-size:11px;font-weight:700;cursor:pointer}
-.more-info-toggle:hover{text-decoration:underline}
-.more-info-text{display:none;margin:8px 0 0;color:#aeb6c0;font-size:11px;line-height:1.65}
-.more-info-text.open{display:block}
-.more-info-toggle .chev{display:inline-block;transition:transform .18s ease}
-.more-info-toggle.open .chev{transform:rotate(90deg)}
-
-
-.material-modal{position:fixed;inset:0;background:#000a;display:none;align-items:center;justify-content:center;padding:18px;z-index:300}
-.material-modal.show{display:flex}
-.material-box{width:min(460px,100%);background:#090c10;border:1px solid #303640;border-radius:14px;padding:18px;box-shadow:0 24px 70px #000}
-.material-box h3{margin:0 0 12px;font-size:16px}
-.material-field{display:grid;gap:6px;margin-bottom:12px}
-.material-field label{font-size:11px;color:#aeb6c0}
-.material-field input{width:100%;background:#05070a;border:1px solid #2c333c;border-radius:9px;color:white;padding:10px 11px}
-.material-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
-.material-actions button{border-radius:8px;padding:9px 12px}
-.material-cancel{border:1px solid #353c46;background:#0b0f14;color:#dce1e7}
-.material-save{border:0;background:linear-gradient(90deg,#c30c19,#f01726);color:white;font-weight:700}
-.material-list{display:grid;gap:8px;margin-top:12px}
-.material-item{display:flex;justify-content:space-between;gap:10px;align-items:center;border:1px solid #252a31;background:#080b0f;border-radius:9px;padding:9px 10px}
-.material-item strong{font-size:11px}.material-item small{display:block;color:#929ba6;margin-top:2px}
-.material-remove{border:0;background:transparent;color:#ff4a56;font-size:11px;cursor:pointer}
-
 </style>
 </head>
 <body>
@@ -232,10 +206,11 @@ footer b{color:var(--red)}
     </div>
   </aside>
 
- <div class="main-head">
-  <h2>Tutorial Video</h2>
-  <button class="main-btn" id="btnSelengkapnya">Selengkapnya →</button>
-</div>
+  <main class="main">
+    <div id="dashboard" class="page-view active">
+    <div class="main-head">
+      <h2>Tutorial Video</h2>
+    </div>
 
     <section class="player">
       <div class="wave"></div><div class="wave2"></div><div class="wave3"></div>
@@ -284,14 +259,6 @@ footer b{color:var(--red)}
     </div>
     <h3>Deskripsi</h3>
     <p class="desc">Geser daftar video. Kartu yang berada paling dekat dengan tengah akan otomatis menjadi fokus seperti Cover Flow.</p>
-    <div class="more-info-wrap">
-      <button class="more-info-toggle" id="moreInfoToggle" type="button" aria-expanded="false">
-        Selengkapnya <span class="chev">›</span>
-      </button>
-      <p class="more-info-text" id="moreInfoText">
-        Video ini berisi penjelasan lebih lengkap mengenai langkah penggunaan fitur yang sedang dipilih. Ikuti tahapan secara berurutan agar proses lebih mudah dipahami.
-      </p>
-    </div>
     <h3>Materi yang Dibahas</h3>
     <div class="topics">
       <span>Cara login ke sistem</span>
@@ -300,7 +267,7 @@ footer b{color:var(--red)}
       <span>Pengaturan profil</span>
       <span>Tips dan trik penggunaan</span>
     </div>
-    <button class="download" id="addMaterialBtn">＋ &nbsp; Tambahkan materi</button><div class="material-list" id="materialList"></div>
+    <button class="download">⇩ &nbsp; Tambahkan materi</button>
   </aside>
 </div>
 
@@ -594,112 +561,6 @@ updatePlayerTime();
 document.querySelectorAll("button").forEach(b=>{
   if(/Unduh Materi/i.test(b.textContent))b.addEventListener("click",()=>say("Materi pendukung siap dihubungkan ke file PDF nanti."));
 });
-
-const moreInfoToggle=document.getElementById("moreInfoToggle");
-const moreInfoText=document.getElementById("moreInfoText");
-if(moreInfoToggle&&moreInfoText){
-  moreInfoToggle.addEventListener("click",()=>{
-    const open=moreInfoText.classList.toggle("open");
-    moreInfoToggle.classList.toggle("open",open);
-    moreInfoToggle.setAttribute("aria-expanded",open?"true":"false");
-    moreInfoToggle.firstChild.nodeValue=open?"Tutup ":"Selengkapnya ";
-  });
-}
-
-
-const addMaterialBtn=document.getElementById("addMaterialBtn");
-const materialModal=document.getElementById("materialModal");
-const materialTitle=document.getElementById("materialTitle");
-const materialFile=document.getElementById("materialFile");
-const materialCancel=document.getElementById("materialCancel");
-const materialSave=document.getElementById("materialSave");
-const materialList=document.getElementById("materialList");
-const materialsByVideo={};
-
-function renderMaterials(){
-  if(!materialList)return;
-  const items=materialsByVideo[active]||[];
-  materialList.innerHTML=items.map((m,idx)=>`
-    <div class="material-item">
-      <div><strong>${m.title}</strong><small>${m.fileName}</small></div>
-      <div style="display:flex;gap:6px;align-items:center">
-        <a href="${m.url}" download="${m.fileName}" class="mini-btn" style="text-decoration:none">Unduh</a>
-        <button class="material-remove" type="button" data-i="${idx}">Hapus</button>
-      </div>
-    </div>`).join("");
-  materialList.querySelectorAll(".material-remove").forEach(b=>b.addEventListener("click",()=>{
-    const i=+b.dataset.i;
-    const removed=materialsByVideo[active].splice(i,1)[0]; if(removed&&removed.url)URL.revokeObjectURL(removed.url);
-    renderMaterials();
-    say("Materi dihapus");
-  }));
-}
-function openMaterialModal(){
-  materialTitle.value="";
-  materialFile.value="";
-  materialModal.classList.add("show");
-  materialModal.setAttribute("aria-hidden","false");
-  setTimeout(()=>materialTitle.focus(),30);
-}
-function closeMaterialModal(){
-  materialModal.classList.remove("show");
-  materialModal.setAttribute("aria-hidden","true");
-}
-if(addMaterialBtn)addMaterialBtn.addEventListener("click",openMaterialModal);
-if(materialCancel)materialCancel.addEventListener("click",closeMaterialModal);
-if(materialModal)materialModal.addEventListener("click",e=>{if(e.target===materialModal)closeMaterialModal()});
-document.addEventListener("keydown",e=>{
-  if(!materialModal || !materialModal.classList.contains("show"))return;
-  if(e.key==="Escape")closeMaterialModal();
-  if(e.key==="Enter" && document.activeElement!==materialFile)materialSave.click();
-});
-if(materialSave)materialSave.addEventListener("click",()=>{
-  const title=materialTitle.value.trim();
-  const file=materialFile.files[0];
-  if(!title){say("Isi judul materi dulu");return}
-  if(!file){say("Pilih file materi dulu");return}
-  if(!materialsByVideo[active])materialsByVideo[active]=[];
-  const url=URL.createObjectURL(file);
-  materialsByVideo[active].push({title,fileName:file.name,url,file});
-  closeMaterialModal();
-  renderMaterials();
-  say("Materi ditambahkan");
-});
-
-const prevSetInfo2=setInfo;
-setInfo=function(i){
-  prevSetInfo2(i);
-  renderMaterials();
-};
-renderMaterials();
-
-
-const btnSelengkapnya=document.getElementById("btnSelengkapnya");
-if(btnSelengkapnya){
-  btnSelengkapnya.addEventListener("click",()=>{
-    showPage("tutorial");
-  });
-}
-
 </script>
-<div class="toast" id="toast"></div>
-<div class="material-modal" id="materialModal" aria-hidden="true">
-  <div class="material-box">
-    <h3>Tambahkan Materi</h3>
-    <div class="material-field">
-      <label for="materialTitle">Judul materi</label>
-      <input id="materialTitle" type="text" placeholder="Contoh: Panduan Manajemen Data">
-    </div>
-    <div class="material-field">
-      <label for="materialFile">Pilih file</label>
-      <input id="materialFile" type="file" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt">
-    </div>
-    <div class="material-actions">
-      <button class="material-cancel" id="materialCancel" type="button">Batal</button>
-      <button class="material-save" id="materialSave" type="button">Simpan</button>
-    </div>
-  </div>
-</div>
-
-</body>
+<div class="toast" id="toast"></div></body>
 </html>
