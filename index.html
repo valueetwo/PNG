@@ -1,103 +1,317 @@
 <!doctype html>
 <html lang="id">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>PNG Dashboard</title>
 <style>
-:root{--bg:#05080d;--panel:#09111b;--line:#1d2a38;--red:#f31324;--text:#f7f7f8;--muted:#98a5b5}
-*{box-sizing:border-box}body{margin:0;background:#000;color:var(--text);font:14px Arial,sans-serif}
-header{height:50px;display:grid;grid-template-columns:92px minmax(260px,420px) 1fr;gap:12px;align-items:center;padding:0 10px;border-bottom:1px solid var(--line);background:#050a12;position:sticky;top:0;z-index:10}
-.logo{font-size:17px;font-weight:900}.logo b{color:var(--red);margin-right:9px}.search{height:30px;background:#0b1420;border:1px solid #243448;border-radius:10px;color:#fff;padding:0 15px}.user{justify-self:end;color:#aeb8c6}
-.grid{display:grid;grid-template-columns:94px minmax(0,1fr) 160px;gap:8px;padding:7px;min-height:calc(100vh - 50px)}
-.side,.main,.info{background:#05080d;border:1px solid var(--line);border-radius:14px}.side{padding:6px;display:flex;flex-direction:column}.side button{width:100%;padding:8px 6px;font-size:10px;border:0;border-radius:8px;background:transparent;color:#e7ebf1;text-align:left;margin-bottom:4px}.side button.on{background:linear-gradient(90deg,#b50d19,#6f0b13);border-left:3px solid #ff3846}.support{margin-top:auto;border:1px solid var(--line);border-radius:8px;padding:8px;color:#aeb8c6;line-height:1.55;font-size:12px}.support strong{display:block;color:#fff;margin-bottom:6px}
-.main{padding:9px;overflow:hidden}.top{display:flex;align-items:center;justify-content:space-between}.top h2{margin:1px 0 8px;font-size:13px}.back{background:#0c1623;border:1px solid #6d1018;color:#ff4250;border-radius:6px;padding:6px 9px;font-size:9px}
-.player{height:185px;border:1px solid #40151a;border-radius:13px;position:relative;overflow:hidden;background:radial-gradient(circle at 75% 48%,#b4081350,transparent 32%),linear-gradient(140deg,#210205,#69030a 52%,#180205)}
-.wave,.wave2{position:absolute;left:-10%;right:-10%;border-radius:50%;transform:rotate(-3deg)}.wave{top:47%;height:110px;border-top:13px solid #f31324;filter:drop-shadow(0 0 12px #f31324)}.wave2{top:54%;height:95px;border-top:3px solid #ff5b66;opacity:.75}
-.hero{position:absolute;inset:0;display:grid;place-content:center;text-align:center}.hero h1{font-size:38px;margin:0 0 7px}.hero p{font-size:11px;letter-spacing:3px;color:#c6cbd3;margin:0}
-.controls{position:absolute;bottom:8px;left:10px;right:10px;display:flex;align-items:center;gap:12px;font-size:12px}.play{width:20px;height:20px;font-size:9px;border:0;border-radius:50%}.track{height:4px;background:#606976;flex:1;border-radius:20px;overflow:hidden}.track i{display:block;width:27%;height:100%;background:var(--red)}
-.more{border-top:1px solid #171717;margin-top:8px;padding:8px 0 0;background:#000;border-radius:0 0 10px 10px}.more h3{margin:0;font-size:11px}
-.scroll{height:168px;display:flex;align-items:flex-end;gap:8px;overflow-x:auto;overflow-y:hidden;padding:34px 6px 10px;background:#000;scroll-snap-type:x proximity;scrollbar-width:thin;-webkit-overflow-scrolling:touch;touch-action:pan-x;overscroll-behavior-x:contain;scrollbar-color:#f31324 #202832;cursor:grab}.scroll:active{cursor:grabbing}.scroll::-webkit-scrollbar{height:5px}.scroll::-webkit-scrollbar-track{background:#202832;border-radius:9px}.scroll::-webkit-scrollbar-thumb{background:#f31324;border-radius:9px}
-.card{flex:0 0 78px;scroll-snap-align:center;opacity:.55;transform-origin:center bottom;transition:transform .12s linear,opacity .12s linear;cursor:pointer;will-change:transform,opacity}.card.active{z-index:4}.card.near{z-index:2}.thumb{height:76px;border-radius:11px;border:1px solid #552027;position:relative;overflow:hidden;background:linear-gradient(145deg,#370307,#8e0710 60%,#250306)}.thumb:after{content:"";position:absolute;left:-20%;right:-20%;top:50%;height:60px;border-radius:50%;border-top:7px solid #f31324;filter:drop-shadow(0 0 7px #f31324);transform:rotate(-6deg)}.card.active .thumb{border-color:#ff3442;box-shadow:0 0 0 1px #ff3442,0 15px 35px #f3132428}.time{position:absolute;right:6px;bottom:6px;background:#050505dd;padding:3px 5px;border-radius:4px;font-size:10px;z-index:2}.card h4{margin:9px 0 4px;font-size:13px}.card p{margin:0;color:var(--muted);font-size:10px}
-.info{padding:9px;font-size:9px}.info h2{margin:0 0 8px;font-size:12px}.title{color:#ff2635}.desc{color:#b9c3cf;line-height:1.45;font-size:8px}.meta{display:grid;grid-template-columns:1fr 1fr;gap:7px;padding:9px 0;border-bottom:1px solid var(--line);font-size:8px}.label{color:var(--muted)}.tag{background:#bd101d;padding:5px 7px;border-radius:5px}.topics{display:grid;gap:5px;color:#d4d9e0;font-size:8px}.topics span:before{content:"✓";color:#f31324;border:1px solid #f31324;border-radius:50%;padding:1px 4px;margin-right:7px}.download{margin-top:10px;width:100%;border:0;border-radius:6px;padding:8px;font-size:8px;background:linear-gradient(90deg,#cf0d1b,#ff1728);color:#fff;font-weight:bold}
-footer{text-align:center;color:#8d98a7;padding:1px 0 7px;font-size:8px}footer b{color:#f31324}
-@media(max-width:1050px){.grid{grid-template-columns:170px 1fr}.info{grid-column:2}.player{height:350px}}
-@media(max-width:720px){header{height:auto;grid-template-columns:1fr auto;padding:12px}.search{grid-column:1/-1;grid-row:2}.grid{grid-template-columns:1fr}.side{display:none}.info{grid-column:auto}.player{height:300px}.user{font-size:0}}
+:root{
+  --bg:#05070b;
+  --panel:#080d13;
+  --panel2:#0b1118;
+  --line:#1b2530;
+  --red:#f31324;
+  --text:#f7f8fa;
+  --muted:#8f9baa;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:#000;color:var(--text);font-family:Inter,Arial,sans-serif}
+button,input{font:inherit}
+header{
+  height:64px;display:grid;grid-template-columns:190px minmax(300px,640px) 1fr;
+  align-items:center;gap:20px;padding:0 18px;background:#060a10;border-bottom:1px solid var(--line);
+  position:sticky;top:0;z-index:20
+}
+.logo{font-size:21px;font-weight:900;display:flex;align-items:center;gap:10px}
+.logo-mark{width:28px;height:25px;clip-path:polygon(0 0,100% 50%,0 100%,18% 50%);background:var(--red)}
+.search{height:38px;border:1px solid #243242;border-radius:9px;background:#0a121c;color:#fff;padding:0 14px}
+.user{justify-self:end;color:#cbd3dc;font-size:13px}
+.layout{
+  display:grid;grid-template-columns:190px minmax(0,1fr) 330px;
+  gap:12px;padding:12px;min-height:calc(100vh - 64px)
+}
+.sidebar,.main,.info{
+  background:#070b11;border:1px solid var(--line);border-radius:13px
+}
+.sidebar{padding:10px;display:flex;flex-direction:column}
+.nav{display:grid;gap:4px}
+.nav button{border:0;background:transparent;color:#e8edf3;text-align:left;padding:11px 12px;border-radius:8px}
+.nav button.active{background:linear-gradient(90deg,#b40d18,#6d0910);border-left:3px solid #ff3a47}
+.help{margin-top:auto;border:1px solid var(--line);border-radius:10px;padding:12px;color:#aab5c1;font-size:12px;line-height:1.5}
+.help strong{display:block;color:#fff;margin-bottom:6px}
+.main{padding:14px;overflow:hidden}
+.top{display:flex;justify-content:space-between;align-items:center}
+.top h2{font-size:18px;margin:0 0 12px}
+.back{border:1px solid #661018;background:#0a0d12;color:#ff3b49;border-radius:7px;padding:8px 11px;font-size:12px}
+
+.player{
+  height:320px;position:relative;overflow:hidden;border-radius:12px;border:1px solid #42131a;
+  background:radial-gradient(circle at 74% 45%,rgba(210,0,15,.24),transparent 30%),
+             linear-gradient(140deg,#240205,#69030a 52%,#170205)
+}
+.wave,.wave2{position:absolute;left:-10%;right:-10%;border-radius:50%;transform:rotate(-4deg)}
+.wave{top:47%;height:115px;border-top:12px solid #f31324;filter:drop-shadow(0 0 12px #f31324)}
+.wave2{top:54%;height:90px;border-top:3px solid #ff6670;opacity:.72}
+.hero{position:absolute;inset:0;display:grid;place-content:center;text-align:center}
+.hero h1{font-size:clamp(28px,3vw,48px);margin:0 0 8px;letter-spacing:.5px}
+.hero p{font-size:13px;letter-spacing:4px;color:#d6d7db;margin:0}
+.controls{position:absolute;left:14px;right:14px;bottom:11px;display:flex;align-items:center;gap:10px;font-size:12px}
+.play{width:30px;height:30px;border:0;border-radius:50%}
+.track{height:4px;background:#565f6b;flex:1;border-radius:99px;overflow:hidden}
+.track span{display:block;width:28%;height:100%;background:var(--red)}
+
+.more{margin-top:12px;padding-top:11px;border-top:1px solid #171c23;background:#000}
+.more-head{display:flex;justify-content:space-between;align-items:center}
+.more-head h3{font-size:14px;margin:0}
+.more-head span{font-size:11px;color:var(--red)}
+
+.scroller{
+  position:relative;
+  height:220px;
+  display:flex;
+  align-items:flex-end;
+  gap:14px;
+  overflow-x:auto;
+  overflow-y:hidden;
+  padding:42px 22px 16px;
+  background:#000;
+  scroll-snap-type:x mandatory;
+  scroll-padding-inline:calc(50% - 90px);
+  -webkit-overflow-scrolling:touch;
+  touch-action:pan-x;
+  scrollbar-width:thin;
+  scrollbar-color:var(--red) #1e232a;
+  cursor:grab
+}
+.scroller:active{cursor:grabbing}
+.scroller::-webkit-scrollbar{height:5px}
+.scroller::-webkit-scrollbar-track{background:#1e232a;border-radius:10px}
+.scroller::-webkit-scrollbar-thumb{background:var(--red);border-radius:10px}
+
+.card{
+  flex:0 0 150px;
+  scroll-snap-align:center;
+  transform-origin:center bottom;
+  transition:transform .12s linear,opacity .12s linear,filter .12s linear;
+  cursor:pointer;
+  will-change:transform,opacity;
+}
+.thumb{
+  height:98px;border-radius:10px;border:1px solid #4a1b22;position:relative;overflow:hidden;
+  background:linear-gradient(145deg,#310306,#8b0710 60%,#210204)
+}
+.thumb:after{
+  content:"";position:absolute;left:-25%;right:-25%;top:50%;height:56px;border-radius:50%;
+  border-top:7px solid #f31324;filter:drop-shadow(0 0 8px #f31324);transform:rotate(-7deg)
+}
+.duration{position:absolute;right:6px;bottom:6px;background:#050505e6;padding:3px 5px;border-radius:4px;font-size:10px;z-index:2}
+.card h4{margin:7px 0 3px;font-size:11px;line-height:1.25}
+.card p{margin:0;color:var(--muted);font-size:9px}
+
+.info{padding:16px}
+.info h2{font-size:17px;margin:0 0 12px}
+.info .title{font-size:14px;color:#ff2635;margin:0 0 10px}
+.desc{font-size:11px;color:#b6c0cc;line-height:1.55}
+.meta{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px 0;border-bottom:1px solid var(--line);font-size:10px}
+.label{color:var(--muted)}
+.tag{display:inline-block;background:#bb101c;padding:5px 7px;border-radius:5px}
+.info h3:not(.title){font-size:13px;margin:14px 0 9px}
+.topics{display:grid;gap:7px;font-size:10px;color:#d9dee5}
+.topics span:before{content:"✓";display:inline-grid;place-items:center;width:16px;height:16px;border:1px solid var(--red);border-radius:50%;color:var(--red);margin-right:7px;font-size:9px}
+.download{margin-top:16px;width:100%;border:0;border-radius:8px;padding:11px;background:linear-gradient(90deg,#cf0d1b,#ff1728);color:#fff;font-weight:700;font-size:11px}
+footer{text-align:center;color:#8d98a7;padding:0 0 14px;font-size:10px}
+footer b{color:var(--red)}
+
+@media(max-width:1150px){
+  .layout{grid-template-columns:165px minmax(0,1fr)}
+  .info{grid-column:2}
+}
+@media(max-width:760px){
+  header{height:auto;grid-template-columns:1fr auto;padding:10px}
+  .search{grid-column:1/-1;grid-row:2}
+  .layout{grid-template-columns:1fr}
+  .sidebar{display:none}
+  .info{grid-column:auto}
+  .player{height:280px}
+  .scroller{height:205px}
+}
 </style>
 </head>
 <body>
-<header><div class="logo"><b>◇</b>PNG</div><input class="search" placeholder="Cari tutorial, FAQ, atau SOP..."><div class="user">● &nbsp; Admin · Administrator⌄</div></header>
-<div class="grid">
-<aside class="side"><button class="on">⌂ &nbsp; Dashboard</button><button>▣ &nbsp; Tutorial Video</button><button>ⓘ &nbsp; FAQ</button><button>▤ &nbsp; SOP</button><button>□ &nbsp; Kategori</button><button>☆ &nbsp; Favorit</button><button>◷ &nbsp; Riwayat</button><button>☷ &nbsp; Playlist Saya</button><div class="support"><strong>🎧 Pusat Tutorial & Dokumentasi</strong>Temukan tutorial, FAQ, dan SOP yang kamu butuhkan dengan mudah.</div></aside>
-<main class="main"><div class="top"><h2>Tutorial Video</h2><button class="back">← Kembali ke Daftar</button></div>
-<section class="player"><div class="wave"></div><div class="wave2"></div><div class="hero"><div><h1 id="heroTitle">Tutorial Penggunaan Sistem</h1><p>PNG Dashboard</p></div></div><div class="controls"><button class="play">▶</button><span>0:00 / <b id="heroTime">8:45</b></span><div class="track"><i></i></div><span>🔊 &nbsp; ⚙ &nbsp; ⛶</span></div></section>
-<section class="more"><div style="display:flex;justify-content:space-between;align-items:center"><h3>Video Lainnya</h3><span style="color:#f31324;font-size:11px">Lihat semua →</span></div><div class="scroll" id="scroll"></div></section></main>
-<aside class="info"><h2>Informasi Video</h2><h3 class="title" id="infoTitle">Tutorial Penggunaan Sistem</h3><p class="desc" id="infoDesc">Video ini menjelaskan langkah-langkah dasar dalam menggunakan sistem PNG Dashboard.</p><div class="meta"><div class="label">◷ Durasi</div><div id="duration">8 menit 45 detik</div><div class="label">□ Kategori</div><div><span class="tag" id="category">Penggunaan Sistem</span></div><div class="label">▣ Dibuat pada</div><div>20 Mei 2024</div><div class="label">◉ Diperbarui</div><div>22 Mei 2024</div><div class="label">♙ Penulis</div><div>Tim Dokumentasi</div></div><h3>Deskripsi</h3><p class="desc">Pilih kartu video di bawah. Kartu aktif akan membesar di tengah seperti desain yang dipilih.</p><h3>Materi yang Dibahas</h3><div class="topics"><span>Cara login ke sistem</span><span>Navigasi dashboard</span><span>Mengelola data</span><span>Pengaturan profil</span><span>Tips dan trik penggunaan</span></div><button class="download">⇩ &nbsp; Unduh Materi Pendukung</button></aside>
-</div><footer>© 2024 <b>PNG</b> Dashboard. Semua hak dilindungi.</footer>
-<script>
-const data=[["Cara Login ke Sistem","6:12","6 menit 12 detik","Login"],["Cara Membuat Laporan","6:30","6 menit 30 detik","Laporan"],["Tutorial Penggunaan Sistem","8:45","8 menit 45 detik","Penggunaan Sistem"],["Manajemen Data","7:12","7 menit 12 detik","Manajemen Data"],["Pengaturan Akun","5:45","5 menit 45 detik","Akun"],["Keamanan Data","6:23","6 menit 23 detik","Keamanan"]];
-let active=2;const box=document.getElementById("scroll");
-function draw(center=false){box.innerHTML="";data.forEach((v,i)=>{const c=document.createElement("article");c.className="card";c.innerHTML=`<div class="thumb"><span class="time">${v[1]}</span></div><h4>${v[0]}</h4><p>${i===active?"123 views · 2 hari lalu":"Video tutorial"}</p>`;c.onclick=()=>{box.children[i].scrollIntoView({behavior:"smooth",block:"nearest",inline:"center"})};box.appendChild(c)});const v=data[active];heroTitle.textContent=v[0];heroTime.textContent=v[1];infoTitle.textContent=v[0];duration.textContent=v[2];category.textContent=v[3];infoDesc.textContent="Panduan "+v[0].toLowerCase()+" pada sistem PNG Dashboard.";if(center)requestAnimationFrame(()=>box.children[active].scrollIntoView({behavior:"smooth",block:"nearest",inline:"center"}))}
+<header>
+  <div class="logo"><span class="logo-mark"></span>PNG</div>
+  <input class="search" placeholder="Cari tutorial, FAQ, atau SOP...">
+  <div class="user">● &nbsp; Admin · Administrator⌄</div>
+</header>
 
+<div class="layout">
+  <aside class="sidebar">
+    <div class="nav">
+      <button class="active">⌂ &nbsp; Dashboard</button>
+      <button>▣ &nbsp; Tutorial Video</button>
+      <button>ⓘ &nbsp; FAQ</button>
+      <button>▤ &nbsp; SOP</button>
+      <button>□ &nbsp; Kategori</button>
+      <button>☆ &nbsp; Favorit</button>
+      <button>◷ &nbsp; Riwayat</button>
+      <button>☷ &nbsp; Playlist Saya</button>
+    </div>
+    <div class="help"><strong>🎧 Pusat Tutorial & Dokumentasi</strong>Temukan tutorial, FAQ, dan SOP yang kamu butuhkan dengan mudah.</div>
+  </aside>
+
+  <main class="main">
+    <div class="top">
+      <h2>Tutorial Video</h2>
+      <button class="back">← Kembali ke Daftar</button>
+    </div>
+
+    <section class="player">
+      <div class="wave"></div><div class="wave2"></div>
+      <div class="hero">
+        <div>
+          <h1 id="heroTitle">Tutorial Penggunaan Sistem</h1>
+          <p>PNG DASHBOARD</p>
+        </div>
+      </div>
+      <div class="controls">
+        <button class="play">▶</button>
+        <span>0:00 / <b id="heroTime">8:45</b></span>
+        <div class="track"><span></span></div>
+        <span>🔊 &nbsp; ⚙ &nbsp; ⛶</span>
+      </div>
+    </section>
+
+    <section class="more">
+      <div class="more-head"><h3>Video Lainnya</h3><span>Geser ke samping →</span></div>
+      <div class="scroller" id="scroller"></div>
+    </section>
+  </main>
+
+  <aside class="info">
+    <h2>Informasi Video</h2>
+    <h3 class="title" id="infoTitle">Tutorial Penggunaan Sistem</h3>
+    <p class="desc" id="infoDesc">Panduan penggunaan sistem PNG Dashboard.</p>
+    <div class="meta">
+      <div class="label">◷ Durasi</div><div id="duration">8 menit 45 detik</div>
+      <div class="label">□ Kategori</div><div><span class="tag" id="category">Penggunaan Sistem</span></div>
+      <div class="label">▣ Dibuat pada</div><div>20 Mei 2024</div>
+      <div class="label">◉ Diperbarui</div><div>22 Mei 2024</div>
+      <div class="label">♙ Penulis</div><div>Tim Dokumentasi</div>
+    </div>
+    <h3>Deskripsi</h3>
+    <p class="desc">Geser daftar video. Kartu yang berada paling dekat dengan tengah akan otomatis menjadi fokus seperti Cover Flow.</p>
+    <h3>Materi yang Dibahas</h3>
+    <div class="topics">
+      <span>Cara login ke sistem</span><span>Navigasi dashboard</span><span>Mengelola data</span><span>Pengaturan profil</span><span>Tips dan trik penggunaan</span>
+    </div>
+    <button class="download">⇩ &nbsp; Unduh Materi Pendukung</button>
+  </aside>
+</div>
+
+<footer>© 2024 <b>PNG</b> Dashboard. Semua hak dilindungi.</footer>
+
+<script>
+const videos=[
+  ["Cara Login ke Sistem","6:12","6 menit 12 detik","Login"],
+  ["Cara Membuat Laporan","6:30","6 menit 30 detik","Laporan"],
+  ["Tutorial Penggunaan Sistem","8:45","8 menit 45 detik","Penggunaan Sistem"],
+  ["Manajemen Data","7:12","7 menit 12 detik","Manajemen Data"],
+  ["Pengaturan Akun","5:45","5 menit 45 detik","Akun"],
+  ["Keamanan Data","6:23","6 menit 23 detik","Keamanan"]
+];
+
+const scroller=document.getElementById("scroller");
+let active=2;
 let raf=0;
+
+function render(){
+  scroller.innerHTML="";
+  videos.forEach((v,i)=>{
+    const card=document.createElement("article");
+    card.className="card";
+    card.innerHTML=`<div class="thumb"><span class="duration">${v[1]}</span></div><h4>${v[0]}</h4><p>Video tutorial</p>`;
+    card.addEventListener("click",()=>centerCard(i,true));
+    scroller.appendChild(card);
+  });
+}
+
+function setInfo(i){
+  active=i;
+  const v=videos[i];
+  heroTitle.textContent=v[0];
+  heroTime.textContent=v[1];
+  infoTitle.textContent=v[0];
+  duration.textContent=v[2];
+  category.textContent=v[3];
+  infoDesc.textContent="Panduan "+v[0].toLowerCase()+" pada sistem PNG Dashboard.";
+}
+
 function updateCoverFlow(){
   cancelAnimationFrame(raf);
   raf=requestAnimationFrame(()=>{
-    const center=box.scrollLeft+box.clientWidth/2;
-    let closest=0, best=Infinity;
-    [...box.children].forEach((card,i)=>{
-      const cardCenter=card.offsetLeft+card.offsetWidth/2;
-      const dist=(cardCenter-center)/card.offsetWidth;
+    const rect=scroller.getBoundingClientRect();
+    const viewportCenter=rect.left+rect.width/2;
+    let closest=0,best=Infinity;
+
+    [...scroller.children].forEach((card,i)=>{
+      const r=card.getBoundingClientRect();
+      const cardCenter=r.left+r.width/2;
+      const dist=(cardCenter-viewportCenter)/170;
       const ad=Math.abs(dist);
+
       if(ad<best){best=ad;closest=i}
-      const scale=Math.max(.82,1.18-ad*.18);
-      const lift=Math.max(0,28-ad*18);
-      const fade=Math.max(.48,1-ad*.22);
-      card.style.transform=`translateY(${-lift}px) scale(${scale})`;
-      card.style.opacity=fade;
-      card.style.zIndex=String(Math.max(1,10-Math.round(ad*3)));
+
+      const scale=Math.max(.80,1.18-ad*.16);
+      const lift=Math.max(0,30-ad*14);
+      const opacity=Math.max(.46,1-ad*.17);
+      const rotate=Math.max(-10,Math.min(10,dist*-4));
+
+      card.style.transform=`translateY(${-lift}px) scale(${scale}) rotateY(${rotate}deg)`;
+      card.style.opacity=opacity;
+      card.style.zIndex=String(Math.max(1,20-Math.round(ad*4)));
+      card.style.filter=ad<.55?"brightness(1.12)":"brightness(.86)";
     });
-    if(closest!==active){
-      active=closest;
-      const v=data[active];
-      heroTitle.textContent=v[0];
-      heroTime.textContent=v[1];
-      infoTitle.textContent=v[0];
-      duration.textContent=v[2];
-      category.textContent=v[3];
-      infoDesc.textContent="Panduan "+v[0].toLowerCase()+" pada sistem PNG Dashboard.";
-    }
+
+    if(closest!==active)setInfo(closest);
   });
 }
-box.addEventListener("scroll",updateCoverFlow,{passive:true});
-window.addEventListener("resize",updateCoverFlow);
 
-box.addEventListener("wheel",e=>{
+function centerCard(i,smooth=false){
+  const card=scroller.children[i];
+  if(!card)return;
+  const target=card.offsetLeft-(scroller.clientWidth-card.offsetWidth)/2;
+  scroller.scrollTo({left:target,behavior:smooth?"smooth":"auto"});
+}
+
+scroller.addEventListener("scroll",updateCoverFlow,{passive:true});
+window.addEventListener("resize",()=>{centerCard(active,false);updateCoverFlow()});
+
+scroller.addEventListener("wheel",e=>{
   if(Math.abs(e.deltaY)>Math.abs(e.deltaX)){
-    box.scrollLeft += e.deltaY;
+    scroller.scrollLeft+=e.deltaY;
     e.preventDefault();
   }
 },{passive:false});
 
-let dragging=false, startX=0, startScroll=0, moved=false;
-box.addEventListener("pointerdown",e=>{
-  if(e.pointerType==="touch") return;
-  dragging=true; moved=false;
-  startX=e.clientX;
-  startScroll=box.scrollLeft;
-  box.setPointerCapture(e.pointerId);
+let dragging=false,startX=0,startScroll=0;
+scroller.addEventListener("pointerdown",e=>{
+  if(e.pointerType==="touch")return;
+  dragging=true;startX=e.clientX;startScroll=scroller.scrollLeft;
+  scroller.setPointerCapture(e.pointerId);
 });
-box.addEventListener("pointermove",e=>{
-  if(!dragging) return;
-  const dx=e.clientX-startX;
-  if(Math.abs(dx)>4) moved=true;
-  box.scrollLeft=startScroll-dx;
+scroller.addEventListener("pointermove",e=>{
+  if(!dragging)return;
+  scroller.scrollLeft=startScroll-(e.clientX-startX);
 });
-box.addEventListener("pointerup",()=>dragging=false);
-box.addEventListener("pointercancel",()=>dragging=false);
-box.addEventListener("click",e=>{
-  if(moved){e.preventDefault();e.stopPropagation();moved=false}
-},true);
+scroller.addEventListener("pointerup",()=>dragging=false);
+scroller.addEventListener("pointercancel",()=>dragging=false);
 
-draw();
-requestAnimationFrame(()=>{box.children[active].scrollIntoView({block:"nearest",inline:"center"});setTimeout(updateCoverFlow,80)});
-</script></body></html>
+render();
+setInfo(active);
+requestAnimationFrame(()=>{
+  centerCard(active,false);
+  updateCoverFlow();
+});
+</script>
+</body>
+</html>
