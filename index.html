@@ -1,144 +1,103 @@
 <!doctype html>
 <html lang="id">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>PNG Dashboard</title>
-  <style>
-    :root{
-      --bg:#060a12; --panel:#0b1220; --panel2:#0d1626; --line:#1d2a3b;
-      --text:#f7f8fb; --muted:#9aa8bb; --pink:#f31324; --purple:#9b0711;
-      --shadow:0 18px 55px rgba(0,0,0,.38);
-    }
-    *{box-sizing:border-box}
-    body{margin:0;background:radial-gradient(circle at 45% 0,#11172b 0,#070b13 36%,#04070d 100%);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif}
-    button,input{font:inherit}
-    button{cursor:pointer}
-    .topbar{height:74px;display:grid;grid-template-columns:220px minmax(260px,620px) 1fr;align-items:center;gap:24px;padding:0 24px;border-bottom:1px solid var(--line);background:rgba(5,9,16,.82);backdrop-filter:blur(16px);position:sticky;top:0;z-index:20}
-    .brand{display:flex;align-items:center;gap:12px;font-weight:800;font-size:22px}
-    .logo{width:34px;height:34px;border:4px solid var(--pink);border-radius:9px 16px 9px 16px;transform:rotate(45deg);box-shadow:0 0 22px rgba(243,19,36,.25)}
-    .search{height:44px;border:1px solid var(--line);background:#0b1321;border-radius:12px;padding:0 16px;color:white;width:100%;outline:none}
-    .profile{justify-self:end;color:var(--muted);font-size:14px}
-    .layout{display:grid;grid-template-columns:210px minmax(0,1fr) 360px;gap:16px;padding:16px;min-height:calc(100vh - 74px)}
-    .sidebar,.main,.info{border:1px solid var(--line);background:linear-gradient(180deg,rgba(13,22,38,.92),rgba(7,13,23,.92));border-radius:16px;box-shadow:var(--shadow)}
-    .sidebar{padding:14px;display:flex;flex-direction:column}
-    .nav{display:grid;gap:7px}
-    .nav button{border:0;color:#dce3ed;background:transparent;text-align:left;padding:13px 14px;border-radius:10px}
-    .nav button.active{background:linear-gradient(90deg,rgba(243,19,36,.26),rgba(155,7,17,.16));color:white;border-left:3px solid var(--pink)}
-    .support{margin-top:auto;border:1px solid var(--line);border-radius:12px;padding:14px;color:var(--muted);font-size:13px;line-height:1.5}
-    .support strong{color:white;display:block;margin-bottom:6px}
-    .main{padding:18px;overflow:hidden}
-    .section-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-    h2,h3,p{margin-top:0}
-    h2{font-size:20px}
-    h3{font-size:17px}
-    .ghost{border:1px solid var(--line);background:#101a2b;color:#dce3ed;border-radius:9px;padding:9px 12px}
-    .player{position:relative;aspect-ratio:16/8.2;border:1px solid #27364c;border-radius:14px;overflow:hidden;background:
-      radial-gradient(circle at 72% 48%,rgba(243,19,36,.35),transparent 25%),
-      radial-gradient(circle at 28% 46%,rgba(52,91,255,.45),transparent 28%),
-      linear-gradient(145deg,#142d79,#16112f 60%,#32102e)}
-    .wave{position:absolute;left:-10%;right:-10%;top:45%;height:140px;border-radius:50%;border-top:22px solid rgba(164,63,255,.45);transform:rotate(3deg);filter:drop-shadow(0 0 22px rgba(255,61,190,.4))}
-    .player-copy{position:absolute;inset:0;display:grid;place-content:center;text-align:center;text-shadow:0 2px 18px #000}
-    .player-copy h1{font-size:clamp(22px,3vw,34px);margin:0 0 6px}
-    .player-copy p{font-size:18px;color:#d6d7e2}
-    .controls{position:absolute;left:18px;right:18px;bottom:14px;display:flex;align-items:center;gap:12px}
-    .play{width:38px;height:38px;border-radius:50%;border:0;background:white;color:#111}
-    .bar{height:4px;flex:1;background:#485166;border-radius:99px;overflow:hidden}
-    .bar span{display:block;width:28%;height:100%;background:linear-gradient(90deg,var(--pink),var(--purple))}
-    .time{font-size:12px;color:#dce3ed}
-    .carousel-wrap{margin-top:18px;border-top:1px solid var(--line);padding-top:16px}
-    .carousel-head{display:flex;align-items:center;justify-content:space-between}
-    .carousel{display:flex;align-items:center;gap:16px;overflow-x:auto;overflow-y:hidden;padding:28px 24px 26px;scroll-snap-type:x proximity;scrollbar-width:thin;scrollbar-color:#f31324 #252a31;cursor:grab;height:265px}
-    .carousel:active{cursor:grabbing}.carousel::-webkit-scrollbar{height:7px}.carousel::-webkit-scrollbar-track{background:#252a31;border-radius:99px}.carousel::-webkit-scrollbar-thumb{background:#f31324;border-radius:99px}
-    .card{position:relative;flex:0 0 185px;scroll-snap-align:center;opacity:.62;transition:.3s;cursor:pointer;transform:scale(.86)}
-    .thumb{height:120px;border-radius:13px;border:1px solid #4a2024;box-shadow:0 18px 35px rgba(0,0,0,.38);position:relative;overflow:hidden}
-    .thumb:after{content:"";position:absolute;left:-20%;right:-20%;top:48%;height:65px;border-radius:50%;border-top:8px solid rgba(243,19,36,.72);filter:drop-shadow(0 0 8px #f31324);transform:rotate(-8deg)}
-    .duration{position:absolute;right:7px;bottom:7px;background:rgba(0,0,0,.8);padding:3px 6px;border-radius:5px;font-size:11px}.card h4{margin:10px 0 4px;font-size:14px}.card p{color:var(--muted);font-size:12px}
-    .card.active{opacity:1;transform:scale(1.16);z-index:5;margin:0 12px}.card.active .thumb{border-color:#f31324;box-shadow:0 0 0 1px #f31324,0 18px 45px rgba(243,19,36,.2)}
-    .arrow,.dots{display:none}
-    .info{padding:22px}
-    .info .desc{color:#b4bfce;line-height:1.65;font-size:14px}
-    .meta{display:grid;grid-template-columns:1fr 1fr;gap:14px 12px;padding:18px 0;border-bottom:1px solid var(--line)}
-    .label{color:var(--muted);font-size:13px}.value{font-size:13px}
-    .tag{display:inline-block;background:#b30d19;padding:5px 8px;border-radius:6px}
-    .topics{display:grid;gap:11px;margin:14px 0 22px;color:#c9d1dc;font-size:14px}
-    .topics span:before{content:"✓";display:inline-grid;place-items:center;width:18px;height:18px;border:1px solid var(--purple);border-radius:50%;color:#a88cff;margin-right:9px;font-size:11px}
-    .download{border:0;background:linear-gradient(90deg,#5a36c8,#7b45ff);color:white;border-radius:10px;padding:13px 16px;width:100%;font-weight:700}
-    @media(max-width:1050px){.layout{grid-template-columns:180px minmax(0,1fr)}.info{grid-column:2}.topbar{grid-template-columns:180px 1fr auto}}
-    @media(max-width:760px){.topbar{grid-template-columns:1fr auto;height:auto;padding:14px}.search{grid-row:2;grid-column:1/-1}.layout{grid-template-columns:1fr}.sidebar{display:none}.info{grid-column:auto}.main{padding:12px}.carousel{transform:scale(.86);margin-inline:-35px}.profile{font-size:0}}
-  </style>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PNG Dashboard</title>
+<style>
+:root{--bg:#05080d;--panel:#09111b;--line:#1d2a38;--red:#f31324;--text:#f7f7f8;--muted:#98a5b5}
+*{box-sizing:border-box}body{margin:0;background:#000;color:var(--text);font:14px Arial,sans-serif}
+header{height:50px;display:grid;grid-template-columns:92px minmax(260px,420px) 1fr;gap:12px;align-items:center;padding:0 10px;border-bottom:1px solid var(--line);background:#050a12;position:sticky;top:0;z-index:10}
+.logo{font-size:17px;font-weight:900}.logo b{color:var(--red);margin-right:9px}.search{height:30px;background:#0b1420;border:1px solid #243448;border-radius:10px;color:#fff;padding:0 15px}.user{justify-self:end;color:#aeb8c6}
+.grid{display:grid;grid-template-columns:94px minmax(0,1fr) 160px;gap:8px;padding:7px;min-height:calc(100vh - 50px)}
+.side,.main,.info{background:#05080d;border:1px solid var(--line);border-radius:14px}.side{padding:6px;display:flex;flex-direction:column}.side button{width:100%;padding:8px 6px;font-size:10px;border:0;border-radius:8px;background:transparent;color:#e7ebf1;text-align:left;margin-bottom:4px}.side button.on{background:linear-gradient(90deg,#b50d19,#6f0b13);border-left:3px solid #ff3846}.support{margin-top:auto;border:1px solid var(--line);border-radius:8px;padding:8px;color:#aeb8c6;line-height:1.55;font-size:12px}.support strong{display:block;color:#fff;margin-bottom:6px}
+.main{padding:9px;overflow:hidden}.top{display:flex;align-items:center;justify-content:space-between}.top h2{margin:1px 0 8px;font-size:13px}.back{background:#0c1623;border:1px solid #6d1018;color:#ff4250;border-radius:6px;padding:6px 9px;font-size:9px}
+.player{height:185px;border:1px solid #40151a;border-radius:13px;position:relative;overflow:hidden;background:radial-gradient(circle at 75% 48%,#b4081350,transparent 32%),linear-gradient(140deg,#210205,#69030a 52%,#180205)}
+.wave,.wave2{position:absolute;left:-10%;right:-10%;border-radius:50%;transform:rotate(-3deg)}.wave{top:47%;height:110px;border-top:13px solid #f31324;filter:drop-shadow(0 0 12px #f31324)}.wave2{top:54%;height:95px;border-top:3px solid #ff5b66;opacity:.75}
+.hero{position:absolute;inset:0;display:grid;place-content:center;text-align:center}.hero h1{font-size:38px;margin:0 0 7px}.hero p{font-size:11px;letter-spacing:3px;color:#c6cbd3;margin:0}
+.controls{position:absolute;bottom:8px;left:10px;right:10px;display:flex;align-items:center;gap:12px;font-size:12px}.play{width:20px;height:20px;font-size:9px;border:0;border-radius:50%}.track{height:4px;background:#606976;flex:1;border-radius:20px;overflow:hidden}.track i{display:block;width:27%;height:100%;background:var(--red)}
+.more{border-top:1px solid #171717;margin-top:8px;padding:8px 0 0;background:#000;border-radius:0 0 10px 10px}.more h3{margin:0;font-size:11px}
+.scroll{height:168px;display:flex;align-items:flex-end;gap:8px;overflow-x:auto;overflow-y:hidden;padding:34px 6px 10px;background:#000;scroll-snap-type:x proximity;scrollbar-width:thin;-webkit-overflow-scrolling:touch;touch-action:pan-x;overscroll-behavior-x:contain;scrollbar-color:#f31324 #202832;cursor:grab}.scroll:active{cursor:grabbing}.scroll::-webkit-scrollbar{height:5px}.scroll::-webkit-scrollbar-track{background:#202832;border-radius:9px}.scroll::-webkit-scrollbar-thumb{background:#f31324;border-radius:9px}
+.card{flex:0 0 78px;scroll-snap-align:center;opacity:.55;transform-origin:center bottom;transition:transform .12s linear,opacity .12s linear;cursor:pointer;will-change:transform,opacity}.card.active{z-index:4}.card.near{z-index:2}.thumb{height:76px;border-radius:11px;border:1px solid #552027;position:relative;overflow:hidden;background:linear-gradient(145deg,#370307,#8e0710 60%,#250306)}.thumb:after{content:"";position:absolute;left:-20%;right:-20%;top:50%;height:60px;border-radius:50%;border-top:7px solid #f31324;filter:drop-shadow(0 0 7px #f31324);transform:rotate(-6deg)}.card.active .thumb{border-color:#ff3442;box-shadow:0 0 0 1px #ff3442,0 15px 35px #f3132428}.time{position:absolute;right:6px;bottom:6px;background:#050505dd;padding:3px 5px;border-radius:4px;font-size:10px;z-index:2}.card h4{margin:9px 0 4px;font-size:13px}.card p{margin:0;color:var(--muted);font-size:10px}
+.info{padding:9px;font-size:9px}.info h2{margin:0 0 8px;font-size:12px}.title{color:#ff2635}.desc{color:#b9c3cf;line-height:1.45;font-size:8px}.meta{display:grid;grid-template-columns:1fr 1fr;gap:7px;padding:9px 0;border-bottom:1px solid var(--line);font-size:8px}.label{color:var(--muted)}.tag{background:#bd101d;padding:5px 7px;border-radius:5px}.topics{display:grid;gap:5px;color:#d4d9e0;font-size:8px}.topics span:before{content:"✓";color:#f31324;border:1px solid #f31324;border-radius:50%;padding:1px 4px;margin-right:7px}.download{margin-top:10px;width:100%;border:0;border-radius:6px;padding:8px;font-size:8px;background:linear-gradient(90deg,#cf0d1b,#ff1728);color:#fff;font-weight:bold}
+footer{text-align:center;color:#8d98a7;padding:1px 0 7px;font-size:8px}footer b{color:#f31324}
+@media(max-width:1050px){.grid{grid-template-columns:170px 1fr}.info{grid-column:2}.player{height:350px}}
+@media(max-width:720px){header{height:auto;grid-template-columns:1fr auto;padding:12px}.search{grid-column:1/-1;grid-row:2}.grid{grid-template-columns:1fr}.side{display:none}.info{grid-column:auto}.player{height:300px}.user{font-size:0}}
+</style>
 </head>
 <body>
-  <header class="topbar">
-    <div class="brand"><span class="logo"></span><span>PNG</span></div>
-    <input class="search" placeholder="Cari tutorial, FAQ, atau SOP..." />
-    <div class="profile">● &nbsp; Admin · Administrator⌄</div>
-  </header>
-
-  <div class="layout">
-    <aside class="sidebar">
-      <div class="nav">
-        <button class="active">⌂ &nbsp; Dashboard</button>
-        <button>▣ &nbsp; Tutorial Video</button>
-        <button>ⓘ &nbsp; FAQ</button>
-        <button>▤ &nbsp; SOP</button>
-        <button>□ &nbsp; Kategori</button>
-        <button>♡ &nbsp; Favorit</button>
-        <button>◴ &nbsp; Riwayat</button>
-        <button>☷ &nbsp; Playlist Saya</button>
-      </div>
-      <div class="support"><strong>🎧 Pusat Tutorial & Dokumentasi</strong>Temukan tutorial, FAQ, dan SOP yang kamu butuhkan dengan mudah.</div>
-    </aside>
-
-    <main class="main">
-      <div class="section-title"><h2>Tutorial Video</h2><button class="ghost">← Kembali ke Daftar</button></div>
-      <section class="player">
-        <div class="wave"></div>
-        <div class="player-copy"><h1 id="heroTitle">Tutorial Penggunaan Sistem</h1><p>PNG Dashboard</p></div>
-        <div class="controls"><button class="play">▶</button><span class="time">0:00 / <b id="heroDuration">8:45</b></span><div class="bar"><span></span></div><span>🔊</span><span>⚙</span><span>⛶</span></div>
-      </section>
-
-      <section class="carousel-wrap">
-        <div class="carousel-head"><h3>Video Lainnya</h3><button class="ghost">Lihat semua ›</button></div>
-        <div class="carousel" id="carousel">
-          
-          
-        </div>
-        
-      </section>
-    </main>
-
-    <aside class="info">
-      <h2>Informasi Video</h2>
-      <h3 id="infoTitle">Tutorial Penggunaan Sistem</h3>
-      <p class="desc" id="infoDesc">Video ini menjelaskan langkah-langkah dasar dalam menggunakan sistem PNG Dashboard untuk kebutuhan sehari-hari.</p>
-      <div class="meta">
-        <div class="label">◷ Durasi</div><div class="value" id="infoDuration">8 menit 45 detik</div>
-        <div class="label">▱ Kategori</div><div class="value"><span class="tag" id="infoCategory">Penggunaan Sistem</span></div>
-        <div class="label">▣ Dibuat pada</div><div class="value">20 Mei 2024</div>
-        <div class="label">◉ Diperbarui</div><div class="value">22 Mei 2024</div>
-        <div class="label">♙ Penulis</div><div class="value">Tim Dokumentasi</div>
-      </div>
-      <h3 style="margin-top:20px">Deskripsi</h3>
-      <p class="desc">Pilih video pada carousel untuk mengganti tutorial aktif. Area ini nantinya dapat berisi penjelasan, link SOP, dan materi pendukung.</p>
-      <h3>Materi yang Dibahas</h3>
-      <div class="topics"><span>Cara login ke sistem</span><span>Navigasi dashboard</span><span>Mengelola data</span><span>Pengaturan profil</span><span>Tips dan trik penggunaan</span></div>
-      <button class="download">⇩ &nbsp; Unduh Materi Pendukung</button>
-    </aside>
-  </div>
-
+<header><div class="logo"><b>◇</b>PNG</div><input class="search" placeholder="Cari tutorial, FAQ, atau SOP..."><div class="user">● &nbsp; Admin · Administrator⌄</div></header>
+<div class="grid">
+<aside class="side"><button class="on">⌂ &nbsp; Dashboard</button><button>▣ &nbsp; Tutorial Video</button><button>ⓘ &nbsp; FAQ</button><button>▤ &nbsp; SOP</button><button>□ &nbsp; Kategori</button><button>☆ &nbsp; Favorit</button><button>◷ &nbsp; Riwayat</button><button>☷ &nbsp; Playlist Saya</button><div class="support"><strong>🎧 Pusat Tutorial & Dokumentasi</strong>Temukan tutorial, FAQ, dan SOP yang kamu butuhkan dengan mudah.</div></aside>
+<main class="main"><div class="top"><h2>Tutorial Video</h2><button class="back">← Kembali ke Daftar</button></div>
+<section class="player"><div class="wave"></div><div class="wave2"></div><div class="hero"><div><h1 id="heroTitle">Tutorial Penggunaan Sistem</h1><p>PNG Dashboard</p></div></div><div class="controls"><button class="play">▶</button><span>0:00 / <b id="heroTime">8:45</b></span><div class="track"><i></i></div><span>🔊 &nbsp; ⚙ &nbsp; ⛶</span></div></section>
+<section class="more"><div style="display:flex;justify-content:space-between;align-items:center"><h3>Video Lainnya</h3><span style="color:#f31324;font-size:11px">Lihat semua →</span></div><div class="scroll" id="scroll"></div></section></main>
+<aside class="info"><h2>Informasi Video</h2><h3 class="title" id="infoTitle">Tutorial Penggunaan Sistem</h3><p class="desc" id="infoDesc">Video ini menjelaskan langkah-langkah dasar dalam menggunakan sistem PNG Dashboard.</p><div class="meta"><div class="label">◷ Durasi</div><div id="duration">8 menit 45 detik</div><div class="label">□ Kategori</div><div><span class="tag" id="category">Penggunaan Sistem</span></div><div class="label">▣ Dibuat pada</div><div>20 Mei 2024</div><div class="label">◉ Diperbarui</div><div>22 Mei 2024</div><div class="label">♙ Penulis</div><div>Tim Dokumentasi</div></div><h3>Deskripsi</h3><p class="desc">Pilih kartu video di bawah. Kartu aktif akan membesar di tengah seperti desain yang dipilih.</p><h3>Materi yang Dibahas</h3><div class="topics"><span>Cara login ke sistem</span><span>Navigasi dashboard</span><span>Mengelola data</span><span>Pengaturan profil</span><span>Tips dan trik penggunaan</span></div><button class="download">⇩ &nbsp; Unduh Materi Pendukung</button></aside>
+</div><footer>© 2024 <b>PNG</b> Dashboard. Semua hak dilindungi.</footer>
 <script>
-const videos=[
-{title:"Cara Login ke Sistem",duration:"6:12",full:"6 menit 12 detik",category:"Login"},
-{title:"Cara Membuat Laporan",duration:"6:30",full:"6 menit 30 detik",category:"Laporan"},
-{title:"Tutorial Penggunaan Sistem",duration:"8:45",full:"8 menit 45 detik",category:"Penggunaan Sistem"},
-{title:"Manajemen Data",duration:"7:12",full:"7 menit 12 detik",category:"Manajemen Data"},
-{title:"Pengaturan Akun",duration:"5:45",full:"5 menit 45 detik",category:"Akun"},
-{title:"Keamanan Data",duration:"6:23",full:"6 menit 23 detik",category:"Keamanan"}];
-let active=2;const carousel=document.getElementById("carousel");
-function render(center=false){carousel.querySelectorAll(".card").forEach(x=>x.remove());videos.forEach((v,i)=>{let c=document.createElement("article");c.className="card "+(i===active?"active":"");c.innerHTML=`<div class="thumb" style="background:linear-gradient(145deg,#340307,#950811 55%,#250306)"><span class="duration">${v.duration}</span></div><h4>${v.title}</h4><p>${i===active?"123 views • 2 hari lalu":"Video tutorial"}</p>`;c.onclick=()=>{active=i;render(true)};carousel.appendChild(c)});let v=videos[active];heroTitle.textContent=v.title;heroDuration.textContent=v.duration;infoTitle.textContent=v.title;infoDuration.textContent=v.full;infoCategory.textContent=v.category;if(center)requestAnimationFrame(()=>carousel.querySelectorAll(".card")[active].scrollIntoView({behavior:"smooth",block:"nearest",inline:"center"}))}
-carousel.addEventListener("wheel",e=>{if(Math.abs(e.deltaY)>Math.abs(e.deltaX)){carousel.scrollLeft+=e.deltaY;e.preventDefault()}},{passive:false});
-render();requestAnimationFrame(()=>carousel.querySelectorAll(".card")[active].scrollIntoView({block:"nearest",inline:"center"}));
-</script>
-<footer style='text-align:center;color:#8f98a5;padding:8px 0 20px;font-size:13px'>© 2024 <b style='color:#f31324'>PNG</b> Dashboard. Semua hak dilindungi.</footer></body>
-</html>
+const data=[["Cara Login ke Sistem","6:12","6 menit 12 detik","Login"],["Cara Membuat Laporan","6:30","6 menit 30 detik","Laporan"],["Tutorial Penggunaan Sistem","8:45","8 menit 45 detik","Penggunaan Sistem"],["Manajemen Data","7:12","7 menit 12 detik","Manajemen Data"],["Pengaturan Akun","5:45","5 menit 45 detik","Akun"],["Keamanan Data","6:23","6 menit 23 detik","Keamanan"]];
+let active=2;const box=document.getElementById("scroll");
+function draw(center=false){box.innerHTML="";data.forEach((v,i)=>{const c=document.createElement("article");c.className="card";c.innerHTML=`<div class="thumb"><span class="time">${v[1]}</span></div><h4>${v[0]}</h4><p>${i===active?"123 views · 2 hari lalu":"Video tutorial"}</p>`;c.onclick=()=>{box.children[i].scrollIntoView({behavior:"smooth",block:"nearest",inline:"center"})};box.appendChild(c)});const v=data[active];heroTitle.textContent=v[0];heroTime.textContent=v[1];infoTitle.textContent=v[0];duration.textContent=v[2];category.textContent=v[3];infoDesc.textContent="Panduan "+v[0].toLowerCase()+" pada sistem PNG Dashboard.";if(center)requestAnimationFrame(()=>box.children[active].scrollIntoView({behavior:"smooth",block:"nearest",inline:"center"}))}
+
+let raf=0;
+function updateCoverFlow(){
+  cancelAnimationFrame(raf);
+  raf=requestAnimationFrame(()=>{
+    const center=box.scrollLeft+box.clientWidth/2;
+    let closest=0, best=Infinity;
+    [...box.children].forEach((card,i)=>{
+      const cardCenter=card.offsetLeft+card.offsetWidth/2;
+      const dist=(cardCenter-center)/card.offsetWidth;
+      const ad=Math.abs(dist);
+      if(ad<best){best=ad;closest=i}
+      const scale=Math.max(.82,1.18-ad*.18);
+      const lift=Math.max(0,28-ad*18);
+      const fade=Math.max(.48,1-ad*.22);
+      card.style.transform=`translateY(${-lift}px) scale(${scale})`;
+      card.style.opacity=fade;
+      card.style.zIndex=String(Math.max(1,10-Math.round(ad*3)));
+    });
+    if(closest!==active){
+      active=closest;
+      const v=data[active];
+      heroTitle.textContent=v[0];
+      heroTime.textContent=v[1];
+      infoTitle.textContent=v[0];
+      duration.textContent=v[2];
+      category.textContent=v[3];
+      infoDesc.textContent="Panduan "+v[0].toLowerCase()+" pada sistem PNG Dashboard.";
+    }
+  });
+}
+box.addEventListener("scroll",updateCoverFlow,{passive:true});
+window.addEventListener("resize",updateCoverFlow);
+
+box.addEventListener("wheel",e=>{
+  if(Math.abs(e.deltaY)>Math.abs(e.deltaX)){
+    box.scrollLeft += e.deltaY;
+    e.preventDefault();
+  }
+},{passive:false});
+
+let dragging=false, startX=0, startScroll=0, moved=false;
+box.addEventListener("pointerdown",e=>{
+  if(e.pointerType==="touch") return;
+  dragging=true; moved=false;
+  startX=e.clientX;
+  startScroll=box.scrollLeft;
+  box.setPointerCapture(e.pointerId);
+});
+box.addEventListener("pointermove",e=>{
+  if(!dragging) return;
+  const dx=e.clientX-startX;
+  if(Math.abs(dx)>4) moved=true;
+  box.scrollLeft=startScroll-dx;
+});
+box.addEventListener("pointerup",()=>dragging=false);
+box.addEventListener("pointercancel",()=>dragging=false);
+box.addEventListener("click",e=>{
+  if(moved){e.preventDefault();e.stopPropagation();moved=false}
+},true);
+
+draw();
+requestAnimationFrame(()=>{box.children[active].scrollIntoView({block:"nearest",inline:"center"});setTimeout(updateCoverFlow,80)});
+</script></body></html>
