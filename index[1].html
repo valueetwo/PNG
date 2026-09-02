@@ -1,0 +1,705 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PNG Dashboard</title>
+<style>
+:root{
+  --bg:#030406; --panel:#07090d; --panel2:#0a0d12;
+  --line:#252a31; --red:#ef1725; --red2:#8a0610;
+  --text:#f6f7f8; --muted:#9ba3ad;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:#000;color:var(--text);font-family:Inter,Arial,sans-serif}
+body{overflow-x:hidden}
+button,input{font:inherit}
+button{cursor:pointer}
+.topbar{
+  height:70px;display:grid;grid-template-columns:180px minmax(280px,600px) 1fr;
+  align-items:center;gap:18px;padding:0 18px;border-bottom:1px solid var(--line);
+  background:#05070a;position:sticky;top:0;z-index:20
+}
+.brand{display:flex;align-items:center;gap:10px;font-size:24px;font-weight:900}
+.brand-mark{width:32px;height:30px;background:var(--red);clip-path:polygon(0 0,100% 50%,0 100%,18% 50%)}
+.search{height:40px;background:#0a0f15;border:1px solid #2b333d;border-radius:12px;color:white;padding:0 16px}
+.user{justify-self:end;color:#d7dbe0;font-size:13px}
+.layout{
+  display:grid;grid-template-columns:190px minmax(0,1fr) 300px;
+  gap:10px;padding:10px;min-height:calc(100vh - 70px)
+}
+.sidebar,.main,.info{
+  background:#06080b;border:1px solid var(--line);border-radius:14px
+}
+.sidebar{padding:12px;display:flex;flex-direction:column;min-height:calc(100vh - 90px)}
+.nav{display:grid;gap:5px}
+.nav button{
+  width:100%;border:0;background:transparent;color:#e7ebef;text-align:left;
+  padding:12px 13px;border-radius:9px
+}
+.nav button.active{background:linear-gradient(90deg,#bd111d,#720b13);border-left:3px solid #ff4855}
+.sidebar-bottom{margin-top:auto}
+.mascot-wrap{display:flex;justify-content:center;align-items:flex-end;height:205px;padding-bottom:4px}
+.mascot{width:118px;height:auto;object-fit:contain;display:block}
+.help{
+  border:1px solid var(--line);border-radius:11px;padding:13px;color:#b0b7c0;
+  font-size:12px;line-height:1.55;background:#080b0f
+}
+.help strong{display:block;color:white;font-size:13px;margin-bottom:7px}
+
+.main{padding:13px;overflow:hidden}
+.main-head{display:flex;justify-content:space-between;align-items:center}
+.main-head h2{font-size:18px;margin:2px 0 12px}
+.main-btn{border:1px solid #731019;color:#ff3140;background:#07090c;border-radius:6px;padding:5px 9px;font-size:11px;line-height:1.2;cursor:pointer;white-space:nowrap;transition:.15s}.main-btn:hover{background:#19070a;border-color:#d31825}
+
+.player{
+  height:360px;position:relative;overflow:hidden;border-radius:12px;border:1px solid #391116;
+  background:
+    radial-gradient(circle at 78% 48%,rgba(211,0,18,.25),transparent 30%),
+    linear-gradient(145deg,#210204,#670309 53%,#140103)
+}
+.wave,.wave2,.wave3{position:absolute;left:-12%;right:-12%;border-radius:50%;transform:rotate(-4deg)}
+.wave{top:47%;height:120px;border-top:12px solid var(--red);filter:drop-shadow(0 0 12px var(--red))}
+.wave2{top:54%;height:95px;border-top:3px solid #ff6a73;opacity:.72}
+.wave3{top:41%;height:150px;border-top:1px solid #8d1118;opacity:.6}
+.hero{position:absolute;inset:0;display:grid;place-content:center;text-align:center}
+.hero h1{font-size:clamp(34px,4vw,58px);margin:0 0 8px}
+.hero p{margin:0;color:#d3d6da;letter-spacing:3px;font-size:14px}
+.controls{
+  position:absolute;left:16px;right:16px;bottom:12px;
+  display:flex;align-items:center;gap:12px;font-size:12px
+}
+.play{width:34px;height:34px;border:0;border-radius:50%;background:white}
+.track{height:4px;background:#606872;border-radius:99px;overflow:hidden;flex:1}
+.track span{display:block;width:28%;height:100%;background:var(--red)}
+
+.related{
+  margin-top:12px;border:1px solid var(--line);border-radius:12px;background:#020303;
+  padding:12px 12px 8px;min-height:390px;display:flex;flex-direction:column
+}
+.related-head{display:flex;justify-content:space-between;align-items:center}
+.related-head h3{margin:0;font-size:16px}
+.related-head span{color:var(--red);font-size:12px}
+.scroller{
+  flex:1;min-height:300px;display:flex;align-items:center;gap:18px;
+  overflow-x:auto;overflow-y:hidden;padding:22px 28px 12px;
+  background:#020303;scroll-snap-type:none;scroll-behavior:auto;
+  scroll-padding-inline:calc(50% - 100px);-webkit-overflow-scrolling:touch;
+  touch-action:pan-y;overscroll-behavior-x:contain;cursor:grab;user-select:none;-webkit-user-select:none;
+  scrollbar-width:thin;scrollbar-color:var(--red) #272b30
+}
+.scroller:active{cursor:grabbing}
+.scroller::-webkit-scrollbar{height:5px}
+.scroller::-webkit-scrollbar-track{background:#272b30;border-radius:20px}
+.scroller::-webkit-scrollbar-thumb{background:var(--red);border-radius:20px}
+.card{
+  flex:0 0 178px;scroll-snap-align:none;transform-origin:center bottom;
+  transition:transform .055s linear,opacity .055s linear,filter .055s linear;
+  cursor:grab;will-change:transform,opacity;user-select:none;-webkit-user-select:none
+}
+.thumb{
+  height:126px;border:1px solid #43161b;border-radius:11px;position:relative;overflow:hidden;
+  background:linear-gradient(145deg,#310206,#8e0710 58%,#230205)
+}
+.thumb:after{
+  content:"";position:absolute;left:-25%;right:-25%;top:51%;height:62px;border-radius:50%;
+  border-top:7px solid var(--red);filter:drop-shadow(0 0 9px var(--red));transform:rotate(-7deg)
+}
+.duration{position:absolute;right:6px;bottom:6px;background:#050505df;padding:3px 5px;border-radius:4px;font-size:10px;z-index:2}
+.card h4{font-size:12px;line-height:1.3;margin:8px 0 4px}
+.card p{font-size:10px;color:var(--muted);margin:0}
+
+.info{padding:16px}
+.info h2{font-size:18px;margin:0 0 13px}
+.info-title{font-size:15px;color:#ff2d3b;margin:0 0 11px}
+.desc{color:#b9c1ca;font-size:12px;line-height:1.6}
+.meta{display:grid;grid-template-columns:1fr 1fr;gap:11px;padding:14px 0;border-bottom:1px solid var(--line);font-size:11px}
+.label{color:var(--muted)}
+.tag{background:#b70d19;padding:5px 7px;border-radius:5px;display:inline-block}
+.info h3:not(.info-title){font-size:14px;margin:15px 0 9px}
+.topics{display:grid;gap:8px;font-size:11px;color:#d8dde3}
+.topics span:before{
+  content:"✓";display:inline-grid;place-items:center;width:17px;height:17px;
+  color:var(--red);border:1px solid var(--red);border-radius:50%;font-size:9px;margin-right:7px
+}
+.download{
+  width:100%;margin-top:17px;border:0;border-radius:8px;padding:12px;
+  color:white;font-weight:700;background:linear-gradient(90deg,#c30c19,#f01726)
+}
+footer{text-align:center;color:#828b95;padding:4px 0 14px;font-size:10px}
+footer b{color:var(--red)}
+
+
+.page-view{display:none}
+.page-view.active{display:block}
+.simple-page{min-height:760px;padding:8px 2px}
+.simple-page h2{margin:0 0 8px;font-size:22px}
+.simple-page .lead{color:var(--muted);font-size:13px;margin:0 0 18px}
+.content-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.content-box{border:1px solid var(--line);border-radius:12px;background:#080b0f;padding:16px}
+.content-box h3{margin:0 0 8px;font-size:15px}.content-box p{margin:0;color:#aeb6bf;font-size:12px;line-height:1.6}
+@media(max-width:760px){.content-grid{grid-template-columns:1fr}}
+
+@media(max-width:1150px){
+  .layout{grid-template-columns:170px minmax(0,1fr)}
+  .info{grid-column:2}
+  .player{height:330px}
+}
+@media(max-width:760px){
+  .topbar{height:auto;grid-template-columns:1fr auto;padding:10px}
+  .search{grid-column:1/-1;grid-row:2}
+  .layout{grid-template-columns:1fr}
+  .sidebar{display:none}.info{grid-column:auto}
+  .player{height:280px}
+  .related{min-height:330px}.scroller{min-height:250px}
+}
+
+.search-wrap{position:relative}
+.search-wrap .search{width:100%}
+.search-results{display:none;position:absolute;top:48px;left:0;right:0;z-index:99;background:#080b0f;border:1px solid #2b333d;border-radius:12px;padding:7px;max-height:320px;overflow:auto;box-shadow:0 16px 40px #000b}
+.search-results.show{display:block}
+.search-item{padding:10px 11px;border-radius:8px;cursor:pointer;border-bottom:1px solid #171c22}
+.search-item:last-child{border-bottom:0}
+.search-item:hover{background:#15191f}
+.search-item b{display:block;font-size:12px;color:#fff;margin-bottom:3px}
+.search-item small,.search-empty{font-size:10px;color:#9ba3ad}
+.search-empty{padding:12px;text-align:center}
+
+.player-controls button{cursor:pointer}
+.card-actions{display:flex;gap:6px;margin-top:6px}
+.mini-btn{border:1px solid #343b45;background:#0b0f14;color:#d8dde5;border-radius:7px;padding:5px 7px;font-size:10px;cursor:pointer}
+.mini-btn.on{border-color:#f31324;color:#fff;background:#7b0b14}
+.page-list{display:grid;gap:9px;margin-top:12px}
+.page-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 12px;border:1px solid #252a31;border-radius:10px;background:#070a0e}
+.page-row strong{font-size:12px}.page-row small{display:block;color:#929ba6;margin-top:3px}
+.page-empty{padding:28px 12px;text-align:center;color:#929ba6;border:1px dashed #303640;border-radius:10px;margin-top:12px}
+.toast{position:fixed;right:18px;bottom:18px;background:#11161c;border:1px solid #333b46;color:#fff;padding:10px 13px;border-radius:9px;font-size:11px;z-index:200;opacity:0;transform:translateY(8px);pointer-events:none;transition:.18s}
+.toast.show{opacity:1;transform:none}
+
+.more-info-wrap{margin:8px 0 13px}
+.more-info-toggle{display:inline-flex;align-items:center;gap:5px;border:0;background:transparent;color:var(--red);padding:0;font-size:11px;font-weight:700;cursor:pointer}
+.more-info-toggle:hover{text-decoration:underline}
+.more-info-text{display:none;margin:8px 0 0;color:#aeb6c0;font-size:11px;line-height:1.65}
+.more-info-text.open{display:block}
+.more-info-toggle .chev{display:inline-block;transition:transform .18s ease}
+.more-info-toggle.open .chev{transform:rotate(90deg)}
+
+
+.material-modal{position:fixed;inset:0;background:#000a;display:none;align-items:center;justify-content:center;padding:18px;z-index:300}
+.material-modal.show{display:flex}
+.material-box{width:min(460px,100%);background:#090c10;border:1px solid #303640;border-radius:14px;padding:18px;box-shadow:0 24px 70px #000}
+.material-box h3{margin:0 0 12px;font-size:16px}
+.material-field{display:grid;gap:6px;margin-bottom:12px}
+.material-field label{font-size:11px;color:#aeb6c0}
+.material-field input{width:100%;background:#05070a;border:1px solid #2c333c;border-radius:9px;color:white;padding:10px 11px}
+.material-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
+.material-actions button{border-radius:8px;padding:9px 12px}
+.material-cancel{border:1px solid #353c46;background:#0b0f14;color:#dce1e7}
+.material-save{border:0;background:linear-gradient(90deg,#c30c19,#f01726);color:white;font-weight:700}
+.material-list{display:grid;gap:8px;margin-top:12px}
+.material-item{display:flex;justify-content:space-between;gap:10px;align-items:center;border:1px solid #252a31;background:#080b0f;border-radius:9px;padding:9px 10px}
+.material-item strong{font-size:11px}.material-item small{display:block;color:#929ba6;margin-top:2px}
+.material-remove{border:0;background:transparent;color:#ff4a56;font-size:11px;cursor:pointer}
+
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><span class="brand-mark"></span>PNG</div>
+  <div class="search-wrap"><input class="search" id="globalSearch" autocomplete="off" placeholder="Cari tutorial, FAQ, atau SOP..."><div class="search-results" id="searchResults"></div></div>
+  <div class="user">● &nbsp; Admin · Administrator⌄</div>
+</header>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="nav">
+      <button class="active" data-page="dashboard">⌂ &nbsp; Dashboard</button>
+      <button data-page="tutorial">▣ &nbsp; Tutorial Video</button>
+      <button data-page="faq">ⓘ &nbsp; FAQ</button>
+      <button data-page="sop">▤ &nbsp; SOP</button>
+      <button data-page="kategori">□ &nbsp; Kategori</button>
+      <button data-page="favorit">☆ &nbsp; Favorit</button>
+      <button data-page="riwayat">◷ &nbsp; Riwayat</button>
+      <button data-page="playlist">☷ &nbsp; Playlist Saya</button>
+    </div>
+
+    <div class="sidebar-bottom">
+      <div class="mascot-wrap"><img class="mascot" src="mascot.png" alt="Maskot kecil"></div>
+      <div class="help">
+        <strong>🎧 Pusat Tutorial & Dokumentasi</strong>
+        Temukan tutorial, FAQ, dan SOP yang kamu butuhkan dengan mudah.
+      </div>
+    </div>
+  </aside>
+
+ <div class="main-head">
+  <h2>Tutorial Video</h2>
+  <button class="main-btn" id="btnSelengkapnya">Selengkapnya →</button>
+</div>
+
+    <section class="player">
+      <div class="wave"></div><div class="wave2"></div><div class="wave3"></div>
+      <div class="hero">
+        <div>
+          <h1 id="heroTitle">Manajemen Data</h1>
+          <p>PNG DASHBOARD</p>
+        </div>
+      </div>
+      <div class="controls">
+        <button class="play" id="playBtn" aria-label="Putar atau jeda">▶</button>
+        <span>0:00 / <b id="heroTime">7:12</b></span>
+        <div class="track"><span></span></div>
+        <span>🔊 &nbsp; ⚙ &nbsp; ⛶</span>
+      </div>
+    </section>
+
+    <section class="related">
+      <div class="related-head">
+        <h3>Video Lainnya</h3>
+        <span>Geser untuk melihat lainnya →</span>
+      </div>
+      <div class="scroller" id="scroller"></div>
+    </section>
+    </div>
+
+    <div id="tutorial" class="page-view simple-page"><h2>Tutorial Video</h2><p class="lead">Pilih tutorial yang ingin dipelajari.</p><div class="content-grid"><div class="content-box"><h3>Manajemen Data</h3><p>Panduan mengelola data pada PNG Dashboard.</p></div><div class="content-box"><h3>Pengaturan Akun</h3><p>Panduan pengaturan profil dan akun.</p></div><div class="content-box"><h3>Keamanan Data</h3><p>Materi dasar menjaga keamanan data.</p></div><div class="content-box"><h3>Backup & Restore</h3><p>Panduan pencadangan dan pemulihan data.</p></div></div></div>
+    <div id="faq" class="page-view simple-page"><h2>FAQ</h2><p class="lead">Pertanyaan yang sering ditanyakan.</p><div class="content-grid"><div class="content-box"><h3>Bagaimana cara login?</h3><p>Gunakan akun yang sudah diberikan lalu masuk melalui halaman login.</p></div><div class="content-box"><h3>Lupa kata sandi?</h3><p>Hubungi admin atau gunakan alur pemulihan akun yang tersedia.</p></div></div></div>
+    <div id="sop" class="page-view simple-page"><h2>SOP</h2><p class="lead">Dokumen prosedur kerja PNG.</p><div class="content-grid"><div class="content-box"><h3>SOP Pengelolaan Data</h3><p>Alur dasar input, pemeriksaan, dan pembaruan data.</p></div><div class="content-box"><h3>SOP Backup</h3><p>Langkah pencadangan data secara berkala.</p></div></div></div>
+    <div id="kategori" class="page-view simple-page"><h2>Kategori</h2><p class="lead">Cari materi berdasarkan kategori.</p><div class="content-grid"><div class="content-box"><h3>Dasar Sistem</h3><p>Login, navigasi, dan penggunaan dasar.</p></div><div class="content-box"><h3>Manajemen Data</h3><p>Pengelolaan, laporan, backup, dan keamanan.</p></div></div></div>
+    <div id="favorit" class="page-view simple-page"><h2>Favorit</h2><p class="lead">Tutorial yang kamu simpan akan tampil di sini.</p><div class="content-box"><h3>Belum ada favorit</h3><p>Nanti kita bisa tambahkan tombol bintang pada setiap tutorial.</p></div></div>
+    <div id="riwayat" class="page-view simple-page"><h2>Riwayat</h2><p class="lead">Daftar tutorial yang terakhir dibuka.</p><div class="content-box"><h3>Manajemen Data</h3><p>Terakhir dilihat • 7 menit 12 detik</p></div></div>
+    <div id="playlist" class="page-view simple-page"><h2>Playlist Saya</h2><p class="lead">Kumpulan tutorial pilihanmu.</p><div class="content-box"><h3>Playlist masih kosong</h3><p>Nanti tutorial bisa ditambahkan ke playlist dari halaman video.</p></div></div>
+  </main>
+
+  <aside class="info">
+    <h2>Informasi Video</h2>
+    <h3 class="info-title" id="infoTitle">Manajemen Data</h3>
+    <p class="desc" id="infoDesc">Panduan manajemen data pada sistem PNG Dashboard.</p>
+    <div class="meta">
+      <div class="label">◷ Durasi</div><div id="duration">7 menit 12 detik</div>
+      <div class="label">□ Kategori</div><div><span class="tag" id="category">Manajemen Data</span></div>
+      <div class="label">▣ Dibuat pada</div><div>20 Mei 2024</div>
+      <div class="label">◉ Diperbarui</div><div>22 Mei 2024</div>
+      <div class="label">♙ Penulis</div><div>Tim Dokumentasi</div>
+    </div>
+    <h3>Deskripsi</h3>
+    <p class="desc">Geser daftar video. Kartu yang berada paling dekat dengan tengah akan otomatis menjadi fokus seperti Cover Flow.</p>
+    <div class="more-info-wrap">
+      <button class="more-info-toggle" id="moreInfoToggle" type="button" aria-expanded="false">
+        Selengkapnya <span class="chev">›</span>
+      </button>
+      <p class="more-info-text" id="moreInfoText">
+        Video ini berisi penjelasan lebih lengkap mengenai langkah penggunaan fitur yang sedang dipilih. Ikuti tahapan secara berurutan agar proses lebih mudah dipahami.
+      </p>
+    </div>
+    <h3>Materi yang Dibahas</h3>
+    <div class="topics">
+      <span>Cara login ke sistem</span>
+      <span>Navigasi dashboard</span>
+      <span>Mengelola data</span>
+      <span>Pengaturan profil</span>
+      <span>Tips dan trik penggunaan</span>
+    </div>
+    <button class="download" id="addMaterialBtn">＋ &nbsp; Tambahkan materi</button><div class="material-list" id="materialList"></div>
+  </aside>
+</div>
+
+<footer>© 2024 <b>PNG</b> Dashboard. Semua hak dilindungi.</footer>
+
+<script>
+const videos=[
+  ["Cara Login ke Sistem","6:12","6 menit 12 detik","Login"],
+  ["Cara Membuat Laporan","6:30","6 menit 30 detik","Laporan"],
+  ["Tutorial Penggunaan Sistem","8:45","8 menit 45 detik","Penggunaan Sistem"],
+  ["Manajemen Data","7:12","7 menit 12 detik","Manajemen Data"],
+  ["Pengaturan Akun","5:45","5 menit 45 detik","Akun"],
+  ["Keamanan Data","6:23","6 menit 23 detik","Keamanan"],
+  ["Backup & Restore Data","9:15","9 menit 15 detik","Backup"],
+  ["Membuat Pengguna Baru","5:18","5 menit 18 detik","Pengguna"],
+  ["Mengatur Hak Akses","7:05","7 menit 5 detik","Akses"],
+  ["Export Data ke Excel","4:52","4 menit 52 detik","Data"],
+  ["Import Data","6:41","6 menit 41 detik","Data"],
+  ["Membuat Dashboard","10:08","10 menit 8 detik","Dashboard"],
+  ["Membuat Notifikasi","5:36","5 menit 36 detik","Notifikasi"],
+  ["Pengaturan Profil","4:27","4 menit 27 detik","Profil"]
+];
+const scroller=document.getElementById("scroller");
+let active=3, raf=0;
+
+const loopCopies=3;
+let realCount=videos.length;
+
+function render(){
+  scroller.innerHTML="";
+  for(let copy=0;copy<loopCopies;copy++){
+    videos.forEach((v,i)=>{
+      const card=document.createElement("article");
+      card.className="card";
+      card.dataset.real=i;
+      card.innerHTML=`<div class="thumb"><span class="duration">${v[1]}</span></div><h4>${v[0]}</h4><p>Video tutorial</p><div class="card-actions"><button class="mini-btn fav-btn" type="button" title="Favorit">☆ Favorit</button><button class="mini-btn list-btn" type="button" title="Playlist">＋ Playlist</button></div>`;
+      card.querySelector(".fav-btn").addEventListener("click",e=>{e.stopPropagation();toggleFavorite(i)});
+      card.querySelector(".list-btn").addEventListener("click",e=>{e.stopPropagation();togglePlaylist(i)});
+      card.addEventListener("click",()=>centerRealCard(i,true));
+      scroller.appendChild(card);
+    });
+  }
+}
+function setInfo(i){
+  active=i; const v=videos[i];
+  heroTitle.textContent=v[0];
+  heroTime.textContent=v[1];
+  infoTitle.textContent=v[0];
+  duration.textContent=v[2];
+  category.textContent=v[3];
+  infoDesc.textContent="Panduan "+v[0].toLowerCase()+" pada sistem PNG Dashboard.";
+}
+function updateCoverFlow(){
+  cancelAnimationFrame(raf);
+  raf=requestAnimationFrame(()=>{
+    const outer=scroller.getBoundingClientRect();
+    const center=outer.left+outer.width/2;
+    let closestCard=null,best=Infinity;
+    [...scroller.children].forEach((card)=>{
+      const r=card.getBoundingClientRect();
+      const d=(r.left+r.width/2-center)/190;
+      const ad=Math.abs(d);
+      if(ad<best){best=ad;closestCard=card}
+      const scale=Math.max(.80,1.24-ad*.15);
+      const lift=Math.max(0,42-ad*16);
+      const opacity=Math.max(.52,1-ad*.14);
+      const rotate=Math.max(-10,Math.min(10,d*-4));
+      card.style.transform=`translateY(${-lift}px) scale(${scale}) rotateY(${rotate}deg)`;
+      card.style.opacity=opacity;
+      card.style.filter=ad<.55?"brightness(1.14)":"brightness(.84)";
+      card.style.zIndex=String(Math.max(1,30-Math.round(ad*5)));
+    });
+    if(closestCard){
+      const real=+closestCard.dataset.real;
+      if(real!==active)setInfo(real);
+    }
+  });
+}
+
+function cardStep(){
+  const cards=[...scroller.children];
+  if(cards.length<2)return 196;
+  return cards[1].offsetLeft-cards[0].offsetLeft;
+}
+function jumpToMiddleCopy(realIndex){
+  const idx=realCount+realIndex;
+  const card=scroller.children[idx];
+  if(!card)return;
+  scroller.scrollLeft=card.offsetLeft-(scroller.clientWidth-card.offsetWidth)/2;
+}
+function centerRealCard(realIndex,smooth=false){
+  const middleIndex=realCount+realIndex;
+  const card=scroller.children[middleIndex];
+  if(!card)return;
+  const left=card.offsetLeft-(scroller.clientWidth-card.offsetWidth)/2;
+  scroller.scrollTo({left,behavior:smooth?"smooth":"auto"});
+}
+function normalizeLoop(){
+  const step=cardStep();
+  const oneSet=step*realCount;
+  if(!oneSet)return;
+  if(scroller.scrollLeft < oneSet*.45){
+    scroller.scrollLeft += oneSet;
+  }else if(scroller.scrollLeft > oneSet*1.55){
+    scroller.scrollLeft -= oneSet;
+  }
+}
+scroller.addEventListener("scroll",()=>{
+  updateCoverFlow();
+  const step=cardStep(), oneSet=step*realCount;
+  if(oneSet && (scroller.scrollLeft < oneSet*.18 || scroller.scrollLeft > oneSet*1.82)){
+    normalizeLoop();
+  }
+},{passive:true});
+scroller.addEventListener("wheel",e=>{
+  if(Math.abs(e.deltaY)>Math.abs(e.deltaX)){
+    scroller.scrollLeft+=e.deltaY*2.0;e.preventDefault();updateCoverFlow();
+  }
+},{passive:false});
+
+let drag=false,startX=0,startScroll=0,dragPointer=null,hasMoved=false;
+
+scroller.addEventListener("dragstart",e=>e.preventDefault());
+
+scroller.addEventListener("pointerdown",e=>{
+  if(e.button!==undefined && e.button!==0)return;
+  drag=true;
+  hasMoved=false;
+  dragPointer=e.pointerId;
+  startX=e.clientX;
+  startScroll=scroller.scrollLeft;
+  scroller.style.cursor="grabbing";
+  [...scroller.children].forEach(c=>c.style.cursor="grabbing");
+  try{scroller.setPointerCapture(e.pointerId)}catch(_){}
+});
+
+scroller.addEventListener("pointermove",e=>{
+  if(!drag || (dragPointer!==null && e.pointerId!==dragPointer))return;
+  const dx=e.clientX-startX;
+  if(Math.abs(dx)>2)hasMoved=true;
+  scroller.scrollLeft=startScroll-dx*1.7;
+  updateCoverFlow();
+  if(hasMoved && e.cancelable)e.preventDefault();
+});
+
+function finishDrag(e){
+  if(!drag)return;
+  drag=false;
+  dragPointer=null;
+  scroller.style.cursor="grab";
+  [...scroller.children].forEach(c=>c.style.cursor="grab");
+  normalizeLoop();
+  updateCoverFlow();
+}
+scroller.addEventListener("pointerup",finishDrag);
+scroller.addEventListener("pointercancel",finishDrag);
+scroller.addEventListener("lostpointercapture",finishDrag);
+
+// Stop a card click only when the user actually dragged it.
+scroller.addEventListener("click",e=>{
+  if(hasMoved){
+    e.preventDefault();
+    e.stopPropagation();
+    hasMoved=false;
+  }
+},true);
+
+window.addEventListener("resize",()=>{
+  centerRealCard(active,false);updateCoverFlow();
+});
+
+const navButtons=[...document.querySelectorAll(".nav button[data-page]")];
+const pageViews=[...document.querySelectorAll(".page-view")];
+const infoPanel=document.querySelector(".info");
+function showPage(id){
+  navButtons.forEach(b=>b.classList.toggle("active",b.dataset.page===id));
+  pageViews.forEach(p=>p.classList.toggle("active",p.id===id));
+  infoPanel.style.display=id==="dashboard"?"block":"none";
+  if(id==="dashboard") requestAnimationFrame(()=>{jumpToMiddleCopy(active);updateCoverFlow()});
+}
+navButtons.forEach(b=>b.addEventListener("click",()=>showPage(b.dataset.page)));
+
+render();setInfo(active);
+requestAnimationFrame(()=>{jumpToMiddleCopy(active);updateCoverFlow()});
+
+const globalSearch=document.getElementById("globalSearch");
+const searchResults=document.getElementById("searchResults");
+if(globalSearch&&searchResults){
+  globalSearch.addEventListener("input",()=>{
+    const q=globalSearch.value.trim().toLowerCase();
+    if(!q){searchResults.classList.remove("show");return}
+    const matches=videos.map((v,i)=>({v,i})).filter(x=>(x.v[0]+" "+x.v[3]).toLowerCase().includes(q)).slice(0,7);
+    searchResults.innerHTML=matches.length
+      ? matches.map(x=>`<div class="search-item" data-i="${x.i}"><b>${x.v[0]}</b><small>Tutorial Video · ${x.v[3]}</small></div>`).join("")
+      : `<div class="search-empty">Belum ada hasil untuk “${globalSearch.value}”</div>`;
+    searchResults.classList.add("show");
+    searchResults.querySelectorAll(".search-item").forEach(el=>el.onclick=()=>{
+      const i=+el.dataset.i;
+      if(typeof showPage==="function") showPage("Tutorial Video");
+      setTimeout(()=>centerRealCard(i,true),80);
+      globalSearch.value=videos[i][0];
+      searchResults.classList.remove("show");
+    });
+  });
+  document.addEventListener("click",e=>{if(!e.target.closest(".search-wrap"))searchResults.classList.remove("show")});
+}
+
+/* ===== PNG FINAL INTERACTIONS ===== */
+const pngState={favorites:new Set(),playlist:new Set(),history:[],playing:false,elapsed:0,timer:null};
+const toast=document.getElementById("toast");
+function say(msg){if(!toast)return;toast.textContent=msg;toast.classList.add("show");clearTimeout(toast._t);toast._t=setTimeout(()=>toast.classList.remove("show"),1500)}
+function secs(t){const a=t.split(":").map(Number);return a[0]*60+a[1]}
+function clock(s){s=Math.max(0,Math.round(s));return Math.floor(s/60)+":"+String(s%60).padStart(2,"0")}
+function refreshCardButtons(){
+  document.querySelectorAll(".card").forEach(c=>{
+    const i=+c.dataset.real;
+    const f=c.querySelector(".fav-btn"),p=c.querySelector(".list-btn");
+    if(f){f.classList.toggle("on",pngState.favorites.has(i));f.textContent=pngState.favorites.has(i)?"★ Favorit":"☆ Favorit"}
+    if(p){p.classList.toggle("on",pngState.playlist.has(i));p.textContent=pngState.playlist.has(i)?"✓ Playlist":"＋ Playlist"}
+  });
+}
+function toggleFavorite(i){pngState.favorites.has(i)?pngState.favorites.delete(i):pngState.favorites.add(i);refreshCardButtons();say(pngState.favorites.has(i)?"Ditambahkan ke Favorit":"Dihapus dari Favorit")}
+function togglePlaylist(i){pngState.playlist.has(i)?pngState.playlist.delete(i):pngState.playlist.add(i);refreshCardButtons();say(pngState.playlist.has(i)?"Ditambahkan ke Playlist":"Dihapus dari Playlist")}
+function addHistory(i){pngState.history=[i,...pngState.history.filter(x=>x!==i)].slice(0,12)}
+
+const oldSetInfo=setInfo;
+setInfo=function(i){
+  oldSetInfo(i);
+  pngState.elapsed=0;
+  addHistory(i);
+  updatePlayerTime();
+  refreshCardButtons();
+};
+function updatePlayerTime(){
+  const el=document.getElementById("playerTime");
+  if(el)el.textContent=clock(pngState.elapsed)+" / "+videos[active][1];
+}
+function togglePlay(){
+  pngState.playing=!pngState.playing;
+  const b=document.getElementById("playBtn");
+  if(b)b.textContent=pngState.playing?"❚❚":"▶";
+  clearInterval(pngState.timer);
+  if(pngState.playing){
+    pngState.timer=setInterval(()=>{
+      pngState.elapsed++;
+      if(pngState.elapsed>=secs(videos[active][1])){pngState.elapsed=0;pngState.playing=false;clearInterval(pngState.timer);if(b)b.textContent="▶"}
+      updatePlayerTime();
+    },1000);
+  }
+}
+const pb=document.getElementById("playBtn");
+if(pb)pb.addEventListener("click",togglePlay);
+
+function listHtml(indices,kind){
+  if(!indices.length)return `<div class="page-empty">Belum ada video di ${kind}.</div>`;
+  return `<div class="page-list">${indices.map(i=>`<div class="page-row"><div><strong>${videos[i][0]}</strong><small>${videos[i][3]} · ${videos[i][2]}</small></div><button class="mini-btn open-video" data-video="${i}" type="button">Buka Video</button></div>`).join("")}</div>`;
+}
+function bindOpenVideos(){
+  document.querySelectorAll(".open-video").forEach(b=>b.addEventListener("click",()=>{
+    const i=+b.dataset.video;
+    if(typeof showPage==="function")showPage("Tutorial Video");
+    setTimeout(()=>centerRealCard(i,true),80);
+  }));
+}
+
+/* Add dynamic behavior to sidebar pages without changing the established visual design. */
+const originalShowPage=typeof showPage==="function"?showPage:null;
+if(originalShowPage){
+  showPage=function(name){
+    originalShowPage(name);
+    setTimeout(()=>{
+      const host=document.querySelector(".main");
+      if(!host)return;
+      if(name==="Favorit"){
+        const area=host.querySelector(".page-content")||host.querySelector(".content")||host;
+        if(area && !host.querySelector(".player")){ area.insertAdjacentHTML("beforeend",listHtml([...pngState.favorites],"Favorit"));bindOpenVideos()}
+      }else if(name==="Riwayat"){
+        const area=host.querySelector(".page-content")||host.querySelector(".content")||host;
+        if(area && !host.querySelector(".player")){ area.insertAdjacentHTML("beforeend",listHtml(pngState.history,"Riwayat"));bindOpenVideos()}
+      }else if(name==="Playlist Saya"){
+        const area=host.querySelector(".page-content")||host.querySelector(".content")||host;
+        if(area && !host.querySelector(".player")){ area.insertAdjacentHTML("beforeend",listHtml([...pngState.playlist],"Playlist"));bindOpenVideos()}
+      }
+    },0);
+  };
+}
+refreshCardButtons();
+updatePlayerTime();
+
+/* Supporting-material button gives useful feedback in this static prototype. */
+document.querySelectorAll("button").forEach(b=>{
+  if(/Unduh Materi/i.test(b.textContent))b.addEventListener("click",()=>say("Materi pendukung siap dihubungkan ke file PDF nanti."));
+});
+
+const moreInfoToggle=document.getElementById("moreInfoToggle");
+const moreInfoText=document.getElementById("moreInfoText");
+if(moreInfoToggle&&moreInfoText){
+  moreInfoToggle.addEventListener("click",()=>{
+    const open=moreInfoText.classList.toggle("open");
+    moreInfoToggle.classList.toggle("open",open);
+    moreInfoToggle.setAttribute("aria-expanded",open?"true":"false");
+    moreInfoToggle.firstChild.nodeValue=open?"Tutup ":"Selengkapnya ";
+  });
+}
+
+
+const addMaterialBtn=document.getElementById("addMaterialBtn");
+const materialModal=document.getElementById("materialModal");
+const materialTitle=document.getElementById("materialTitle");
+const materialFile=document.getElementById("materialFile");
+const materialCancel=document.getElementById("materialCancel");
+const materialSave=document.getElementById("materialSave");
+const materialList=document.getElementById("materialList");
+const materialsByVideo={};
+
+function renderMaterials(){
+  if(!materialList)return;
+  const items=materialsByVideo[active]||[];
+  materialList.innerHTML=items.map((m,idx)=>`
+    <div class="material-item">
+      <div><strong>${m.title}</strong><small>${m.fileName}</small></div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <a href="${m.url}" download="${m.fileName}" class="mini-btn" style="text-decoration:none">Unduh</a>
+        <button class="material-remove" type="button" data-i="${idx}">Hapus</button>
+      </div>
+    </div>`).join("");
+  materialList.querySelectorAll(".material-remove").forEach(b=>b.addEventListener("click",()=>{
+    const i=+b.dataset.i;
+    const removed=materialsByVideo[active].splice(i,1)[0]; if(removed&&removed.url)URL.revokeObjectURL(removed.url);
+    renderMaterials();
+    say("Materi dihapus");
+  }));
+}
+function openMaterialModal(){
+  materialTitle.value="";
+  materialFile.value="";
+  materialModal.classList.add("show");
+  materialModal.setAttribute("aria-hidden","false");
+  setTimeout(()=>materialTitle.focus(),30);
+}
+function closeMaterialModal(){
+  materialModal.classList.remove("show");
+  materialModal.setAttribute("aria-hidden","true");
+}
+if(addMaterialBtn)addMaterialBtn.addEventListener("click",openMaterialModal);
+if(materialCancel)materialCancel.addEventListener("click",closeMaterialModal);
+if(materialModal)materialModal.addEventListener("click",e=>{if(e.target===materialModal)closeMaterialModal()});
+document.addEventListener("keydown",e=>{
+  if(!materialModal || !materialModal.classList.contains("show"))return;
+  if(e.key==="Escape")closeMaterialModal();
+  if(e.key==="Enter" && document.activeElement!==materialFile)materialSave.click();
+});
+if(materialSave)materialSave.addEventListener("click",()=>{
+  const title=materialTitle.value.trim();
+  const file=materialFile.files[0];
+  if(!title){say("Isi judul materi dulu");return}
+  if(!file){say("Pilih file materi dulu");return}
+  if(!materialsByVideo[active])materialsByVideo[active]=[];
+  const url=URL.createObjectURL(file);
+  materialsByVideo[active].push({title,fileName:file.name,url,file});
+  closeMaterialModal();
+  renderMaterials();
+  say("Materi ditambahkan");
+});
+
+const prevSetInfo2=setInfo;
+setInfo=function(i){
+  prevSetInfo2(i);
+  renderMaterials();
+};
+renderMaterials();
+
+
+const btnSelengkapnya=document.getElementById("btnSelengkapnya");
+if(btnSelengkapnya){
+  btnSelengkapnya.addEventListener("click",()=>{
+    showPage("tutorial");
+  });
+}
+
+</script>
+<div class="toast" id="toast"></div>
+<div class="material-modal" id="materialModal" aria-hidden="true">
+  <div class="material-box">
+    <h3>Tambahkan Materi</h3>
+    <div class="material-field">
+      <label for="materialTitle">Judul materi</label>
+      <input id="materialTitle" type="text" placeholder="Contoh: Panduan Manajemen Data">
+    </div>
+    <div class="material-field">
+      <label for="materialFile">Pilih file</label>
+      <input id="materialFile" type="file" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt">
+    </div>
+    <div class="material-actions">
+      <button class="material-cancel" id="materialCancel" type="button">Batal</button>
+      <button class="material-save" id="materialSave" type="button">Simpan</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
