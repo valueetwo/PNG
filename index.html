@@ -221,8 +221,8 @@ body.is-admin .admin-only{display:block!important}
 body:not(.is-admin) .admin-lock-note{display:block}
 
 /* ===== STABLE V3: compact rows + clickable docs ===== */
-.video-row-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
-.video-row-actions .ghost-btn{flex:0 0 auto;min-width:112px;width:auto;padding:8px 14px}
+.video-row-actions{display:flex;align-items:center;flex-wrap:nowrap;gap:6px;margin-top:10px}
+.video-row-actions .ghost-btn{flex:0 0 auto;min-width:0;width:auto;padding:6px 10px;font-size:11px;line-height:1.15;border-radius:6px;white-space:nowrap}
 .doc-item.clickable-doc{cursor:pointer;transition:border-color .16s ease,background .16s ease,transform .16s ease}
 .doc-item.clickable-doc:hover{border-color:#61131a;background:#0d1014}
 .doc-item.clickable-doc:active{transform:translateY(1px)}
@@ -233,7 +233,14 @@ body:not(.is-admin) .admin-lock-note{display:block}
 .doc-item.video-row:hover{border-color:#4a151b}
 .doc-item.video-row .video-row-actions{cursor:default}
 #tutorial .doc-item,#favorit .doc-item,#playlist .doc-item,#riwayat .doc-item{max-width:none}
-@media(max-width:700px){.video-row-actions .ghost-btn{min-width:0;flex:1 1 120px}}
+@media(max-width:700px){.video-row-actions{flex-wrap:wrap}.video-row-actions .ghost-btn{flex:0 0 auto;min-width:0;padding:6px 9px}}
+
+
+/* V5: Cover Flow stabil — puncak tepat di tengah + drag kartu */
+#scroller{position:relative;align-items:center;touch-action:pan-y;}
+#scroller .card{flex:0 0 178px;transform-origin:center center;}
+#scroller .card-actions{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;}
+#scroller .mini-btn{width:auto!important;min-width:0!important;flex:0 0 auto!important;padding:5px 7px!important;font-size:10px!important;}
 
 </style>
 </head>
@@ -500,38 +507,87 @@ function renderCarousel(){
 }
 function esc(x){return String(x??"").replace(/[&<>\"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]))}
 function centerCard(i,smooth=true){
- const s=$("scroller"); if(!s)return; const cards=$$("#scroller .card"); const target=cards.find((c,idx)=>+c.dataset.real===i && idx>=videos.length); if(!target)return;
- const left=target.offsetLeft-(s.clientWidth-target.offsetWidth)/2; s.scrollTo({left,behavior:smooth?"smooth":"auto"}); setTimeout(updateCoverFlow,smooth?180:0);
+ const s=$("scroller"); if(!s)return;
+ const cards=$$("#scroller .card");
+ // Selalu pilih salinan di bagian tengah agar masih punya ruang di kiri dan kanan.
+ const middleStart=videos.length, middleEnd=videos.length*2;
+ const target=cards.find((c,idx)=>idx>=middleStart && idx<middleEnd && +c.dataset.real===i) || cards.find(c=>+c.dataset.real===i);
+ if(!target)return;
+ const sr=s.getBoundingClientRect(), tr=target.getBoundingClientRect();
+ const delta=(tr.left+tr.width/2)-(sr.left+sr.width/2);
+ s.scrollTo({left:s.scrollLeft+delta,behavior:smooth?"smooth":"auto"});
+ if(!smooth)requestAnimationFrame(updateCoverFlow); else setTimeout(updateCoverFlow,260);
 }
 function updateCoverFlow(){
- const s=$("scroller"); if(!s)return; const center=s.scrollLeft+s.clientWidth/2; let best=null,dist=1e9;
- $$("#scroller .card").forEach(c=>{const d=Math.abs((c.offsetLeft+c.offsetWidth/2)-center);const norm=Math.min(1,d/Math.max(240,s.clientWidth*.42));const scale=1-norm*.22;const y=norm*38;c.style.transform=`translateY(${y}px) scale(${scale})`;c.style.opacity=String(1-norm*.25);c.style.zIndex=String(100-Math.round(norm*50));if(d<dist){dist=d;best=c}});
- if(best){const i=+best.dataset.real;if(i!==active && !dragMoved)setActive(i,false)}
+ const s=$("scroller"); if(!s)return;
+ const sr=s.getBoundingClientRect();
+ const centerX=sr.left+sr.width/2;
+ let best=null,dist=Infinity;
+ $$("#scroller .card").forEach(c=>{
+   // getBoundingClientRect dipakai supaya titik puncak benar-benar mengikuti tengah area carousel,
+   // bukan tengah halaman/offset parent. Ini membuat sisi kiri dan kanan simetris.
+   const r=c.getBoundingClientRect();
+   const d=Math.abs((r.left+r.width/2)-centerX);
+   const norm=Math.min(1,d/Math.max(260,sr.width*.38));
+   const scale=1-norm*.20;
+   const y=norm*34;
+   c.style.transform=`translateY(${y}px) scale(${scale})`;
+   c.style.opacity=String(1-norm*.22);
+   c.style.zIndex=String(100-Math.round(norm*50));
+   if(d<dist){dist=d;best=c}
+ });
+ if(best){
+   const i=+best.dataset.real;
+   if(i!==active && !dragMoved)setActive(i,false);
+ }
 }
 function setupDrag(){
- const s=$("scroller"); if(!s)return; s.style.touchAction="pan-y";
- let down=false,startX=0,startScroll=0,moved=false,pid=null,capture=false;
- s.addEventListener("scroll",()=>requestAnimationFrame(updateCoverFlow),{passive:true});
+ const s=$("scroller"); if(!s || s.dataset.dragReady==="1")return;
+ s.dataset.dragReady="1";
+ s.style.touchAction="pan-y";
+ let down=false,startX=0,startScroll=0,moved=false,pid=null;
+ let raf=0;
+ s.addEventListener("scroll",()=>{
+   cancelAnimationFrame(raf);
+   raf=requestAnimationFrame(updateCoverFlow);
+ },{passive:true});
  s.addEventListener("pointerdown",e=>{
    if(e.button!==0)return;
    if(e.target.closest("button,a,input,select,textarea"))return;
-   down=true;moved=false;dragMoved=false;capture=false;startX=e.clientX;startScroll=s.scrollLeft;pid=e.pointerId;
+   down=true;moved=false;dragMoved=false;startX=e.clientX;startScroll=s.scrollLeft;pid=e.pointerId;
+   // Capture dari awal supaya drag tidak putus ketika pointer melewati kartu lain.
+   try{s.setPointerCapture?.(pid)}catch(_e){}
+   s.style.cursor="grabbing";
  });
  s.addEventListener("pointermove",e=>{
-   if(!down)return; const dx=e.clientX-startX;
-   if(Math.abs(dx)>6){
+   if(!down)return;
+   const dx=e.clientX-startX;
+   if(Math.abs(dx)>4){
      moved=true;dragMoved=true;
-     if(!capture){try{s.setPointerCapture?.(pid)}catch(_e){} capture=true;s.style.cursor="grabbing";}
-     s.scrollLeft=startScroll-dx*1.7;
+     e.preventDefault();
+     s.scrollLeft=startScroll-dx*1.45;
    }
  });
  const end=()=>{
-   if(!down)return; down=false;s.style.cursor="grab";
-   if(capture){try{s.releasePointerCapture?.(pid)}catch(_e){}}
-   if(moved){const center=s.scrollLeft+s.clientWidth/2;let best=null,d=Infinity;$$("#scroller .card").forEach(c=>{const x=Math.abs(c.offsetLeft+c.offsetWidth/2-center);if(x<d){d=x;best=c}});if(best)setActive(+best.dataset.real,true)}
-   setTimeout(()=>{dragMoved=false},80);
+   if(!down)return;
+   down=false;s.style.cursor="grab";
+   try{s.releasePointerCapture?.(pid)}catch(_e){}
+   if(moved){
+     const sr=s.getBoundingClientRect(), centerX=sr.left+sr.width/2;
+     let best=null,d=Infinity;
+     $$("#scroller .card").forEach(c=>{
+       const r=c.getBoundingClientRect();
+       const x=Math.abs((r.left+r.width/2)-centerX);
+       if(x<d){d=x;best=c}
+     });
+     if(best)setActive(+best.dataset.real,true);
+   }
+   setTimeout(()=>{dragMoved=false},120);
  };
- s.addEventListener("pointerup",end);s.addEventListener("pointercancel",end);s.addEventListener("lostpointercapture",end);s.addEventListener("dragstart",e=>e.preventDefault());
+ s.addEventListener("pointerup",end);
+ s.addEventListener("pointercancel",end);
+ s.addEventListener("lostpointercapture",end);
+ s.addEventListener("dragstart",e=>e.preventDefault());
 }
 function updatePlayer(){const v=videos[active];if(!v)return;if($("playerTime"))$("playerTime").textContent=clock(elapsed)+" / "+v[1];if($("playerProgress"))$("playerProgress").style.width=(elapsed/Math.max(1,secs(v[1]))*100)+"%"}
 $("playBtn")?.addEventListener("click",()=>{playing=!playing;$("playBtn").textContent=playing?"❚❚":"▶";clearInterval(timer);if(playing)timer=setInterval(()=>{elapsed++;if(elapsed>=secs(videos[active][1])){elapsed=0;playing=false;clearInterval(timer);$("playBtn").textContent="▶"}updatePlayer()},1000)});
