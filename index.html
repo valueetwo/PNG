@@ -413,7 +413,12 @@ body:not(.is-admin) .admin-lock-note{display:block}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
 <script>
-const videos=[
+
+(()=>{
+"use strict";
+const $=id=>document.getElementById(id);
+const $$=sel=>Array.from(document.querySelectorAll(sel));
+const baseVideos=[
   ["Cara Login ke Sistem","6:12","6 menit 12 detik","Login"],
   ["Cara Membuat Laporan","6:30","6 menit 30 detik","Laporan"],
   ["Tutorial Penggunaan Sistem","8:45","8 menit 45 detik","Penggunaan Sistem"],
@@ -429,424 +434,128 @@ const videos=[
   ["Membuat Notifikasi","5:36","5 menit 36 detik","Notifikasi"],
   ["Pengaturan Profil","4:27","4 menit 27 detik","Profil"]
 ];
-const scroller=document.getElementById("scroller");
-const heroTitleEl=document.getElementById("heroTitle");
-const infoTitleEl=document.getElementById("infoTitle");
-const durationEl=document.getElementById("duration");
-const categoryEl=document.getElementById("category");
-const infoDescEl=document.getElementById("infoDesc");
-let active=3, raf=0;
-
-const loopCopies=3;
-let realCount=videos.length;
-
-function render(){
-  scroller.innerHTML="";
-  for(let copy=0;copy<loopCopies;copy++){
-    videos.forEach((v,i)=>{
-      const card=document.createElement("article");
-      card.className="card";
-      card.dataset.real=i;
-      card.innerHTML=`<div class="thumb"><span class="duration">${v[1]}</span></div><h4>${v[0]}</h4><p>Video tutorial</p><div class="card-actions"><button class="mini-btn fav-btn" type="button" title="Favorit">☆ Favorit</button><button class="mini-btn list-btn" type="button" title="Playlist">＋ Playlist</button></div>`;
-      card.querySelector(".fav-btn").addEventListener("click",e=>{e.stopPropagation();toggleFavorite(i)});
-      card.querySelector(".list-btn").addEventListener("click",e=>{e.stopPropagation();togglePlaylist(i)});
-      card.addEventListener("click",()=>centerRealCard(i,true));
-      scroller.appendChild(card);
-    });
-  }
+const DEFAULT_FAQ=[
+  {question:"Bagaimana cara login?",answer:"Gunakan akun yang sudah diberikan lalu masuk melalui halaman login."},
+  {question:"Lupa kata sandi?",answer:"Hubungi admin atau gunakan alur pemulihan akun yang tersedia."}
+];
+const DEFAULT_SOP=[
+  {title:"SOP Pengelolaan Data",content:"Alur dasar input, pemeriksaan, dan pembaruan data."},
+  {title:"SOP Backup",content:"Langkah pencadangan data secara berkala."}
+];
+const KEY="png-dashboard-ui-v3";
+let saved={}; try{saved=JSON.parse(localStorage.getItem(KEY)||"{}")}catch(e){}
+let videos=Array.isArray(saved.videos)&&saved.videos.length?saved.videos:baseVideos.map(v=>[...v]);
+let materials=Array.isArray(saved.materials)?saved.materials:[];
+let faqs=Array.isArray(saved.faqs)&&saved.faqs.length?saved.faqs:[...DEFAULT_FAQ];
+let sops=Array.isArray(saved.sops)&&saved.sops.length?saved.sops:[...DEFAULT_SOP];
+let favorites=new Set(saved.favorites||[]), playlist=new Set(saved.playlist||[]), history=saved.history||[];
+let active=Math.min(Number.isInteger(saved.active)?saved.active:3,videos.length-1);
+let playing=false, elapsed=0, timer=null, muted=false, subtitle=false, dragMoved=false;
+let isAdmin=false, sb=null;
+function persist(){localStorage.setItem(KEY,JSON.stringify({videos,materials,faqs,sops,favorites:[...favorites],playlist:[...playlist],history,active}))}
+function say(msg){const t=$("toast"); if(!t)return; t.textContent=msg;t.classList.add("show");clearTimeout(t._timer);t._timer=setTimeout(()=>t.classList.remove("show"),1800)}
+function secs(t){const a=String(t||"0:00").split(":").map(Number);return (a[0]||0)*60+(a[1]||0)}
+function clock(s){s=Math.max(0,Math.floor(s));return Math.floor(s/60)+":"+String(s%60).padStart(2,"0")}
+function showPage(id){
+  $$(".nav button[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===id));
+  $$(".page-view").forEach(p=>p.classList.toggle("active",p.id===id));
+  const info=document.querySelector(".info"); if(info)info.style.display=id==="dashboard"?"block":"none";
+  if(id==="tutorial")renderTutorial(); if(id==="faq")renderFAQ(); if(id==="sop")renderSOP(); if(id==="kategori")renderCategories(); if(id==="favorit")renderListPage("favorit"); if(id==="playlist")renderListPage("playlist"); if(id==="riwayat")renderListPage("riwayat");
+  if(id==="dashboard")requestAnimationFrame(()=>{centerCard(active,false);updateCoverFlow()});
 }
-function setInfo(i){
-  active=i; const v=videos[i];
-  if(heroTitleEl) heroTitleEl.textContent=v[0];
-  const playerTimeEl=document.getElementById("playerTime");
-  if(playerTimeEl) playerTimeEl.textContent=`0:00 / ${v[1]}`;
-  if(infoTitleEl) infoTitleEl.textContent=v[0];
-  if(durationEl) durationEl.textContent=v[2];
-  if(categoryEl) categoryEl.textContent=v[3];
-  if(infoDescEl) infoDescEl.textContent="Panduan "+v[0].toLowerCase()+" pada sistem PNG Dashboard.";
+window.showPage=showPage;
+$$(".nav button[data-page]").forEach(b=>b.addEventListener("click",()=>showPage(b.dataset.page)));
+function setActive(i,center=true){
+  if(!videos.length)return; active=Math.max(0,Math.min(i,videos.length-1)); elapsed=0; playing=false; clearInterval(timer);
+  const v=videos[active]; if($("heroTitle"))$("heroTitle").textContent=v[0]; if($("infoTitle"))$("infoTitle").textContent=v[0]; if($("duration"))$("duration").textContent=v[2]||v[1]; if($("category"))$("category").textContent=v[3]||"Tutorial";
+  if($("infoDesc"))$("infoDesc").textContent="Panduan "+String(v[0]).toLowerCase()+" pada sistem PNG Dashboard.";
+  if($("materialTargetVideo"))$("materialTargetVideo").textContent=v[0]; if($("playBtn"))$("playBtn").textContent="▶";
+  history=[active,...history.filter(x=>x!==active)].slice(0,20); persist(); updatePlayer(); renderMaterialsMini(); refreshFavButtons();
+  if(center)centerCard(active,true);
+}
+function renderCarousel(){
+ const s=$("scroller"); if(!s)return; s.innerHTML="";
+ for(let copy=0;copy<3;copy++) videos.forEach((v,i)=>{
+   const card=document.createElement("article");card.className="card";card.dataset.real=i;
+   card.innerHTML=`<div class="thumb"><span class="duration">${esc(v[1])}</span></div><h4>${esc(v[0])}</h4><p>Video tutorial</p><div class="card-actions"><button class="mini-btn fav-btn" type="button">☆ Favorit</button><button class="mini-btn list-btn" type="button">＋ Playlist</button></div>`;
+   card.addEventListener("click",()=>{if(!dragMoved)setActive(i,true)});
+   card.querySelector(".fav-btn").addEventListener("click",e=>{e.stopPropagation();toggleFav(i)});
+   card.querySelector(".list-btn").addEventListener("click",e=>{e.stopPropagation();togglePlaylist(i)});
+   s.appendChild(card);
+ });
+ refreshFavButtons(); requestAnimationFrame(()=>centerCard(active,false));
+}
+function esc(x){return String(x??"").replace(/[&<>\"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]))}
+function centerCard(i,smooth=true){
+ const s=$("scroller"); if(!s)return; const cards=$$("#scroller .card"); const target=cards.find((c,idx)=>+c.dataset.real===i && idx>=videos.length); if(!target)return;
+ const left=target.offsetLeft-(s.clientWidth-target.offsetWidth)/2; s.scrollTo({left,behavior:smooth?"smooth":"auto"}); setTimeout(updateCoverFlow,smooth?180:0);
 }
 function updateCoverFlow(){
-  cancelAnimationFrame(raf);
-  raf=requestAnimationFrame(()=>{
-    const outer=scroller.getBoundingClientRect();
-    const center=outer.left+outer.width/2;
-    let closestCard=null,best=Infinity;
-    [...scroller.children].forEach((card)=>{
-      const r=card.getBoundingClientRect();
-      const d=(r.left+r.width/2-center)/190;
-      const ad=Math.abs(d);
-      if(ad<best){best=ad;closestCard=card}
-      const scale=Math.max(.80,1.24-ad*.15);
-      const lift=Math.max(0,42-ad*16);
-      const opacity=Math.max(.52,1-ad*.14);
-      const rotate=Math.max(-10,Math.min(10,d*-4));
-      card.style.transform=`translateY(${-lift}px) scale(${scale}) rotateY(${rotate}deg)`;
-      card.style.opacity=opacity;
-      card.style.filter=ad<.55?"brightness(1.14)":"brightness(.84)";
-      card.style.zIndex=String(Math.max(1,30-Math.round(ad*5)));
-    });
-    if(closestCard){
-      const real=+closestCard.dataset.real;
-      if(real!==active)setInfo(real);
-    }
-  });
+ const s=$("scroller"); if(!s)return; const center=s.scrollLeft+s.clientWidth/2; let best=null,dist=1e9;
+ $$("#scroller .card").forEach(c=>{const d=Math.abs((c.offsetLeft+c.offsetWidth/2)-center);const norm=Math.min(1,d/Math.max(240,s.clientWidth*.42));const scale=1-norm*.22;const y=norm*38;c.style.transform=`translateY(${y}px) scale(${scale})`;c.style.opacity=String(1-norm*.25);c.style.zIndex=String(100-Math.round(norm*50));if(d<dist){dist=d;best=c}});
+ if(best){const i=+best.dataset.real;if(i!==active && !dragMoved)setActive(i,false)}
 }
-
-function cardStep(){
-  const cards=[...scroller.children];
-  if(cards.length<2)return 196;
-  return cards[1].offsetLeft-cards[0].offsetLeft;
+function setupDrag(){
+ const s=$("scroller");if(!s)return; s.style.touchAction="pan-y"; let down=false,startX=0,startScroll=0,moved=false,pid=null;
+ s.addEventListener("scroll",()=>requestAnimationFrame(updateCoverFlow),{passive:true});
+ s.addEventListener("pointerdown",e=>{if(e.button!==0)return;down=true;moved=false;dragMoved=false;startX=e.clientX;startScroll=s.scrollLeft;pid=e.pointerId;s.setPointerCapture?.(pid);s.style.cursor="grabbing"});
+ s.addEventListener("pointermove",e=>{if(!down)return;const dx=e.clientX-startX;if(Math.abs(dx)>5){moved=true;dragMoved=true}s.scrollLeft=startScroll-dx*1.7});
+ const end=()=>{if(!down)return;down=false;s.style.cursor="grab";try{s.releasePointerCapture?.(pid)}catch(e){}setTimeout(()=>{dragMoved=false},60); if(moved){const center=s.scrollLeft+s.clientWidth/2;let best=null,d=Infinity;$$("#scroller .card").forEach(c=>{const x=Math.abs(c.offsetLeft+c.offsetWidth/2-center);if(x<d){d=x;best=c}});if(best)setActive(+best.dataset.real,true)}};
+ s.addEventListener("pointerup",end);s.addEventListener("pointercancel",end);s.addEventListener("lostpointercapture",end);s.addEventListener("dragstart",e=>e.preventDefault());
 }
-function jumpToMiddleCopy(realIndex){
-  const idx=realCount+realIndex;
-  const card=scroller.children[idx];
-  if(!card)return;
-  scroller.scrollLeft=card.offsetLeft-(scroller.clientWidth-card.offsetWidth)/2;
+function updatePlayer(){const v=videos[active];if(!v)return;if($("playerTime"))$("playerTime").textContent=clock(elapsed)+" / "+v[1];if($("playerProgress"))$("playerProgress").style.width=(elapsed/Math.max(1,secs(v[1]))*100)+"%"}
+$("playBtn")?.addEventListener("click",()=>{playing=!playing;$("playBtn").textContent=playing?"❚❚":"▶";clearInterval(timer);if(playing)timer=setInterval(()=>{elapsed++;if(elapsed>=secs(videos[active][1])){elapsed=0;playing=false;clearInterval(timer);$("playBtn").textContent="▶"}updatePlayer()},1000)});
+$("playerTrack")?.addEventListener("click",e=>{const r=$("playerTrack").getBoundingClientRect();elapsed=Math.round(Math.max(0,Math.min(1,(e.clientX-r.left)/r.width))*secs(videos[active][1]));updatePlayer()});
+$("volumeBtn")?.addEventListener("click",()=>{muted=!muted;$("volumeBtn").textContent=muted?"🔇":"🔊";say(muted?"Suara dimatikan":"Suara diaktifkan")});
+$("settingsBtn")?.addEventListener("click",e=>{e.stopPropagation();$("settingsMenu")?.classList.toggle("show")});document.addEventListener("click",e=>{if(!e.target.closest(".settings-wrap"))$("settingsMenu")?.classList.remove("show")});
+$("resolutionSelect")?.addEventListener("change",e=>say("Resolusi: "+e.target.value));
+$("subtitleBtn")?.addEventListener("click",()=>{subtitle=!subtitle;$("subtitleStatus").textContent=subtitle?"Aktif":"Mati";$("subtitleOverlay")?.classList.toggle("on",subtitle)});
+$("fullscreenBtn")?.addEventListener("click",async()=>{const p=document.querySelector(".player");try{if(!document.fullscreenElement)await p.requestFullscreen();else await document.exitFullscreen()}catch(e){say("Fullscreen tidak didukung browser ini")}});
+function toggleFav(i){favorites.has(i)?favorites.delete(i):favorites.add(i);persist();refreshFavButtons();renderListPageIfOpen();say(favorites.has(i)?"Ditambahkan ke Favorit":"Dihapus dari Favorit")}
+function togglePlaylist(i){playlist.has(i)?playlist.delete(i):playlist.add(i);persist();refreshFavButtons();renderListPageIfOpen();say(playlist.has(i)?"Ditambahkan ke Playlist":"Dihapus dari Playlist")}
+function refreshFavButtons(){
+ $$("#scroller .card").forEach(c=>{const i=+c.dataset.real;const f=c.querySelector(".fav-btn"),p=c.querySelector(".list-btn");if(f)f.textContent=favorites.has(i)?"★ Favorit":"☆ Favorit";if(p)p.textContent=playlist.has(i)?"✓ Playlist":"＋ Playlist"});
+ if($("playerFavStatus"))$("playerFavStatus").textContent=favorites.has(active)?"★":"☆";if($("playerPlaylistStatus"))$("playerPlaylistStatus").textContent=playlist.has(active)?"✓":"＋";
 }
-function centerRealCard(realIndex,smooth=false){
-  const middleIndex=realCount+realIndex;
-  const card=scroller.children[middleIndex];
-  if(!card)return;
-  const left=card.offsetLeft-(scroller.clientWidth-card.offsetWidth)/2;
-  scroller.scrollTo({left,behavior:smooth?"smooth":"auto"});
-}
-function normalizeLoop(){
-  const step=cardStep();
-  const oneSet=step*realCount;
-  if(!oneSet)return;
-  if(scroller.scrollLeft < oneSet*.45){
-    scroller.scrollLeft += oneSet;
-  }else if(scroller.scrollLeft > oneSet*1.55){
-    scroller.scrollLeft -= oneSet;
-  }
-}
-scroller.addEventListener("scroll",()=>{
-  updateCoverFlow();
-  const step=cardStep(), oneSet=step*realCount;
-  if(oneSet && (scroller.scrollLeft < oneSet*.18 || scroller.scrollLeft > oneSet*1.82)){
-    normalizeLoop();
-  }
-},{passive:true});
-scroller.addEventListener("wheel",e=>{
-  if(Math.abs(e.deltaY)>Math.abs(e.deltaX)){
-    scroller.scrollLeft+=e.deltaY*2.0;e.preventDefault();updateCoverFlow();
-  }
-},{passive:false});
-
-let drag=false,startX=0,startScroll=0,dragPointer=null,hasMoved=false;
-
-scroller.addEventListener("dragstart",e=>e.preventDefault());
-
-scroller.addEventListener("pointerdown",e=>{
-  if(e.button!==undefined && e.button!==0)return;
-  drag=true;
-  hasMoved=false;
-  dragPointer=e.pointerId;
-  startX=e.clientX;
-  startScroll=scroller.scrollLeft;
-  scroller.style.cursor="grabbing";
-  [...scroller.children].forEach(c=>c.style.cursor="grabbing");
-  try{scroller.setPointerCapture(e.pointerId)}catch(_){}
-});
-
-scroller.addEventListener("pointermove",e=>{
-  if(!drag || (dragPointer!==null && e.pointerId!==dragPointer))return;
-  const dx=e.clientX-startX;
-  if(Math.abs(dx)>2)hasMoved=true;
-  scroller.scrollLeft=startScroll-dx*1.7;
-  updateCoverFlow();
-  if(hasMoved && e.cancelable)e.preventDefault();
-});
-
-function finishDrag(e){
-  if(!drag)return;
-  drag=false;
-  dragPointer=null;
-  scroller.style.cursor="grab";
-  [...scroller.children].forEach(c=>c.style.cursor="grab");
-  normalizeLoop();
-  updateCoverFlow();
-}
-scroller.addEventListener("pointerup",finishDrag);
-scroller.addEventListener("pointercancel",finishDrag);
-scroller.addEventListener("lostpointercapture",finishDrag);
-
-// Stop a card click only when the user actually dragged it.
-scroller.addEventListener("click",e=>{
-  if(hasMoved){
-    e.preventDefault();
-    e.stopPropagation();
-    hasMoved=false;
-  }
-},true);
-
-window.addEventListener("resize",()=>{
-  centerRealCard(active,false);updateCoverFlow();
-});
-
-const navButtons=[...document.querySelectorAll(".nav button[data-page]")];
-const pageViews=[...document.querySelectorAll(".page-view")];
-const infoPanel=document.querySelector(".info");
-function showPage(id){
-  navButtons.forEach(b=>b.classList.toggle("active",b.dataset.page===id));
-  pageViews.forEach(p=>p.classList.toggle("active",p.id===id));
-  infoPanel.style.display=id==="dashboard"?"block":"none";
-  if(id==="dashboard") requestAnimationFrame(()=>{jumpToMiddleCopy(active);updateCoverFlow()});
-}
-navButtons.forEach(b=>b.addEventListener("click",()=>showPage(b.dataset.page)));
-
-render();setInfo(active);
-requestAnimationFrame(()=>{jumpToMiddleCopy(active);updateCoverFlow()});
-
-const globalSearch=document.getElementById("globalSearch");
-const searchResults=document.getElementById("searchResults");
-if(globalSearch&&searchResults){
-  globalSearch.addEventListener("input",()=>{
-    const q=globalSearch.value.trim().toLowerCase();
-    if(!q){searchResults.classList.remove("show");return}
-    const matches=videos.map((v,i)=>({v,i})).filter(x=>(x.v[0]+" "+x.v[3]).toLowerCase().includes(q)).slice(0,7);
-    searchResults.innerHTML=matches.length
-      ? matches.map(x=>`<div class="search-item" data-i="${x.i}"><b>${x.v[0]}</b><small>Tutorial Video · ${x.v[3]}</small></div>`).join("")
-      : `<div class="search-empty">Belum ada hasil untuk “${globalSearch.value}”</div>`;
-    searchResults.classList.add("show");
-    searchResults.querySelectorAll(".search-item").forEach(el=>el.onclick=()=>{
-      const i=+el.dataset.i;
-      if(typeof showPage==="function") showPage("dashboard");
-      setTimeout(()=>centerRealCard(i,true),80);
-      globalSearch.value=videos[i][0];
-      searchResults.classList.remove("show");
-    });
-  });
-  document.addEventListener("click",e=>{if(!e.target.closest(".search-wrap"))searchResults.classList.remove("show")});
-}
-
-/* ===== PNG FINAL INTERACTIONS ===== */
-const pngState={favorites:new Set(),playlist:new Set(),history:[],playing:false,elapsed:0,timer:null};
-const addedMaterials=[];
-const addedVideos=[];
-const toast=document.getElementById("toast");
-function say(msg){if(!toast)return;toast.textContent=msg;toast.classList.add("show");clearTimeout(toast._t);toast._t=setTimeout(()=>toast.classList.remove("show"),1500)}
-function secs(t){const a=t.split(":").map(Number);return a[0]*60+a[1]}
-function clock(s){s=Math.max(0,Math.round(s));return Math.floor(s/60)+":"+String(s%60).padStart(2,"0")}
-function refreshCardButtons(){
-  document.querySelectorAll(".card").forEach(c=>{
-    const i=+c.dataset.real;
-    const f=c.querySelector(".fav-btn"),p=c.querySelector(".list-btn");
-    if(f){f.classList.toggle("on",pngState.favorites.has(i));f.textContent=pngState.favorites.has(i)?"★ Favorit":"☆ Favorit"}
-    if(p){p.classList.toggle("on",pngState.playlist.has(i));p.textContent=pngState.playlist.has(i)?"✓ Playlist":"＋ Playlist"}
-  });
-}
-function toggleFavorite(i){pngState.favorites.has(i)?pngState.favorites.delete(i):pngState.favorites.add(i);refreshCardButtons();say(pngState.favorites.has(i)?"Ditambahkan ke Favorit":"Dihapus dari Favorit")}
-function togglePlaylist(i){pngState.playlist.has(i)?pngState.playlist.delete(i):pngState.playlist.add(i);refreshCardButtons();say(pngState.playlist.has(i)?"Ditambahkan ke Playlist":"Dihapus dari Playlist")}
-function addHistory(i){pngState.history=[i,...pngState.history.filter(x=>x!==i)].slice(0,12)}
-
-const oldSetInfo=setInfo;
-setInfo=function(i){
-  oldSetInfo(i);
-  pngState.elapsed=0;
-  addHistory(i);
-  updatePlayerTime();
-  refreshCardButtons();
-  if(typeof refreshPlayerActions==="function")refreshPlayerActions();
-};
-function updatePlayerTime(){
-  const el=document.getElementById("playerTime");
-  const progress=document.getElementById("playerProgress");
-  const total=secs(videos[active][1]);
-  if(el)el.textContent=clock(pngState.elapsed)+" / "+videos[active][1];
-  if(progress)progress.style.width=((pngState.elapsed/Math.max(1,total))*100)+"%";
-}
-function togglePlay(){
-  pngState.playing=!pngState.playing;
-  const b=document.getElementById("playBtn");
-  if(b)b.textContent=pngState.playing?"❚❚":"▶";
-  clearInterval(pngState.timer);
-  if(pngState.playing){
-    pngState.timer=setInterval(()=>{
-      pngState.elapsed++;
-      if(pngState.elapsed>=secs(videos[active][1])){pngState.elapsed=0;pngState.playing=false;clearInterval(pngState.timer);if(b)b.textContent="▶"}
-      updatePlayerTime();
-    },1000);
-  }
-}
-const pb=document.getElementById("playBtn");
-if(pb)pb.addEventListener("click",togglePlay);
-
-function listHtml(indices,kind){
-  if(!indices.length)return `<div class="page-empty">Belum ada video di ${kind}.</div>`;
-  return `<div class="page-list">${indices.map(i=>`<div class="page-row"><div><strong>${videos[i][0]}</strong><small>${videos[i][3]} · ${videos[i][2]}</small></div><button class="mini-btn open-video" data-video="${i}" type="button">Buka Video</button></div>`).join("")}</div>`;
-}
-function bindOpenVideos(){
-  document.querySelectorAll(".open-video").forEach(b=>b.addEventListener("click",()=>{
-    const i=+b.dataset.video;
-    if(typeof showPage==="function")showPage("dashboard");
-    setTimeout(()=>centerRealCard(i,true),80);
-  }));
-}
-
-/* ===== SIDEBAR PAGES AKTIF ===== */
-function renderVideoRows(indices){
-  return indices.map(i=>`
-    <div class="page-row">
-      <div><strong>${videos[i][0]}</strong><small>${videos[i][3]} · ${videos[i][2]}</small></div>
-      <div style="display:flex;gap:6px">
-        <button class="mini-btn row-fav ${pngState.favorites.has(i)?"on":""}" data-video="${i}" type="button">${pngState.favorites.has(i)?"★":"☆"} Favorit</button>
-        <button class="mini-btn row-playlist ${pngState.playlist.has(i)?"on":""}" data-video="${i}" type="button">${pngState.playlist.has(i)?"✓":"＋"} Playlist</button>
-        <button class="mini-btn open-video" data-video="${i}" type="button">Buka</button>
-      </div>
-    </div>`).join("");
-}
-function updateSidebarPage(id){
-  const page=document.getElementById(id); if(!page)return;
-  if(id==="tutorial")page.innerHTML=`<h2>Tutorial Video</h2><p class="lead">Daftar seluruh tutorial yang tersedia.</p><div class="page-list">${renderVideoRows(videos.map((_,i)=>i))}</div>`;
-  if(id==="favorit"){const ids=[...pngState.favorites];page.innerHTML=`<h2>Favorit</h2><p class="lead">Tutorial yang kamu tandai sebagai favorit.</p>${ids.length?`<div class="page-list">${renderVideoRows(ids)}</div>`:`<div class="page-empty">Belum ada video favorit.</div>`}`;}
-  if(id==="playlist"){const ids=[...pngState.playlist];page.innerHTML=`<h2>Playlist Saya</h2><p class="lead">Kumpulan tutorial pilihanmu.</p>${ids.length?`<div class="page-list">${renderVideoRows(ids)}</div>`:`<div class="page-empty">Playlist masih kosong.</div>`}`;}
-  if(id==="riwayat"){const ids=pngState.history;page.innerHTML=`<h2>Riwayat</h2><p class="lead">Tutorial yang terakhir kamu buka.</p>${ids.length?`<div class="page-list">${renderVideoRows(ids)}</div>`:`<div class="page-empty">Belum ada riwayat.</div>`}`;}
-  page.querySelectorAll(".open-video").forEach(b=>b.addEventListener("click",()=>{const i=+b.dataset.video;showPage("dashboard");setTimeout(()=>centerRealCard(i,true),80);}));
-  page.querySelectorAll(".row-fav").forEach(b=>b.addEventListener("click",()=>{toggleFavorite(+b.dataset.video);updateSidebarPage(id);}));
-  page.querySelectorAll(".row-playlist").forEach(b=>b.addEventListener("click",()=>{togglePlaylist(+b.dataset.video);updateSidebarPage(id);}));
-}
-const baseShowPage=showPage;
-showPage=function(id){
-  baseShowPage(id);
-  if(["tutorial","favorit","playlist","riwayat"].includes(id))updateSidebarPage(id);
-};
-
-refreshCardButtons();
-updatePlayerTime();
-
-/* Supporting-material button gives useful feedback in this static prototype. */
-document.querySelectorAll("button").forEach(b=>{
-  if(/Unduh Materi/i.test(b.textContent))b.addEventListener("click",()=>say("Materi pendukung siap dihubungkan ke file PDF nanti."));
-});
-
-/* ===== TAMBAH KONTEN ===== */
-const addMaterialBtn=document.getElementById("addMaterialBtn");
-const contentBack=document.getElementById("contentBack");
-const contentTabs=[...document.querySelectorAll(".content-tab")];
-const contentTabPages=[...document.querySelectorAll(".content-tab-page")];
-function openContentTab(name){showPage("tambah-konten");contentTabs.forEach(tab=>tab.classList.toggle("active",tab.dataset.contentTab===name));contentTabPages.forEach(page=>page.classList.toggle("active",page.id==="tab-"+name));}
-if(addMaterialBtn)addMaterialBtn.addEventListener("click",()=>{const target=document.getElementById("materialTargetVideo");if(target)target.textContent=videos[active][0];openContentTab("materi");});
-contentTabs.forEach(tab=>tab.addEventListener("click",()=>openContentTab(tab.dataset.contentTab)));
-if(contentBack)contentBack.addEventListener("click",()=>showPage("dashboard"));
-const materialPageTitle=document.getElementById("materialPageTitle"),materialPageCategory=document.getElementById("materialPageCategory"),materialSummary=document.getElementById("materialSummary"),materialContent=document.getElementById("materialContent");
-if(materialPageTitle)materialPageTitle.addEventListener("input",()=>document.getElementById("previewMaterialTitle").textContent=materialPageTitle.value||"Judul Materi");
-if(materialPageCategory)materialPageCategory.addEventListener("change",()=>document.getElementById("previewMaterialCategory").textContent=materialPageCategory.value||"Kategori");
-if(materialSummary)materialSummary.addEventListener("input",()=>document.getElementById("previewMaterialSummary").textContent=materialSummary.value||"Ringkasan materi akan tampil di sini.");
-if(materialContent)materialContent.addEventListener("input",()=>document.getElementById("previewMaterialContent").textContent=materialContent.value||"Isi materi yang ditulis akan muncul sebagai preview.");
-const newVideoTitle=document.getElementById("newVideoTitle"),newVideoCategory=document.getElementById("newVideoCategory"),newVideoDuration=document.getElementById("newVideoDuration"),newVideoThumbnail=document.getElementById("newVideoThumbnail");
-if(newVideoTitle)newVideoTitle.addEventListener("input",()=>document.getElementById("previewVideoTitle").textContent=newVideoTitle.value||"-");
-if(newVideoCategory)newVideoCategory.addEventListener("change",()=>document.getElementById("previewVideoCategory").textContent=newVideoCategory.value||"-");
-if(newVideoDuration)newVideoDuration.addEventListener("input",()=>document.getElementById("previewVideoDuration").textContent=newVideoDuration.value||"-");
-if(newVideoThumbnail)newVideoThumbnail.addEventListener("change",()=>{const file=newVideoThumbnail.files[0];if(!file)return;const reader=new FileReader();reader.onload=e=>{const preview=document.getElementById("videoThumbPreview");preview.style.backgroundImage=`url("${e.target.result}")`;preview.innerHTML="";};reader.readAsDataURL(file);});
-const cancelMaterial=document.getElementById("cancelMaterial"),cancelVideo=document.getElementById("cancelVideo");
-if(cancelMaterial)cancelMaterial.addEventListener("click",()=>showPage("dashboard"));if(cancelVideo)cancelVideo.addEventListener("click",()=>showPage("dashboard"));
-const saveMaterial=document.getElementById("saveMaterial");
-if(saveMaterial)saveMaterial.addEventListener("click",()=>{
-  const title=materialPageTitle.value.trim(),category=materialPageCategory.value,content=materialContent.value.trim();
-  if(!title){say("Judul materi belum diisi.");return}
-  if(!category){say("Pilih kategori materi.");return}
-  if(!content){say("Isi materi belum ditulis.");return}
-  addedMaterials.push({title,category,content,videoIndex:active,videoTitle:videos[active][0]});
-  say("Materi ditambahkan ke "+videos[active][0]);
-  setTimeout(()=>showPage("dashboard"),500);
-});
-const saveVideo=document.getElementById("saveVideo");
-if(saveVideo)saveVideo.addEventListener("click",()=>{
-  const title=newVideoTitle.value.trim(),category=newVideoCategory.value;
-  let duration=(newVideoDuration.value||"5:00").trim();
-  if(!title){say("Judul video belum diisi.");return}
-  if(!category){say("Pilih kategori video.");return}
-  if(!/^\d{1,2}:\d{2}$/.test(duration))duration="5:00";
-  const parts=duration.split(":").map(Number);
-  const longDuration=(parts[0]?parts[0]+" menit ":"")+parts[1]+" detik";
-  videos.push([title,duration,longDuration,category]);
-  realCount=videos.length;
-  render();
-  active=videos.length-1;
-  requestAnimationFrame(()=>{jumpToMiddleCopy(active);updateCoverFlow();refreshCardButtons();refreshPlayerActions();});
-  say("Video ditambahkan ke Video Lainnya.");
-  setTimeout(()=>showPage("dashboard"),500);
-});
-
-
-/* ===== FINAL COMPLETE STATIC APP ===== */
-const STORE_KEY="png-dashboard-complete-v1";
-const baseVideoCount=14;
-const defaultsFAQ=[{q:"Bagaimana cara login?",a:"Gunakan akun yang sudah diberikan lalu masuk melalui halaman login."},{q:"Lupa kata sandi?",a:"Hubungi admin atau gunakan alur pemulihan akun yang tersedia."}];
-const defaultsSOP=[{title:"SOP Pengelolaan Data",content:"Alur dasar input, pemeriksaan, dan pembaruan data."},{title:"SOP Backup",content:"Langkah pencadangan data secara berkala."}];
-let appData={materials:[],extraVideos:[],faq:defaultsFAQ,sop:defaultsSOP};
-try{const saved=JSON.parse(localStorage.getItem(STORE_KEY)||"null");if(saved)appData={...appData,...saved};}catch(e){}
-function persist(){try{localStorage.setItem(STORE_KEY,JSON.stringify(appData))}catch(e){say("Penyimpanan browser penuh.")}}
-// restore user-added videos after refresh
-if(appData.extraVideos.length){appData.extraVideos.forEach(v=>videos.push(v));realCount=videos.length;render();}
-// bridge old material array with persisted data
-addedMaterials.splice(0,addedMaterials.length,...appData.materials);
-function esc(s){return String(s??"").replace(/[&<>\"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
-function activeMaterials(){return addedMaterials.filter(m=>m.videoTitle===videos[active][0] || m.videoIndex===active)}
-function renderActiveMaterials(){const box=document.getElementById("activeMaterialList");if(!box)return;const arr=activeMaterials();box.innerHTML=arr.length?arr.map((m,i)=>`<div class="material-chip" data-material="${i}"><strong>${esc(m.title)}</strong><small>${esc(m.category)}</small></div>`).join(""):`<div class="material-chip"><strong>Belum ada materi tertulis</strong><small>Klik Tambahkan materi untuk membuatnya.</small></div>`;box.querySelectorAll("[data-material]").forEach(b=>b.onclick=()=>openMaterialDetail(+b.dataset.material));}
-function openMaterialDetail(which=0){const arr=activeMaterials();showPage("materi-detail");document.getElementById("materialDetailVideo").textContent=videos[active][0];const m=arr[which];document.getElementById("materialDetailTitle").textContent=m?m.title:"Belum ada materi";document.getElementById("materialDetailCategory").textContent=m?m.category:"Materi";document.getElementById("materialDetailSummary").textContent=m?(m.summary||""):"";document.getElementById("materialDetailBody").textContent=m?m.content:"Tambahkan materi dari dashboard untuk video ini.";document.getElementById("materialDetailNav").innerHTML=arr.length>1?arr.map((x,i)=>`<button type="button" data-i="${i}">${esc(x.title)}</button>`).join(""):"";document.querySelectorAll("#materialDetailNav button").forEach(b=>b.onclick=()=>openMaterialDetail(+b.dataset.i));}
-document.getElementById("openMaterialDetail").onclick=()=>openMaterialDetail(0);document.getElementById("materialDetailBack").onclick=()=>showPage("dashboard");
-const finalSetInfo=setInfo;setInfo=function(i){finalSetInfo(i);renderActiveMaterials();};
-function renderFAQ(){const e=document.getElementById("faqList");if(e)e.innerHTML=appData.faq.map(x=>`<article class="doc-item"><h3>${esc(x.q)}</h3><p>${esc(x.a)}</p><div class="doc-meta">FAQ PNG</div></article>`).join("")}
-function renderSOP(){const e=document.getElementById("sopList");if(e)e.innerHTML=appData.sop.map(x=>`<article class="doc-item"><h3>${esc(x.title)}</h3><p>${esc(x.content)}</p><div class="doc-meta">SOP PNG</div></article>`).join("")}
-function wireAdminForm(prefix){const cap=prefix[0].toUpperCase()+prefix.slice(1),form=document.getElementById(prefix+"Form");document.getElementById("open"+cap+"Form").onclick=()=>form.classList.add("open");document.getElementById("cancel"+cap).onclick=()=>form.classList.remove("open")}
-wireAdminForm("faq");wireAdminForm("sop");
-document.getElementById("saveFaq").onclick=()=>{const q=document.getElementById("faqQuestion").value.trim(),a=document.getElementById("faqAnswer").value.trim();if(!q||!a)return say("Pertanyaan dan jawaban harus diisi.");appData.faq.unshift({q,a});persist();renderFAQ();document.getElementById("faqQuestion").value="";document.getElementById("faqAnswer").value="";document.getElementById("faqForm").classList.remove("open");say("FAQ berhasil ditambahkan.")};
-document.getElementById("saveSop").onclick=()=>{const title=document.getElementById("sopTitle").value.trim(),content=document.getElementById("sopContent").value.trim();if(!title||!content)return say("Judul dan isi SOP harus diisi.");appData.sop.unshift({title,content});persist();renderSOP();document.getElementById("sopTitle").value="";document.getElementById("sopContent").value="";document.getElementById("sopForm").classList.remove("open");say("SOP berhasil ditambahkan.")};
-function renderCategories(){const p=document.getElementById("kategori"),cats=[...new Set(videos.map(v=>v[3]))].sort();p.innerHTML=`<h2>Kategori</h2><p class="lead">Pilih kategori untuk melihat tutorial.</p><div class="category-grid">${cats.map(c=>`<div class="category-card" data-cat="${esc(c)}"><b>${esc(c)}</b><span>${videos.filter(v=>v[3]===c).length} video</span></div>`).join("")}</div>`;p.querySelectorAll(".category-card").forEach(c=>c.onclick=()=>{const cat=c.dataset.cat;const ids=videos.map((v,i)=>v[3]===cat?i:-1).filter(i=>i>=0);p.innerHTML=`<h2>${esc(cat)}</h2><p class="lead">Tutorial dalam kategori ini.</p><div class="page-list">${renderVideoRows(ids)}</div>`;p.querySelectorAll(".open-video").forEach(b=>b.onclick=()=>{showPage("dashboard");setTimeout(()=>centerRealCard(+b.dataset.video,true),80)});});}
-const finalShowPage=showPage;showPage=function(id){finalShowPage(id);if(id==="faq")renderFAQ();if(id==="sop")renderSOP();if(id==="kategori")renderCategories();if(id==="dashboard")renderActiveMaterials();};
-// replace old save buttons so persistence and richer metadata are authoritative
-function replaceButton(id){const old=document.getElementById(id),n=old.cloneNode(true);old.replaceWith(n);return n}
-const finalSaveMaterial=replaceButton("saveMaterial");finalSaveMaterial.onclick=()=>{const title=materialPageTitle.value.trim(),category=materialPageCategory.value,content=materialContent.value.trim(),summary=materialSummary.value.trim();if(!title)return say("Judul materi belum diisi.");if(!category)return say("Pilih kategori materi.");if(!content)return say("Isi materi belum ditulis.");const m={title,category,summary,content,videoIndex:active,videoTitle:videos[active][0]};addedMaterials.push(m);appData.materials=addedMaterials;persist();renderActiveMaterials();say("Materi berhasil ditambahkan.");setTimeout(()=>{showPage("dashboard");openMaterialDetail(activeMaterials().length-1)},350)};
-const finalSaveVideo=replaceButton("saveVideo");finalSaveVideo.onclick=()=>{const title=newVideoTitle.value.trim(),category=newVideoCategory.value;let duration=(newVideoDuration.value||"5:00").trim();if(!title)return say("Judul video belum diisi.");if(!category)return say("Pilih kategori video.");if(!/^\d{1,2}:\d{2}$/.test(duration))duration="5:00";const [mm,ss]=duration.split(":").map(Number),v=[title,duration,(mm?mm+" menit ":"")+ss+" detik",category];videos.push(v);appData.extraVideos.push(v);realCount=videos.length;persist();render();active=videos.length-1;requestAnimationFrame(()=>{jumpToMiddleCopy(active);updateCoverFlow();setInfo(active)});say("Video berhasil ditambahkan.");setTimeout(()=>showPage("dashboard"),350)};
-// actual UI state for settings
-let muted=false,subtitles=false;document.getElementById("volumeBtn").onclick=()=>{muted=!muted;document.getElementById("volumeBtn").textContent=muted?"🔇":"🔊";say(muted?"Suara dimatikan":"Suara diaktifkan")};document.getElementById("resolutionSelect").onchange=e=>say("Resolusi: "+e.target.value);document.getElementById("subtitleBtn").onclick=()=>{subtitles=!subtitles;document.getElementById("subtitleStatus").textContent=subtitles?"Aktif":"Mati";document.getElementById("subtitleOverlay").classList.toggle("on",subtitles)};
-// make favorites/playlist persistent too
-try{const s=JSON.parse(localStorage.getItem(STORE_KEY+"-prefs")||"{}");(s.favorites||[]).forEach(i=>pngState.favorites.add(i));(s.playlist||[]).forEach(i=>pngState.playlist.add(i));pngState.history=s.history||pngState.history}catch(e){}
-function persistPrefs(){localStorage.setItem(STORE_KEY+"-prefs",JSON.stringify({favorites:[...pngState.favorites],playlist:[...pngState.playlist],history:pngState.history}))}
-const tf=toggleFavorite,tp=togglePlaylist,ah=addHistory;toggleFavorite=function(i){tf(i);persistPrefs();refreshPlayerActions()};togglePlaylist=function(i){tp(i);persistPrefs();refreshPlayerActions()};addHistory=function(i){ah(i);persistPrefs()};
-renderFAQ();renderSOP();renderActiveMaterials();refreshCardButtons();refreshPlayerActions();
-
-
-/* ===== PUBLIC READ + SUPABASE ADMIN ===== */
-const SB_URL=(window.PNG_CONFIG&&window.PNG_CONFIG.supabaseUrl)||"";
-const SB_KEY=(window.PNG_CONFIG&&window.PNG_CONFIG.supabaseAnonKey)||"";
-const SB_READY=!!(SB_URL&&SB_KEY&&!SB_URL.includes("YOUR_")&&!SB_KEY.includes("YOUR_"));
-const sb=SB_READY&&window.supabase?window.supabase.createClient(SB_URL,SB_KEY):null;
-let adminSession=null;
-const adminAuthBtn=document.getElementById("adminAuthBtn"),adminUserLabel=document.getElementById("adminUserLabel"),authModal=document.getElementById("authModal"),authForm=document.getElementById("authForm"),syncBadge=document.getElementById("syncBadge");
-function setAdminUI(session){adminSession=session||null;document.body.classList.toggle("is-admin",!!session);adminAuthBtn.textContent=session?"↪ Logout":"🔒 Admin Login";adminUserLabel.textContent=session?.user?.email?session.user.email:"";if(syncBadge){syncBadge.textContent=SB_READY?"Supabase online · data publik tersinkron":"Mode lokal / Supabase belum dihubungkan";syncBadge.classList.toggle("online",SB_READY);syncBadge.classList.toggle("local",!SB_READY)}}
-function requireAdmin(){if(adminSession)return true;say("Login admin diperlukan untuk mengubah konten.");authModal.classList.add("show");return false}
-adminAuthBtn.onclick=async()=>{if(adminSession&&sb){await sb.auth.signOut();setAdminUI(null);say("Admin logout.");return}authModal.classList.add("show")};
-document.getElementById("closeAuth").onclick=()=>authModal.classList.remove("show");
-authModal.addEventListener("click",e=>{if(e.target===authModal)authModal.classList.remove("show")});
-document.getElementById("doLogin").onclick=async()=>{if(!SB_READY||!sb){say("Supabase belum dihubungkan. Isi config.js terlebih dulu.");return}const email=document.getElementById("adminEmail").value.trim(),password=document.getElementById("adminPassword").value;if(!email||!password)return say("Isi email dan password admin.");const {data,error}=await sb.auth.signInWithPassword({email,password});if(error)return say("Login gagal: "+error.message);setAdminUI(data.session);authModal.classList.remove("show");say("Login admin berhasil.")};
-if(sb){sb.auth.getSession().then(({data})=>setAdminUI(data.session));sb.auth.onAuthStateChange((_e,session)=>setAdminUI(session));}else setAdminUI(null);
-
-async function uploadPublicFile(file,folder){if(!file)return "";if(!sb||!adminSession)throw new Error("Login admin diperlukan");const safe=(file.name||"file").replace(/[^a-zA-Z0-9._-]/g,"-");const path=`${folder}/${Date.now()}-${Math.random().toString(36).slice(2,8)}-${safe}`;const {error}=await sb.storage.from("png-media").upload(path,file,{upsert:false});if(error)throw error;return sb.storage.from("png-media").getPublicUrl(path).data.publicUrl||""}
-async function loadSharedData(){if(!sb)return;try{const [vr,mr,fr,sr]=await Promise.all([sb.from("videos").select("*").order("created_at",{ascending:true}),sb.from("materials").select("*").order("created_at",{ascending:true}),sb.from("faq").select("*").order("created_at",{ascending:false}),sb.from("sop").select("*").order("created_at",{ascending:false})]);if(vr.error||mr.error||fr.error||sr.error)throw(vr.error||mr.error||fr.error||sr.error);
-  // replace locally-added persisted content with shared DB content while preserving the built-in starter videos
-  videos.splice(baseVideoCount);appData.extraVideos=[];
-  (vr.data||[]).forEach(x=>{const dur=x.duration||"5:00";const parts=dur.split(":").map(Number);videos.push([x.title,dur,x.duration_label||((parts[0]?parts[0]+" menit ":"")+(parts[1]||0)+" detik"),x.category||"Lainnya",{id:x.id,description:x.description||"",video_url:x.video_url||"",thumbnail_url:x.thumbnail_url||"",language:x.language||"Indonesia",tags:x.tags||[]}])});
-  realCount=videos.length;render();
-  addedMaterials.splice(0,addedMaterials.length,...(mr.data||[]).map(x=>({id:x.id,title:x.title,category:x.category,summary:x.summary||"",content:x.content||"",videoTitle:x.video_title,attachment_url:x.attachment_url||""})));
-  appData.faq=(fr.data||[]).map(x=>({id:x.id,q:x.question,a:x.answer}));
-  appData.sop=(sr.data||[]).map(x=>({id:x.id,title:x.title,content:x.content}));
-  renderFAQ();renderSOP();renderActiveMaterials();refreshCardButtons();centerRealCard(Math.min(active,videos.length-1),false);updateCoverFlow();say("Konten publik tersinkron.");
-}catch(e){console.warn(e);say("Belum bisa sinkron Supabase; menampilkan data lokal.")}}
-if(sb)loadSharedData();
-
-// Guard admin pages/actions even if someone manually triggers their functions.
-const guardedOpenContentTab=openContentTab;openContentTab=function(name){if(!requireAdmin())return;guardedOpenContentTab(name)};
-document.getElementById("openFaqForm").onclick=()=>{if(requireAdmin())document.getElementById("faqForm").classList.add("open")};
-document.getElementById("openSopForm").onclick=()=>{if(requireAdmin())document.getElementById("sopForm").classList.add("open")};
-
-// Replace local-only create actions with shared Supabase writes when configured.
-const sharedFaqBtn=replaceButton("saveFaq");sharedFaqBtn.onclick=async()=>{if(!requireAdmin())return;const q=document.getElementById("faqQuestion").value.trim(),a=document.getElementById("faqAnswer").value.trim();if(!q||!a)return say("Pertanyaan dan jawaban harus diisi.");if(sb){const {error}=await sb.from("faq").insert({question:q,answer:a});if(error)return say("Gagal menyimpan FAQ: "+error.message);await loadSharedData()}else{appData.faq.unshift({q,a});persist();renderFAQ()}document.getElementById("faqQuestion").value="";document.getElementById("faqAnswer").value="";document.getElementById("faqForm").classList.remove("open");say("FAQ berhasil ditambahkan.")};
-const sharedSopBtn=replaceButton("saveSop");sharedSopBtn.onclick=async()=>{if(!requireAdmin())return;const title=document.getElementById("sopTitle").value.trim(),content=document.getElementById("sopContent").value.trim();if(!title||!content)return say("Judul dan isi SOP harus diisi.");if(sb){const {error}=await sb.from("sop").insert({title,content});if(error)return say("Gagal menyimpan SOP: "+error.message);await loadSharedData()}else{appData.sop.unshift({title,content});persist();renderSOP()}document.getElementById("sopTitle").value="";document.getElementById("sopContent").value="";document.getElementById("sopForm").classList.remove("open");say("SOP berhasil ditambahkan.")};
-const sharedMaterialBtn=replaceButton("saveMaterial");sharedMaterialBtn.onclick=async()=>{if(!requireAdmin())return;const title=materialPageTitle.value.trim(),category=materialPageCategory.value,content=materialContent.value.trim(),summary=materialSummary.value.trim();if(!title)return say("Judul materi belum diisi.");if(!category)return say("Pilih kategori materi.");if(!content)return say("Isi materi belum ditulis.");try{let attachment_url="";const af=document.getElementById("materialAttachment").files[0];if(sb&&af)attachment_url=await uploadPublicFile(af,"materials");const row={title,category,summary,content,video_title:videos[active][0],attachment_url};if(sb){const {error}=await sb.from("materials").insert(row);if(error)throw error;await loadSharedData()}else{addedMaterials.push({...row,videoTitle:row.video_title});appData.materials=addedMaterials;persist();renderActiveMaterials()}say("Materi berhasil ditambahkan.");setTimeout(()=>showPage("dashboard"),300)}catch(e){say("Gagal menyimpan materi: "+e.message)}};
-const sharedVideoBtn=replaceButton("saveVideo");sharedVideoBtn.onclick=async()=>{if(!requireAdmin())return;const title=newVideoTitle.value.trim(),category=newVideoCategory.value,description=document.getElementById("newVideoDescription").value.trim();let duration=(newVideoDuration.value||"5:00").trim();if(!title)return say("Judul video belum diisi.");if(!category)return say("Pilih kategori video.");if(!/^\d{1,2}:\d{2}$/.test(duration))duration="5:00";try{const [mm,ss]=duration.split(":").map(Number);let thumbnail_url="",video_url=document.getElementById("newVideoUrl").value.trim();if(sb){const thumb=document.getElementById("newVideoThumbnail").files[0],vf=document.getElementById("newVideoFile").files[0];if(thumb)thumbnail_url=await uploadPublicFile(thumb,"thumbnails");if(vf)video_url=await uploadPublicFile(vf,"videos");const {error}=await sb.from("videos").insert({title,category,description,duration,duration_label:(mm?mm+" menit ":"")+ss+" detik",language:document.getElementById("newVideoLanguage").value,thumbnail_url,video_url,tags:document.getElementById("newVideoTags").value.split(",").map(x=>x.trim()).filter(Boolean)});if(error)throw error;await loadSharedData();active=videos.length-1}else{const v=[title,duration,(mm?mm+" menit ":"")+ss+" detik",category];videos.push(v);appData.extraVideos.push(v);realCount=videos.length;persist();render();active=videos.length-1}requestAnimationFrame(()=>{centerRealCard(active,false);updateCoverFlow();setInfo(active)});say("Video berhasil ditambahkan dan dipublikasikan.");setTimeout(()=>showPage("dashboard"),300)}catch(e){say("Gagal menyimpan video: "+e.message)}};
+$("playerFavBtn")?.addEventListener("click",()=>toggleFav(active));$("playerPlaylistBtn")?.addEventListener("click",()=>togglePlaylist(active));
+function renderListPageIfOpen(){const p=document.querySelector(".page-view.active");if(p&&["favorit","playlist","riwayat"].includes(p.id))renderListPage(p.id)}
+function videoRows(indices){if(!indices.length)return `<div class="page-empty">Belum ada data.</div>`;return `<div class="doc-list">${indices.map(i=>videos[i]?`<div class="doc-item"><h3>${esc(videos[i][0])}</h3><p>${esc(videos[i][3])} · ${esc(videos[i][2]||videos[i][1])}</p><div class="form-actions"><button class="ghost-btn open-video" data-i="${i}">Buka</button><button class="ghost-btn fav-video" data-i="${i}">${favorites.has(i)?"★ Favorit":"☆ Favorit"}</button><button class="ghost-btn list-video" data-i="${i}">${playlist.has(i)?"✓ Playlist":"＋ Playlist"}</button></div></div>`:"" ).join("")}</div>`}
+function wireRows(root){root.querySelectorAll(".open-video").forEach(b=>b.onclick=()=>{setActive(+b.dataset.i,false);showPage("dashboard")});root.querySelectorAll(".fav-video").forEach(b=>b.onclick=()=>toggleFav(+b.dataset.i));root.querySelectorAll(".list-video").forEach(b=>b.onclick=()=>togglePlaylist(+b.dataset.i))}
+function renderTutorial(){const root=$("tutorial");if(!root)return;root.innerHTML=`<h2>Tutorial Video</h2><p class="lead">Daftar semua video tutorial dan materi.</p>${videoRows(videos.map((_,i)=>i))}${materials.length?`<h2 style="margin-top:22px">Materi</h2><div class="doc-list">${materials.map((m,i)=>`<div class="doc-item"><h3>${esc(m.title)}</h3><p>${esc(m.videoTitle||m.video_title||"")} · ${esc(m.category||"")}</p><button class="ghost-btn open-material" data-i="${i}">Buka materi</button></div>`).join("")}</div>`:""}`;wireRows(root);root.querySelectorAll(".open-material").forEach(b=>b.onclick=()=>openMaterial(+b.dataset.i))}
+function renderListPage(id){const root=$(id);if(!root)return;let arr=[],title="";if(id==="favorit"){arr=[...favorites];title="Favorit"}if(id==="playlist"){arr=[...playlist];title="Playlist Saya"}if(id==="riwayat"){arr=history.filter(i=>videos[i]);title="Riwayat"}root.innerHTML=`<h2>${title}</h2><p class="lead">${id==="riwayat"?"Tutorial yang terakhir dibuka.":"Koleksi video pilihanmu."}</p>${videoRows(arr)}`;wireRows(root)}
+function renderCategories(){const root=$("kategori");if(!root)return;const map={};videos.forEach((v,i)=>(map[v[3]||"Lainnya"]??=[]).push(i));root.innerHTML=`<h2>Kategori</h2><p class="lead">Cari tutorial berdasarkan kategori.</p><div class="category-grid">${Object.entries(map).map(([k,a])=>`<div class="category-card" data-cat="${esc(k)}"><b>${esc(k)}</b><span>${a.length} video</span></div>`).join("")}</div>`;root.querySelectorAll(".category-card").forEach(c=>c.onclick=()=>{const i=videos.findIndex(v=>v[3]===c.dataset.cat);if(i>=0){setActive(i,false);showPage("dashboard")}})}
+function renderMaterialsMini(){const list=$("activeMaterialList");if(!list)return;const arr=materials.filter(m=>(m.videoTitle||m.video_title)===videos[active][0]);list.innerHTML=arr.length?`<div class="material-list-mini">${arr.map((m)=>{const idx=materials.indexOf(m);return `<div class="material-chip" data-mi="${idx}"><strong>${esc(m.title)}</strong><small>${esc(m.category||"Materi")}</small></div>`}).join("")}</div>`:`<div class="content-box" style="padding:10px"><b>Belum ada materi tertulis</b><p style="margin:3px 0 0">Klik Tambahkan materi untuk membuatnya.</p></div>`;list.querySelectorAll(".material-chip").forEach(x=>x.onclick=()=>openMaterial(+x.dataset.mi))}
+function openMaterial(i){const m=materials[i];if(!m)return;$("materialDetailVideo").textContent=m.videoTitle||m.video_title||"Materi video";$("materialDetailCategory").textContent=m.category||"Materi";$("materialDetailTitle").textContent=m.title;$("materialDetailSummary").textContent=m.summary||"";$("materialDetailBody").textContent=m.content||"";showPage("materi-detail")}
+$("openMaterialDetail")?.addEventListener("click",()=>{const i=materials.findIndex(m=>(m.videoTitle||m.video_title)===videos[active][0]);if(i>=0)openMaterial(i);else say("Video ini belum memiliki materi")});$("materialDetailBack")?.addEventListener("click",()=>showPage("dashboard"));
+function renderFAQ(){const l=$("faqList");if(!l)return;l.innerHTML=faqs.map(x=>`<div class="doc-item"><h3>${esc(x.question||x.q)}</h3><p>${esc(x.answer||x.a)}</p></div>`).join("")}
+function renderSOP(){const l=$("sopList");if(!l)return;l.innerHTML=sops.map(x=>`<div class="doc-item"><h3>${esc(x.title)}</h3><p>${esc(x.content)}</p></div>`).join("")}
+function requireAdmin(action){if(isAdmin){action();return true}openAuth("Login admin diperlukan untuk mengubah konten.");return false}
+$("openFaqForm")?.addEventListener("click",()=>requireAdmin(()=>$("faqForm").classList.add("open")));$("cancelFaq")?.addEventListener("click",()=>$("faqForm")?.classList.remove("open"));
+$("saveFaq")?.addEventListener("click",async()=>{if(!isAdmin)return openAuth();const q=$("faqQuestion").value.trim(),a=$("faqAnswer").value.trim();if(!q||!a)return say("Isi pertanyaan dan jawaban");const obj={question:q,answer:a};if(await remoteInsert("faq",obj)){}else{faqs.unshift(obj);persist()}$("faqQuestion").value=$("faqAnswer").value="";$("faqForm").classList.remove("open");renderFAQ();say("FAQ disimpan")});
+$("openSopForm")?.addEventListener("click",()=>requireAdmin(()=>$("sopForm").classList.add("open")));$("cancelSop")?.addEventListener("click",()=>$("sopForm")?.classList.remove("open"));
+$("saveSop")?.addEventListener("click",async()=>{if(!isAdmin)return openAuth();const title=$("sopTitle").value.trim(),content=$("sopContent").value.trim();if(!title||!content)return say("Isi judul dan SOP");const obj={title,content};if(await remoteInsert("sop",obj)){}else{sops.unshift(obj);persist()}$("sopTitle").value=$("sopContent").value="";$("sopForm").classList.remove("open");renderSOP();say("SOP disimpan")});
+function openTambah(tab="materi"){if(!isAdmin)return openAuth("Login admin dulu untuk menambah konten.");showPage("tambah-konten");selectTab(tab);$("materialTargetVideo").textContent=videos[active][0]}
+$("addMaterialBtn")?.addEventListener("click",()=>openTambah("materi"));$("contentBack")?.addEventListener("click",()=>showPage("dashboard"));$("cancelMaterial")?.addEventListener("click",()=>showPage("dashboard"));$("cancelVideo")?.addEventListener("click",()=>showPage("dashboard"));
+$$("[data-content-tab]").forEach(b=>b.addEventListener("click",()=>selectTab(b.dataset.contentTab)));function selectTab(tab){$$("[data-content-tab]").forEach(b=>b.classList.toggle("active",b.dataset.contentTab===tab));$("tab-materi")?.classList.toggle("active",tab==="materi");$("tab-video")?.classList.toggle("active",tab==="video")}
+function syncMaterialPreview(){if($("previewMaterialTitle"))$("previewMaterialTitle").textContent=$("materialPageTitle")?.value||"Judul Materi";if($("previewMaterialCategory"))$("previewMaterialCategory").textContent=$("materialPageCategory")?.value||"Kategori";if($("previewMaterialSummary"))$("previewMaterialSummary").textContent=$("materialSummary")?.value||"Ringkasan materi akan tampil di sini.";if($("previewMaterialContent"))$("previewMaterialContent").textContent=$("materialContent")?.value||"Isi materi akan tampil di sini."}
+["materialPageTitle","materialPageCategory","materialSummary","materialContent"].forEach(id=>$(id)?.addEventListener("input",syncMaterialPreview));
+$("saveMaterial")?.addEventListener("click",async()=>{if(!isAdmin)return openAuth();const obj={videoTitle:videos[active][0],title:$("materialPageTitle").value.trim(),category:$("materialPageCategory").value,summary:$("materialSummary").value.trim(),content:$("materialContent").value.trim()};if(!obj.title||!obj.category||!obj.content)return say("Judul, kategori, dan isi materi wajib diisi");const remote={video_title:obj.videoTitle,title:obj.title,category:obj.category,summary:obj.summary,content:obj.content};if(await remoteInsert("materials",remote)){}else{materials.push(obj);persist()}["materialPageTitle","materialSummary","materialContent"].forEach(id=>$(id).value="");renderMaterialsMini();showPage("dashboard");say("Materi disimpan")});
+function syncVideoPreview(){if($("previewVideoTitle"))$("previewVideoTitle").textContent=$("newVideoTitle")?.value||"Judul Video";if($("previewVideoCategory"))$("previewVideoCategory").textContent=$("newVideoCategory")?.value||"Kategori";if($("previewVideoDuration"))$("previewVideoDuration").textContent=$("newVideoDuration")?.value||"0:00"}
+["newVideoTitle","newVideoCategory","newVideoDuration"].forEach(id=>$(id)?.addEventListener("input",syncVideoPreview));
+$("saveVideo")?.addEventListener("click",async()=>{if(!isAdmin)return openAuth();const title=$("newVideoTitle").value.trim(),cat=$("newVideoCategory").value,dur=$("newVideoDuration").value.trim()||"5:00",desc=$("newVideoDescription").value.trim();if(!title||!cat)return say("Judul dan kategori video wajib diisi");const remote={title,category:cat,description:desc,duration:dur,duration_label:dur,language:$("newVideoLanguage")?.value||"Indonesia",video_url:$("newVideoUrl")?.value||"",tags:($("newVideoTags")?.value||"").split(",").map(x=>x.trim()).filter(Boolean)};if(!(await remoteInsert("videos",remote))){videos.push([title,dur,dur,cat]);persist()}else{await loadRemote()}active=videos.length-1;renderCarousel();setActive(active,false);showPage("dashboard");say("Video disimpan")});
+const search=$("globalSearch"),results=$("searchResults");if(search&&results){search.addEventListener("input",()=>{const q=search.value.trim().toLowerCase();if(!q){results.classList.remove("show");return}const a=videos.map((v,i)=>({v,i})).filter(x=>(x.v[0]+" "+x.v[3]).toLowerCase().includes(q)).slice(0,8);results.innerHTML=a.length?a.map(x=>`<div class="search-item" data-i="${x.i}"><b>${esc(x.v[0])}</b><small>${esc(x.v[3])}</small></div>`).join(""):`<div class="search-empty">Tidak ditemukan</div>`;results.classList.add("show");results.querySelectorAll(".search-item").forEach(x=>x.onclick=()=>{setActive(+x.dataset.i,false);showPage("dashboard");results.classList.remove("show")})});document.addEventListener("click",e=>{if(!e.target.closest(".search-wrap"))results.classList.remove("show")})}
+function supabaseReady(){const c=window.PNG_CONFIG||{};return !!(window.supabase&&c.supabaseUrl&&c.supabaseAnonKey&&!c.supabaseUrl.includes("YOUR_")&&!c.supabaseAnonKey.includes("YOUR_"))}
+async function initSupabase(){if(!supabaseReady()){if($("syncBadge"))$("syncBadge").textContent="Mode lokal";return}try{sb=window.supabase.createClient(window.PNG_CONFIG.supabaseUrl,window.PNG_CONFIG.supabaseAnonKey);const {data}=await sb.auth.getSession();applySession(data.session);sb.auth.onAuthStateChange((_e,s)=>applySession(s));await loadRemote();if($("syncBadge"))$("syncBadge").textContent="Online"}catch(e){console.error(e);say("Supabase gagal tersambung")}}
+function applySession(session){isAdmin=!!session;document.body.classList.toggle("is-admin",isAdmin);if($("adminAuthBtn"))$("adminAuthBtn").textContent=isAdmin?"🔓 Logout":"🔒 Admin Login";if($("adminUserLabel"))$("adminUserLabel").textContent=isAdmin?(session.user?.email||"Admin"):""}
+function openAuth(help){if($("authHelp")&&help)$("authHelp").textContent=help;$("authModal")?.classList.add("show");$("authModal")?.setAttribute("aria-hidden","false")}
+function closeAuth(){$("authModal")?.classList.remove("show");$("authModal")?.setAttribute("aria-hidden","true")}
+$("adminAuthBtn")?.addEventListener("click",async()=>{if(isAdmin&&sb){await sb.auth.signOut();return}openAuth(supabaseReady()?"Masuk dengan akun admin Supabase.":"Supabase belum disambungkan. Isi config.js terlebih dahulu agar Admin Login aktif.")});$("closeAuth")?.addEventListener("click",closeAuth);$("authModal")?.addEventListener("click",e=>{if(e.target.id==="authModal")closeAuth()});
+$("doLogin")?.addEventListener("click",async()=>{if(!supabaseReady())return say("Isi Project URL dan anon key di config.js dulu");if(!sb)await initSupabase();const email=$("adminEmail").value.trim(),password=$("adminPassword").value;if(!email||!password)return say("Isi email dan password");const {error}=await sb.auth.signInWithPassword({email,password});if(error)return say("Login gagal: "+error.message);closeAuth();say("Login admin berhasil")});
+async function remoteInsert(table,obj){if(!sb||!isAdmin)return false;try{const {error}=await sb.from(table).insert(obj);if(error)throw error;await loadRemote();return true}catch(e){console.error(e);say("Gagal simpan online, data tidak diubah");return true}}
+async function loadRemote(){if(!sb)return;try{const [v,m,f,s]=await Promise.all([sb.from("videos").select("*").order("created_at"),sb.from("materials").select("*").order("created_at"),sb.from("faq").select("*").order("created_at"),sb.from("sop").select("*").order("created_at")]);if(v.data?.length)videos=[...baseVideos.map(x=>[...x]),...v.data.map(x=>[x.title,x.duration||"5:00",x.duration_label||x.duration||"5:00",x.category||"Tutorial"])];if(m.data)materials=m.data.map(x=>({...x,videoTitle:x.video_title}));if(f.data?.length)faqs=f.data;if(s.data?.length)sops=s.data;active=Math.min(active,videos.length-1);renderCarousel();setActive(active,false);renderFAQ();renderSOP()}catch(e){console.error(e)}}
+window.addEventListener("resize",updateCoverFlow);
+renderCarousel();setupDrag();renderFAQ();renderSOP();renderCategories();setActive(active,false);syncMaterialPreview();syncVideoPreview();initSupabase();
+})();
 
 </script>
 </body>
