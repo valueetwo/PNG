@@ -236,25 +236,10 @@ body:not(.is-admin) .admin-lock-note{display:block}
 @media(max-width:700px){.video-row-actions{flex-wrap:wrap}.video-row-actions .ghost-btn{flex:0 0 auto;min-width:0;padding:6px 9px}}
 
 
-/* V6: Cover Flow sederhana & stabil — satu strip, center akurat, drag mouse/touch */
-#scroller{
-  position:relative;
-  align-items:center;
-  touch-action:pan-y;
-  cursor:grab;
-  overflow-x:auto;
-  overflow-y:hidden;
-  scroll-behavior:auto;
-  scroll-snap-type:none;
-  padding-left:calc(50% - 89px);
-  padding-right:calc(50% - 89px);
-}
-#scroller.dragging{cursor:grabbing}
-#scroller .card{
-  flex:0 0 178px;
-  transform-origin:center center;
-  transition:transform .08s linear,opacity .08s linear,filter .08s linear;
-}
+/* V7: restore drag yang sebelumnya stabil */
+#scroller{position:relative;align-items:center;touch-action:pan-y;cursor:grab;user-select:none;-webkit-user-select:none;}
+#scroller:active{cursor:grabbing}
+#scroller .card{flex:0 0 178px;transform-origin:center bottom;cursor:grab;will-change:transform,opacity,filter;user-select:none;-webkit-user-select:none;}
 #scroller .card-actions{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;}
 #scroller .mini-btn{width:auto!important;min-width:0!important;flex:0 0 auto!important;padding:5px 7px!important;font-size:10px!important;}
 
@@ -480,7 +465,7 @@ const DEFAULT_SOP=[
   {title:"SOP Pengelolaan Data",content:"Alur dasar input, pemeriksaan, dan pembaruan data."},
   {title:"SOP Backup",content:"Langkah pencadangan data secara berkala."}
 ];
-const KEY="png-dashboard-ui-v3"; // tetap pakai key lama agar favorit/riwayat tidak hilang
+const KEY="png-dashboard-ui-v3";
 let saved={}; try{saved=JSON.parse(localStorage.getItem(KEY)||"{}")}catch(e){}
 let videos=Array.isArray(saved.videos)&&saved.videos.length?saved.videos:baseVideos.map(v=>[...v]);
 let materials=Array.isArray(saved.materials)?saved.materials:[];
@@ -512,9 +497,9 @@ function setActive(i,center=true){
   if(center)centerCard(active,true);
 }
 function renderCarousel(){
-  const s=$("scroller"); if(!s)return;
-  s.innerHTML="";
-  videos.forEach((v,i)=>{
+  const s=$("scroller"); if(!s)return; s.innerHTML="";
+  // 3 salinan seperti versi drag lama yang stabil. Salinan tengah jadi area kerja utama.
+  for(let copy=0;copy<3;copy++) videos.forEach((v,i)=>{
     const card=document.createElement("article");
     card.className="card";
     card.dataset.real=i;
@@ -526,114 +511,142 @@ function renderCarousel(){
     s.appendChild(card);
   });
   refreshFavButtons();
-  requestAnimationFrame(()=>centerCard(active,false));
+  requestAnimationFrame(()=>{jumpToMiddleCopy(active);updateCoverFlow()});
 }
 function esc(x){return String(x??"").replace(/[&<>\"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]))}
-
-function cardCenterInScroller(card,s){
-  return card.offsetLeft + card.offsetWidth/2;
+function cardStep(){
+  const cards=$$("#scroller .card");
+  if(cards.length<2)return 196;
+  return cards[1].offsetLeft-cards[0].offsetLeft;
 }
-function scrollerCenter(s){
-  return s.scrollLeft + s.clientWidth/2;
+function jumpToMiddleCopy(realIndex){
+  const s=$("scroller"), n=videos.length; if(!s||!n)return;
+  const card=s.children[n+realIndex]; if(!card)return;
+  s.scrollLeft=card.offsetLeft-(s.clientWidth-card.offsetWidth)/2;
+}
+function centerCard(realIndex,smooth=true){
+  const s=$("scroller"), n=videos.length; if(!s||!n)return;
+  const card=s.children[n+realIndex] || Array.from(s.children).find(c=>+c.dataset.real===realIndex);
+  if(!card)return;
+  // offsetLeft tidak ikut berubah oleh transform, jadi titik tengah tidak "lari".
+  const left=card.offsetLeft-(s.clientWidth-card.offsetWidth)/2;
+  s.scrollTo({left,behavior:smooth?"smooth":"auto"});
+}
+function normalizeLoop(){
+  const s=$("scroller"), n=videos.length; if(!s||!n)return;
+  const step=cardStep(), oneSet=step*n; if(!oneSet)return;
+  if(s.scrollLeft<oneSet*.45) s.scrollLeft+=oneSet;
+  else if(s.scrollLeft>oneSet*1.55) s.scrollLeft-=oneSet;
 }
 function nearestCard(){
   const s=$("scroller"); if(!s)return null;
-  const cards=$$("#scroller .card");
-  const center=scrollerCenter(s);
-  let best=null,bestDist=Infinity;
-  cards.forEach(c=>{
-    const d=Math.abs(cardCenterInScroller(c,s)-center);
-    if(d<bestDist){bestDist=d;best=c}
+  const outer=s.getBoundingClientRect(), center=outer.left+outer.width/2;
+  let best=null,dist=Infinity;
+  $$("#scroller .card").forEach(card=>{
+    const r=card.getBoundingClientRect();
+    const d=Math.abs((r.left+r.width/2)-center);
+    if(d<dist){dist=d;best=card}
   });
   return best;
 }
-function centerCard(i,smooth=true){
-  const s=$("scroller"); if(!s)return;
-  const target=$$("#scroller .card").find(c=>+c.dataset.real===i);
-  if(!target)return;
-  const left=cardCenterInScroller(target,s)-s.clientWidth/2;
-  s.scrollTo({left,behavior:smooth?"smooth":"auto"});
-  if(!smooth)requestAnimationFrame(updateCoverFlow);
-}
+let coverRaf=0;
 function updateCoverFlow(){
   const s=$("scroller"); if(!s)return;
-  const center=scrollerCenter(s);
-  const range=Math.max(260,s.clientWidth*.38);
-  $$("#scroller .card").forEach(c=>{
-    const d=Math.abs(cardCenterInScroller(c,s)-center);
-    const norm=Math.min(1,d/range);
-    const scale=1-norm*.20;
-    const y=norm*34;
-    c.style.transform=`translateY(${y}px) scale(${scale})`;
-    c.style.opacity=String(1-norm*.22);
-    c.style.zIndex=String(100-Math.round(norm*50));
+  cancelAnimationFrame(coverRaf);
+  coverRaf=requestAnimationFrame(()=>{
+    const outer=s.getBoundingClientRect();
+    const center=outer.left+outer.width/2;
+    $$("#scroller .card").forEach(card=>{
+      const r=card.getBoundingClientRect();
+      const d=((r.left+r.width/2)-center)/196;
+      const ad=Math.abs(d);
+      const scale=Math.max(.80,1.24-ad*.15);
+      const lift=Math.max(0,42-ad*16);
+      const opacity=Math.max(.52,1-ad*.14);
+      const rotate=Math.max(-10,Math.min(10,d*-4));
+      card.style.transform=`translateY(${-lift}px) scale(${scale}) rotateY(${rotate}deg)`;
+      card.style.opacity=String(opacity);
+      card.style.filter=ad<.55?"brightness(1.14)":"brightness(.84)";
+      card.style.zIndex=String(Math.max(1,30-Math.round(ad*5)));
+    });
   });
-}
-function snapNearest(smooth=true){
-  const best=nearestCard();
-  if(!best)return;
-  const i=+best.dataset.real;
-  if(Number.isInteger(i) && i!==active)setActive(i,false);
-  centerCard(i,smooth);
 }
 function setupDrag(){
   const s=$("scroller"); if(!s || s.dataset.dragReady==="1")return;
   s.dataset.dragReady="1";
-  let down=false,startX=0,startScroll=0,moved=false,pid=null,scrollTimer=null,raf=0;
+  s.style.touchAction="pan-y";
+  let drag=false,startX=0,startScroll=0,dragPointer=null,hasMoved=false;
+  let scrollTimer=0;
 
-  const onScroll=()=>{
-    cancelAnimationFrame(raf);
-    raf=requestAnimationFrame(updateCoverFlow);
+  s.addEventListener("dragstart",e=>e.preventDefault());
+  s.addEventListener("scroll",()=>{
+    updateCoverFlow();
     clearTimeout(scrollTimer);
-    if(!down){
-      scrollTimer=setTimeout(()=>snapNearest(false),140);
+    scrollTimer=setTimeout(()=>{
+      if(drag)return;
+      normalizeLoop();
+      const best=nearestCard();
+      if(best){
+        const i=+best.dataset.real;
+        if(i!==active)setActive(i,false);
+      }
+    },110);
+  },{passive:true});
+  s.addEventListener("wheel",e=>{
+    if(Math.abs(e.deltaY)>Math.abs(e.deltaX)){
+      s.scrollLeft+=e.deltaY*2;
+      e.preventDefault();
+      updateCoverFlow();
     }
-  };
-  s.addEventListener("scroll",onScroll,{passive:true});
+  },{passive:false});
 
+  // Penting: drag boleh mulai dari bagian mana pun di kartu, termasuk di atas tombol.
+  // Klik tombol hanya dibatalkan kalau pointer benar-benar bergerak.
   s.addEventListener("pointerdown",e=>{
     if(e.button!==undefined && e.button!==0)return;
-    if(e.target.closest("button,a,input,select,textarea"))return;
-    down=true;moved=false;dragMoved=false;pid=e.pointerId;
-    startX=e.clientX;startScroll=s.scrollLeft;
-    s.classList.add("dragging");
-    try{s.setPointerCapture?.(pid)}catch(_){}
+    drag=true; hasMoved=false; dragMoved=false; dragPointer=e.pointerId;
+    startX=e.clientX; startScroll=s.scrollLeft;
+    s.style.cursor="grabbing";
+    $$("#scroller .card").forEach(c=>c.style.cursor="grabbing");
+    try{s.setPointerCapture(e.pointerId)}catch(_e){}
   });
-
   s.addEventListener("pointermove",e=>{
-    if(!down)return;
+    if(!drag || (dragPointer!==null && e.pointerId!==dragPointer))return;
     const dx=e.clientX-startX;
-    if(Math.abs(dx)>3){
-      moved=true;dragMoved=true;
-      s.scrollLeft=startScroll-dx;
-      e.preventDefault();
+    if(Math.abs(dx)>2){hasMoved=true;dragMoved=true;}
+    s.scrollLeft=startScroll-dx*1.7;
+    updateCoverFlow();
+    if(hasMoved && e.cancelable)e.preventDefault();
+  });
+  function finishDrag(e){
+    if(!drag)return;
+    drag=false; dragPointer=null;
+    s.style.cursor="grab";
+    $$("#scroller .card").forEach(c=>c.style.cursor="grab");
+    normalizeLoop();
+    updateCoverFlow();
+    if(hasMoved){
+      const best=nearestCard();
+      if(best){
+        const i=+best.dataset.real;
+        setActive(i,false);
+        centerCard(i,true);
+      }
     }
-  },{passive:false});
+    setTimeout(()=>{dragMoved=false},120);
+  }
+  s.addEventListener("pointerup",finishDrag);
+  s.addEventListener("pointercancel",finishDrag);
+  s.addEventListener("lostpointercapture",finishDrag);
 
-  const end=e=>{
-    if(!down)return;
-    down=false;
-    s.classList.remove("dragging");
-    try{if(pid!=null && s.hasPointerCapture?.(pid))s.releasePointerCapture(pid)}catch(_){}
-    if(moved)snapNearest(true);
-    setTimeout(()=>{dragMoved=false},160);
-  };
-  s.addEventListener("pointerup",end);
-  s.addEventListener("pointercancel",end);
-  s.addEventListener("lostpointercapture",()=>{ if(down) end(); });
-  s.addEventListener("dragstart",e=>e.preventDefault());
-
-  // Trackpad/mouse-wheel horizontal support: Shift+wheel or native deltaX.
-  s.addEventListener("wheel",e=>{
-    const horizontal=Math.abs(e.deltaX)>Math.abs(e.deltaY);
-    if(horizontal){
-      s.scrollLeft+=e.deltaX;
+  // Cegah click sesudah drag, tapi click biasa tetap jalan.
+  s.addEventListener("click",e=>{
+    if(hasMoved){
       e.preventDefault();
-    }else if(e.shiftKey){
-      s.scrollLeft+=e.deltaY;
-      e.preventDefault();
+      e.stopPropagation();
+      hasMoved=false;
     }
-  },{passive:false});
+  },true);
 }
 function updatePlayer(){const v=videos[active];if(!v)return;if($("playerTime"))$("playerTime").textContent=clock(elapsed)+" / "+v[1];if($("playerProgress"))$("playerProgress").style.width=(elapsed/Math.max(1,secs(v[1]))*100)+"%"}
 $("playBtn")?.addEventListener("click",()=>{playing=!playing;$("playBtn").textContent=playing?"❚❚":"▶";clearInterval(timer);if(playing)timer=setInterval(()=>{elapsed++;if(elapsed>=secs(videos[active][1])){elapsed=0;playing=false;clearInterval(timer);$("playBtn").textContent="▶"}updatePlayer()},1000)});
