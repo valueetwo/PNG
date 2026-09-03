@@ -1,0 +1,20 @@
+PNG DASHBOARD — MODE PUBLIK + ADMIN
+
+1. Upload index.html, mascot.png, nezha-png.png, dan config.js ke root GitHub Pages.
+2. Buat project Supabase.
+3. Buka SQL Editor, tempel seluruh isi supabase-setup.sql, lalu Run.
+4. Di Authentication, buat akun admin dengan email/password. Sebaiknya matikan public sign-up agar orang lain tidak bisa membuat akun admin sendiri.
+5. Dari Supabase Project Settings > API, salin Project URL dan anon/public key ke config.js.
+6. Upload config.js yang sudah diisi ke GitHub.
+
+HASIL:
+- Semua pengunjung dapat melihat Video, Materi, FAQ, dan SOP dari database.
+- Tombol tambah tersembunyi bagi pengunjung.
+- Admin menekan Admin Login dan masuk memakai akun Supabase.
+- Setelah login, Tambah Video, Materi, FAQ, dan SOP aktif.
+- Upload thumbnail/video/file materi masuk ke bucket png-media.
+- Favorit, Playlist, dan Riwayat tetap per-browser karena itu preferensi pribadi pengunjung.
+
+CATATAN KEAMANAN:
+- Jangan pernah menaruh service_role key di config.js.
+- Hanya anon/public key yang boleh berada di frontend, dengan RLS tetap aktif.
