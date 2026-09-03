@@ -236,9 +236,25 @@ body:not(.is-admin) .admin-lock-note{display:block}
 @media(max-width:700px){.video-row-actions{flex-wrap:wrap}.video-row-actions .ghost-btn{flex:0 0 auto;min-width:0;padding:6px 9px}}
 
 
-/* V5: Cover Flow stabil — puncak tepat di tengah + drag kartu */
-#scroller{position:relative;align-items:center;touch-action:pan-y;}
-#scroller .card{flex:0 0 178px;transform-origin:center center;}
+/* V6: Cover Flow sederhana & stabil — satu strip, center akurat, drag mouse/touch */
+#scroller{
+  position:relative;
+  align-items:center;
+  touch-action:pan-y;
+  cursor:grab;
+  overflow-x:auto;
+  overflow-y:hidden;
+  scroll-behavior:auto;
+  scroll-snap-type:none;
+  padding-left:calc(50% - 89px);
+  padding-right:calc(50% - 89px);
+}
+#scroller.dragging{cursor:grabbing}
+#scroller .card{
+  flex:0 0 178px;
+  transform-origin:center center;
+  transition:transform .08s linear,opacity .08s linear,filter .08s linear;
+}
 #scroller .card-actions{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;}
 #scroller .mini-btn{width:auto!important;min-width:0!important;flex:0 0 auto!important;padding:5px 7px!important;font-size:10px!important;}
 
@@ -464,7 +480,7 @@ const DEFAULT_SOP=[
   {title:"SOP Pengelolaan Data",content:"Alur dasar input, pemeriksaan, dan pembaruan data."},
   {title:"SOP Backup",content:"Langkah pencadangan data secara berkala."}
 ];
-const KEY="png-dashboard-ui-v3";
+const KEY="png-dashboard-ui-v3"; // tetap pakai key lama agar favorit/riwayat tidak hilang
 let saved={}; try{saved=JSON.parse(localStorage.getItem(KEY)||"{}")}catch(e){}
 let videos=Array.isArray(saved.videos)&&saved.videos.length?saved.videos:baseVideos.map(v=>[...v]);
 let materials=Array.isArray(saved.materials)?saved.materials:[];
@@ -496,98 +512,128 @@ function setActive(i,center=true){
   if(center)centerCard(active,true);
 }
 function renderCarousel(){
- const s=$("scroller"); if(!s)return; s.innerHTML="";
- for(let copy=0;copy<3;copy++) videos.forEach((v,i)=>{
-   const card=document.createElement("article");card.className="card";card.dataset.real=i;
-   card.innerHTML=`<div class="thumb"><span class="duration">${esc(v[1])}</span></div><h4>${esc(v[0])}</h4><p>Video tutorial</p><div class="card-actions"><button class="mini-btn fav-btn" type="button">☆ Favorit</button><button class="mini-btn list-btn" type="button">＋ Playlist</button></div>`;
-   card.addEventListener("click",()=>{if(!dragMoved)setActive(i,true)});
-   s.appendChild(card);
- });
- refreshFavButtons(); requestAnimationFrame(()=>centerCard(active,false));
+  const s=$("scroller"); if(!s)return;
+  s.innerHTML="";
+  videos.forEach((v,i)=>{
+    const card=document.createElement("article");
+    card.className="card";
+    card.dataset.real=i;
+    card.innerHTML=`<div class="thumb"><span class="duration">${esc(v[1])}</span></div><h4>${esc(v[0])}</h4><p>Video tutorial</p><div class="card-actions"><button class="mini-btn fav-btn" type="button">☆ Favorit</button><button class="mini-btn list-btn" type="button">＋ Playlist</button></div>`;
+    card.addEventListener("click",e=>{
+      if(e.target.closest("button"))return;
+      if(!dragMoved)setActive(i,true);
+    });
+    s.appendChild(card);
+  });
+  refreshFavButtons();
+  requestAnimationFrame(()=>centerCard(active,false));
 }
 function esc(x){return String(x??"").replace(/[&<>\"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]))}
+
+function cardCenterInScroller(card,s){
+  return card.offsetLeft + card.offsetWidth/2;
+}
+function scrollerCenter(s){
+  return s.scrollLeft + s.clientWidth/2;
+}
+function nearestCard(){
+  const s=$("scroller"); if(!s)return null;
+  const cards=$$("#scroller .card");
+  const center=scrollerCenter(s);
+  let best=null,bestDist=Infinity;
+  cards.forEach(c=>{
+    const d=Math.abs(cardCenterInScroller(c,s)-center);
+    if(d<bestDist){bestDist=d;best=c}
+  });
+  return best;
+}
 function centerCard(i,smooth=true){
- const s=$("scroller"); if(!s)return;
- const cards=$$("#scroller .card");
- // Selalu pilih salinan di bagian tengah agar masih punya ruang di kiri dan kanan.
- const middleStart=videos.length, middleEnd=videos.length*2;
- const target=cards.find((c,idx)=>idx>=middleStart && idx<middleEnd && +c.dataset.real===i) || cards.find(c=>+c.dataset.real===i);
- if(!target)return;
- const sr=s.getBoundingClientRect(), tr=target.getBoundingClientRect();
- const delta=(tr.left+tr.width/2)-(sr.left+sr.width/2);
- s.scrollTo({left:s.scrollLeft+delta,behavior:smooth?"smooth":"auto"});
- if(!smooth)requestAnimationFrame(updateCoverFlow); else setTimeout(updateCoverFlow,260);
+  const s=$("scroller"); if(!s)return;
+  const target=$$("#scroller .card").find(c=>+c.dataset.real===i);
+  if(!target)return;
+  const left=cardCenterInScroller(target,s)-s.clientWidth/2;
+  s.scrollTo({left,behavior:smooth?"smooth":"auto"});
+  if(!smooth)requestAnimationFrame(updateCoverFlow);
 }
 function updateCoverFlow(){
- const s=$("scroller"); if(!s)return;
- const sr=s.getBoundingClientRect();
- const centerX=sr.left+sr.width/2;
- let best=null,dist=Infinity;
- $$("#scroller .card").forEach(c=>{
-   // getBoundingClientRect dipakai supaya titik puncak benar-benar mengikuti tengah area carousel,
-   // bukan tengah halaman/offset parent. Ini membuat sisi kiri dan kanan simetris.
-   const r=c.getBoundingClientRect();
-   const d=Math.abs((r.left+r.width/2)-centerX);
-   const norm=Math.min(1,d/Math.max(260,sr.width*.38));
-   const scale=1-norm*.20;
-   const y=norm*34;
-   c.style.transform=`translateY(${y}px) scale(${scale})`;
-   c.style.opacity=String(1-norm*.22);
-   c.style.zIndex=String(100-Math.round(norm*50));
-   if(d<dist){dist=d;best=c}
- });
- if(best){
-   const i=+best.dataset.real;
-   if(i!==active && !dragMoved)setActive(i,false);
- }
+  const s=$("scroller"); if(!s)return;
+  const center=scrollerCenter(s);
+  const range=Math.max(260,s.clientWidth*.38);
+  $$("#scroller .card").forEach(c=>{
+    const d=Math.abs(cardCenterInScroller(c,s)-center);
+    const norm=Math.min(1,d/range);
+    const scale=1-norm*.20;
+    const y=norm*34;
+    c.style.transform=`translateY(${y}px) scale(${scale})`;
+    c.style.opacity=String(1-norm*.22);
+    c.style.zIndex=String(100-Math.round(norm*50));
+  });
+}
+function snapNearest(smooth=true){
+  const best=nearestCard();
+  if(!best)return;
+  const i=+best.dataset.real;
+  if(Number.isInteger(i) && i!==active)setActive(i,false);
+  centerCard(i,smooth);
 }
 function setupDrag(){
- const s=$("scroller"); if(!s || s.dataset.dragReady==="1")return;
- s.dataset.dragReady="1";
- s.style.touchAction="pan-y";
- let down=false,startX=0,startScroll=0,moved=false,pid=null;
- let raf=0;
- s.addEventListener("scroll",()=>{
-   cancelAnimationFrame(raf);
-   raf=requestAnimationFrame(updateCoverFlow);
- },{passive:true});
- s.addEventListener("pointerdown",e=>{
-   if(e.button!==0)return;
-   if(e.target.closest("button,a,input,select,textarea"))return;
-   down=true;moved=false;dragMoved=false;startX=e.clientX;startScroll=s.scrollLeft;pid=e.pointerId;
-   // Capture dari awal supaya drag tidak putus ketika pointer melewati kartu lain.
-   try{s.setPointerCapture?.(pid)}catch(_e){}
-   s.style.cursor="grabbing";
- });
- s.addEventListener("pointermove",e=>{
-   if(!down)return;
-   const dx=e.clientX-startX;
-   if(Math.abs(dx)>4){
-     moved=true;dragMoved=true;
-     e.preventDefault();
-     s.scrollLeft=startScroll-dx*1.45;
-   }
- });
- const end=()=>{
-   if(!down)return;
-   down=false;s.style.cursor="grab";
-   try{s.releasePointerCapture?.(pid)}catch(_e){}
-   if(moved){
-     const sr=s.getBoundingClientRect(), centerX=sr.left+sr.width/2;
-     let best=null,d=Infinity;
-     $$("#scroller .card").forEach(c=>{
-       const r=c.getBoundingClientRect();
-       const x=Math.abs((r.left+r.width/2)-centerX);
-       if(x<d){d=x;best=c}
-     });
-     if(best)setActive(+best.dataset.real,true);
-   }
-   setTimeout(()=>{dragMoved=false},120);
- };
- s.addEventListener("pointerup",end);
- s.addEventListener("pointercancel",end);
- s.addEventListener("lostpointercapture",end);
- s.addEventListener("dragstart",e=>e.preventDefault());
+  const s=$("scroller"); if(!s || s.dataset.dragReady==="1")return;
+  s.dataset.dragReady="1";
+  let down=false,startX=0,startScroll=0,moved=false,pid=null,scrollTimer=null,raf=0;
+
+  const onScroll=()=>{
+    cancelAnimationFrame(raf);
+    raf=requestAnimationFrame(updateCoverFlow);
+    clearTimeout(scrollTimer);
+    if(!down){
+      scrollTimer=setTimeout(()=>snapNearest(false),140);
+    }
+  };
+  s.addEventListener("scroll",onScroll,{passive:true});
+
+  s.addEventListener("pointerdown",e=>{
+    if(e.button!==undefined && e.button!==0)return;
+    if(e.target.closest("button,a,input,select,textarea"))return;
+    down=true;moved=false;dragMoved=false;pid=e.pointerId;
+    startX=e.clientX;startScroll=s.scrollLeft;
+    s.classList.add("dragging");
+    try{s.setPointerCapture?.(pid)}catch(_){}
+  });
+
+  s.addEventListener("pointermove",e=>{
+    if(!down)return;
+    const dx=e.clientX-startX;
+    if(Math.abs(dx)>3){
+      moved=true;dragMoved=true;
+      s.scrollLeft=startScroll-dx;
+      e.preventDefault();
+    }
+  },{passive:false});
+
+  const end=e=>{
+    if(!down)return;
+    down=false;
+    s.classList.remove("dragging");
+    try{if(pid!=null && s.hasPointerCapture?.(pid))s.releasePointerCapture(pid)}catch(_){}
+    if(moved)snapNearest(true);
+    setTimeout(()=>{dragMoved=false},160);
+  };
+  s.addEventListener("pointerup",end);
+  s.addEventListener("pointercancel",end);
+  s.addEventListener("lostpointercapture",()=>{ if(down) end(); });
+  s.addEventListener("dragstart",e=>e.preventDefault());
+
+  // Trackpad/mouse-wheel horizontal support: Shift+wheel or native deltaX.
+  s.addEventListener("wheel",e=>{
+    const horizontal=Math.abs(e.deltaX)>Math.abs(e.deltaY);
+    if(horizontal){
+      s.scrollLeft+=e.deltaX;
+      e.preventDefault();
+    }else if(e.shiftKey){
+      s.scrollLeft+=e.deltaY;
+      e.preventDefault();
+    }
+  },{passive:false});
 }
 function updatePlayer(){const v=videos[active];if(!v)return;if($("playerTime"))$("playerTime").textContent=clock(elapsed)+" / "+v[1];if($("playerProgress"))$("playerProgress").style.width=(elapsed/Math.max(1,secs(v[1]))*100)+"%"}
 $("playBtn")?.addEventListener("click",()=>{playing=!playing;$("playBtn").textContent=playing?"❚❚":"▶";clearInterval(timer);if(playing)timer=setInterval(()=>{elapsed++;if(elapsed>=secs(videos[active][1])){elapsed=0;playing=false;clearInterval(timer);$("playBtn").textContent="▶"}updatePlayer()},1000)});
