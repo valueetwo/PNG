@@ -75,13 +75,13 @@ button{cursor:pointer}
 
 .related{
   margin-top:12px;border:1px solid var(--line);border-radius:12px;background:#020303;
-  padding:12px 12px 8px;min-height:315px;display:flex;flex-direction:column
+  padding:12px 12px 8px;min-height:390px;display:flex;flex-direction:column
 }
 .related-head{display:flex;justify-content:space-between;align-items:center}
 .related-head h3{margin:0;font-size:16px}
 .related-head span{color:var(--red);font-size:12px}
 .scroller{
-  flex:1;min-height:235px;display:flex;align-items:center;gap:18px;
+  flex:1;min-height:300px;display:flex;align-items:center;gap:18px;
   overflow-x:auto;overflow-y:hidden;padding:22px 28px 12px;
   background:#020303;scroll-snap-type:none;scroll-behavior:auto;
   scroll-padding-inline:calc(50% - 100px);-webkit-overflow-scrolling:touch;
@@ -236,12 +236,16 @@ body:not(.is-admin) .admin-lock-note{display:block}
 @media(max-width:700px){.video-row-actions{flex-wrap:wrap}.video-row-actions .ghost-btn{flex:0 0 auto;min-width:0;padding:6px 9px}}
 
 
-/* V7: restore drag yang sebelumnya stabil */
-#scroller{position:relative;align-items:center;touch-action:pan-y;cursor:grab;user-select:none;-webkit-user-select:none;}
-#scroller:active{cursor:grabbing}
-#scroller .card{flex:0 0 178px;transform-origin:center bottom;cursor:grab;will-change:transform,opacity,filter;user-select:none;-webkit-user-select:none;}
-#scroller .card-actions{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;}
-#scroller .mini-btn{width:auto!important;min-width:0!important;flex:0 0 auto!important;padding:5px 7px!important;font-size:10px!important;}
+/* ===== MASTER CAROUSEL: gunakan mekanisme versi normal yang sudah terbukti ===== */
+#scroller{position:relative;touch-action:pan-y;}
+#scroller .card-actions{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;margin-top:6px}
+#scroller .mini-btn{width:auto!important;min-width:0!important;flex:0 0 auto!important;padding:5px 7px!important;font-size:10px!important}
+.video-row-actions{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:10px}
+.video-row-actions .ghost-btn{width:auto!important;min-width:0!important;flex:0 0 auto!important;padding:6px 10px!important;font-size:11px!important;line-height:1.15}
+.page-toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
+.page-toolbar h2{margin:0}
+.page-toolbar .admin-add{width:auto;padding:8px 12px;font-size:11px}
+
 
 </style>
 </head>
@@ -433,7 +437,7 @@ body:not(.is-admin) .admin-lock-note{display:block}
 </div>
 
 <div class="toast" id="toast"></div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" onload="window.dispatchEvent(new Event('png-supabase-ready'))"></script>
 <script src="config.js"></script>
 <script>
 
@@ -475,7 +479,7 @@ let favorites=new Set(saved.favorites||[]), playlist=new Set(saved.playlist||[])
 let active=Math.min(Number.isInteger(saved.active)?saved.active:3,videos.length-1);
 let playing=false, elapsed=0, timer=null, muted=false, subtitle=false, dragMoved=false;
 let isAdmin=false, sb=null;
-function persist(){localStorage.setItem(KEY,JSON.stringify({videos,materials,faqs,sops,favorites:[...favorites],playlist:[...playlist],history,active}))}
+function persist(){try{localStorage.setItem(KEY,JSON.stringify({videos,materials,faqs,sops,favorites:[...favorites],playlist:[...playlist],history,active}))}catch(e){/* private/blocked storage: UI tetap jalan */}}
 function say(msg){const t=$("toast"); if(!t)return; t.textContent=msg;t.classList.add("show");clearTimeout(t._timer);t._timer=setTimeout(()=>t.classList.remove("show"),1800)}
 function secs(t){const a=String(t||"0:00").split(":").map(Number);return (a[0]||0)*60+(a[1]||0)}
 function clock(s){s=Math.max(0,Math.floor(s));return Math.floor(s/60)+":"+String(s%60).padStart(2,"0")}
@@ -488,166 +492,160 @@ function showPage(id){
 }
 window.showPage=showPage;
 $$(".nav button[data-page]").forEach(b=>b.addEventListener("click",()=>showPage(b.dataset.page)));
-function setActive(i,center=true){
+function setActive(i,center=true,recordHistory=true){
   if(!videos.length)return; active=Math.max(0,Math.min(i,videos.length-1)); elapsed=0; playing=false; clearInterval(timer);
   const v=videos[active]; if($("heroTitle"))$("heroTitle").textContent=v[0]; if($("infoTitle"))$("infoTitle").textContent=v[0]; if($("duration"))$("duration").textContent=v[2]||v[1]; if($("category"))$("category").textContent=v[3]||"Tutorial";
   if($("infoDesc"))$("infoDesc").textContent="Panduan "+String(v[0]).toLowerCase()+" pada sistem PNG Dashboard.";
   if($("materialTargetVideo"))$("materialTargetVideo").textContent=v[0]; if($("playBtn"))$("playBtn").textContent="▶";
-  history=[active,...history.filter(x=>x!==active)].slice(0,20); persist(); updatePlayer(); renderMaterialsMini(); refreshFavButtons();
+  if(recordHistory) history=[active,...history.filter(x=>x!==active)].slice(0,20); persist(); updatePlayer(); renderMaterialsMini(); refreshFavButtons();
   if(center)centerCard(active,true);
 }
+function esc(x){return String(x??"").replace(/[&<>\"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]))}
+
+const loopCopies=3;
+let realCount=videos.length;
+let carouselRaf=0;
+
 function renderCarousel(){
-  const s=$("scroller"); if(!s)return; s.innerHTML="";
-  // 3 salinan seperti versi drag lama yang stabil. Salinan tengah jadi area kerja utama.
-  for(let copy=0;copy<3;copy++) videos.forEach((v,i)=>{
-    const card=document.createElement("article");
-    card.className="card";
-    card.dataset.real=i;
-    card.innerHTML=`<div class="thumb"><span class="duration">${esc(v[1])}</span></div><h4>${esc(v[0])}</h4><p>Video tutorial</p><div class="card-actions"><button class="mini-btn fav-btn" type="button">☆ Favorit</button><button class="mini-btn list-btn" type="button">＋ Playlist</button></div>`;
-    card.addEventListener("click",e=>{
-      if(e.target.closest("button"))return;
-      if(!dragMoved)setActive(i,true);
+  const scroller=$("scroller");
+  if(!scroller)return;
+  realCount=videos.length;
+  scroller.innerHTML="";
+  for(let copy=0;copy<loopCopies;copy++){
+    videos.forEach((v,i)=>{
+      const card=document.createElement("article");
+      card.className="card";
+      card.dataset.real=i;
+      card.innerHTML=`<div class="thumb"><span class="duration">${esc(v[1])}</span></div><h4>${esc(v[0])}</h4><p>Video tutorial</p><div class="card-actions"><button class="mini-btn fav-btn" type="button">☆ Favorit</button><button class="mini-btn list-btn" type="button">＋ Playlist</button></div>`;
+      card.addEventListener("click",e=>{
+        if(e.target.closest("button"))return;
+        if(!carouselHasMoved){setActive(i,false,true);centerRealCard(i,true)}
+      });
+      scroller.appendChild(card);
     });
-    s.appendChild(card);
-  });
+  }
   refreshFavButtons();
   requestAnimationFrame(()=>{jumpToMiddleCopy(active);updateCoverFlow()});
 }
-function esc(x){return String(x??"").replace(/[&<>\"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]))}
+
 function cardStep(){
-  const cards=$$("#scroller .card");
+  const scroller=$("scroller");
+  const cards=[...scroller.children];
   if(cards.length<2)return 196;
   return cards[1].offsetLeft-cards[0].offsetLeft;
 }
 function jumpToMiddleCopy(realIndex){
-  const s=$("scroller"), n=videos.length; if(!s||!n)return;
-  const card=s.children[n+realIndex]; if(!card)return;
-  s.scrollLeft=card.offsetLeft-(s.clientWidth-card.offsetWidth)/2;
-}
-function centerCard(realIndex,smooth=true){
-  const s=$("scroller"), n=videos.length; if(!s||!n)return;
-  const card=s.children[n+realIndex] || Array.from(s.children).find(c=>+c.dataset.real===realIndex);
+  const scroller=$("scroller");
+  if(!scroller||!realCount)return;
+  const idx=realCount+realIndex;
+  const card=scroller.children[idx];
   if(!card)return;
-  // offsetLeft tidak ikut berubah oleh transform, jadi titik tengah tidak "lari".
-  const left=card.offsetLeft-(s.clientWidth-card.offsetWidth)/2;
-  s.scrollTo({left,behavior:smooth?"smooth":"auto"});
+  scroller.scrollLeft=card.offsetLeft-(scroller.clientWidth-card.offsetWidth)/2;
 }
+function centerRealCard(realIndex,smooth=false){
+  const scroller=$("scroller");
+  if(!scroller||!realCount)return;
+  const middleIndex=realCount+realIndex;
+  const card=scroller.children[middleIndex];
+  if(!card)return;
+  const left=card.offsetLeft-(scroller.clientWidth-card.offsetWidth)/2;
+  scroller.scrollTo({left,behavior:smooth?"smooth":"auto"});
+}
+function centerCard(i,smooth=true){centerRealCard(i,smooth)}
 function normalizeLoop(){
-  const s=$("scroller"), n=videos.length; if(!s||!n)return;
-  const step=cardStep(), oneSet=step*n; if(!oneSet)return;
-  if(s.scrollLeft<oneSet*.45) s.scrollLeft+=oneSet;
-  else if(s.scrollLeft>oneSet*1.55) s.scrollLeft-=oneSet;
+  const scroller=$("scroller");
+  if(!scroller||!realCount)return;
+  const step=cardStep();
+  const oneSet=step*realCount;
+  if(!oneSet)return;
+  if(scroller.scrollLeft<oneSet*.45)scroller.scrollLeft+=oneSet;
+  else if(scroller.scrollLeft>oneSet*1.55)scroller.scrollLeft-=oneSet;
 }
-function nearestCard(){
-  const s=$("scroller"); if(!s)return null;
-  const outer=s.getBoundingClientRect(), center=outer.left+outer.width/2;
-  let best=null,dist=Infinity;
-  $$("#scroller .card").forEach(card=>{
-    const r=card.getBoundingClientRect();
-    const d=Math.abs((r.left+r.width/2)-center);
-    if(d<dist){dist=d;best=card}
-  });
-  return best;
-}
-let coverRaf=0;
 function updateCoverFlow(){
-  const s=$("scroller"); if(!s)return;
-  cancelAnimationFrame(coverRaf);
-  coverRaf=requestAnimationFrame(()=>{
-    const outer=s.getBoundingClientRect();
+  const scroller=$("scroller");
+  if(!scroller)return;
+  cancelAnimationFrame(carouselRaf);
+  carouselRaf=requestAnimationFrame(()=>{
+    const outer=scroller.getBoundingClientRect();
     const center=outer.left+outer.width/2;
-    $$("#scroller .card").forEach(card=>{
+    let closestCard=null,best=Infinity;
+    [...scroller.children].forEach(card=>{
       const r=card.getBoundingClientRect();
-      const d=((r.left+r.width/2)-center)/196;
+      const d=(r.left+r.width/2-center)/190;
       const ad=Math.abs(d);
+      if(ad<best){best=ad;closestCard=card}
       const scale=Math.max(.80,1.24-ad*.15);
       const lift=Math.max(0,42-ad*16);
       const opacity=Math.max(.52,1-ad*.14);
       const rotate=Math.max(-10,Math.min(10,d*-4));
       card.style.transform=`translateY(${-lift}px) scale(${scale}) rotateY(${rotate}deg)`;
-      card.style.opacity=String(opacity);
+      card.style.opacity=opacity;
       card.style.filter=ad<.55?"brightness(1.14)":"brightness(.84)";
       card.style.zIndex=String(Math.max(1,30-Math.round(ad*5)));
     });
+    if(closestCard){
+      const real=+closestCard.dataset.real;
+      if(real!==active)setActive(real,false,false);
+    }
   });
 }
-function setupDrag(){
-  const s=$("scroller"); if(!s || s.dataset.dragReady==="1")return;
-  s.dataset.dragReady="1";
-  s.style.touchAction="pan-y";
-  let drag=false,startX=0,startScroll=0,dragPointer=null,hasMoved=false;
-  let scrollTimer=0;
 
-  s.addEventListener("dragstart",e=>e.preventDefault());
-  s.addEventListener("scroll",()=>{
+let carouselDrag=false,carouselStartX=0,carouselStartScroll=0,carouselPointer=null,carouselHasMoved=false;
+function setupDrag(){
+  const scroller=$("scroller");
+  if(!scroller||scroller.dataset.dragReady==="1")return;
+  scroller.dataset.dragReady="1";
+  scroller.addEventListener("dragstart",e=>e.preventDefault());
+  scroller.addEventListener("scroll",()=>{
     updateCoverFlow();
-    clearTimeout(scrollTimer);
-    scrollTimer=setTimeout(()=>{
-      if(drag)return;
-      normalizeLoop();
-      const best=nearestCard();
-      if(best){
-        const i=+best.dataset.real;
-        if(i!==active)setActive(i,false);
-      }
-    },110);
+    const step=cardStep(),oneSet=step*realCount;
+    if(oneSet&&(scroller.scrollLeft<oneSet*.18||scroller.scrollLeft>oneSet*1.82))normalizeLoop();
   },{passive:true});
-  s.addEventListener("wheel",e=>{
+  scroller.addEventListener("wheel",e=>{
     if(Math.abs(e.deltaY)>Math.abs(e.deltaX)){
-      s.scrollLeft+=e.deltaY*2;
+      scroller.scrollLeft+=e.deltaY*2.0;
       e.preventDefault();
       updateCoverFlow();
     }
   },{passive:false});
-
-  // Penting: drag boleh mulai dari bagian mana pun di kartu, termasuk di atas tombol.
-  // Klik tombol hanya dibatalkan kalau pointer benar-benar bergerak.
-  s.addEventListener("pointerdown",e=>{
-    if(e.button!==undefined && e.button!==0)return;
-    drag=true; hasMoved=false; dragMoved=false; dragPointer=e.pointerId;
-    startX=e.clientX; startScroll=s.scrollLeft;
-    s.style.cursor="grabbing";
-    $$("#scroller .card").forEach(c=>c.style.cursor="grabbing");
-    try{s.setPointerCapture(e.pointerId)}catch(_e){}
+  scroller.addEventListener("pointerdown",e=>{
+    if(e.target.closest("button,a,input,select,textarea"))return;
+    if(e.button!==undefined&&e.button!==0)return;
+    carouselDrag=true;carouselHasMoved=false;dragMoved=false;
+    carouselPointer=e.pointerId;carouselStartX=e.clientX;carouselStartScroll=scroller.scrollLeft;
+    scroller.style.cursor="grabbing";
+    [...scroller.children].forEach(c=>c.style.cursor="grabbing");
+    try{scroller.setPointerCapture(e.pointerId)}catch(_e){}
   });
-  s.addEventListener("pointermove",e=>{
-    if(!drag || (dragPointer!==null && e.pointerId!==dragPointer))return;
-    const dx=e.clientX-startX;
-    if(Math.abs(dx)>2){hasMoved=true;dragMoved=true;}
-    s.scrollLeft=startScroll-dx*1.7;
+  scroller.addEventListener("pointermove",e=>{
+    if(!carouselDrag||(carouselPointer!==null&&e.pointerId!==carouselPointer))return;
+    const dx=e.clientX-carouselStartX;
+    if(Math.abs(dx)>2){carouselHasMoved=true;dragMoved=true}
+    scroller.scrollLeft=carouselStartScroll-dx*1.7;
     updateCoverFlow();
-    if(hasMoved && e.cancelable)e.preventDefault();
+    if(carouselHasMoved&&e.cancelable)e.preventDefault();
   });
   function finishDrag(e){
-    if(!drag)return;
-    drag=false; dragPointer=null;
-    s.style.cursor="grab";
-    $$("#scroller .card").forEach(c=>c.style.cursor="grab");
-    normalizeLoop();
-    updateCoverFlow();
-    if(hasMoved){
-      const best=nearestCard();
-      if(best){
-        const i=+best.dataset.real;
-        setActive(i,false);
-        centerCard(i,true);
-      }
+    if(!carouselDrag)return;
+    carouselDrag=false;
+    if(carouselPointer!==null){try{scroller.releasePointerCapture(carouselPointer)}catch(_e){}}
+    carouselPointer=null;
+    scroller.style.cursor="grab";
+    [...scroller.children].forEach(c=>c.style.cursor="grab");
+    normalizeLoop();updateCoverFlow();
+    if(carouselHasMoved){
+      history=[active,...history.filter(x=>x!==active)].slice(0,20);persist();
+      setTimeout(()=>{carouselHasMoved=false;dragMoved=false},80);
     }
-    setTimeout(()=>{dragMoved=false},120);
   }
-  s.addEventListener("pointerup",finishDrag);
-  s.addEventListener("pointercancel",finishDrag);
-  s.addEventListener("lostpointercapture",finishDrag);
-
-  // Cegah click sesudah drag, tapi click biasa tetap jalan.
-  s.addEventListener("click",e=>{
-    if(hasMoved){
-      e.preventDefault();
-      e.stopPropagation();
-      hasMoved=false;
-    }
+  scroller.addEventListener("pointerup",finishDrag);
+  scroller.addEventListener("pointercancel",finishDrag);
+  scroller.addEventListener("lostpointercapture",finishDrag);
+  scroller.addEventListener("click",e=>{
+    if(carouselHasMoved){e.preventDefault();e.stopPropagation();carouselHasMoved=false;dragMoved=false}
   },true);
 }
+
 function updatePlayer(){const v=videos[active];if(!v)return;if($("playerTime"))$("playerTime").textContent=clock(elapsed)+" / "+v[1];if($("playerProgress"))$("playerProgress").style.width=(elapsed/Math.max(1,secs(v[1]))*100)+"%"}
 $("playBtn")?.addEventListener("click",()=>{playing=!playing;$("playBtn").textContent=playing?"❚❚":"▶";clearInterval(timer);if(playing)timer=setInterval(()=>{elapsed++;if(elapsed>=secs(videos[active][1])){elapsed=0;playing=false;clearInterval(timer);$("playBtn").textContent="▶"}updatePlayer()},1000)});
 $("playerTrack")?.addEventListener("click",e=>{const r=$("playerTrack").getBoundingClientRect();elapsed=Math.round(Math.max(0,Math.min(1,(e.clientX-r.left)/r.width))*secs(videos[active][1]));updatePlayer()});
@@ -666,7 +664,7 @@ $("playerFavBtn")?.addEventListener("click",()=>toggleFav(active));$("playerPlay
 function renderListPageIfOpen(){const p=document.querySelector(".page-view.active");if(p&&["favorit","playlist","riwayat"].includes(p.id))renderListPage(p.id)}
 function videoRows(indices){if(!indices.length)return `<div class="page-empty">Belum ada data.</div>`;return `<div class="doc-list">${indices.map(i=>videos[i]?`<div class="doc-item video-row" data-video-index="${i}"><h3>${esc(videos[i][0])}</h3><p>${esc(videos[i][3])} · ${esc(videos[i][2]||videos[i][1])}</p><div class="video-row-actions"><button class="ghost-btn open-video" type="button" data-i="${i}">Buka</button><button class="ghost-btn fav-video" type="button" data-i="${i}">${favorites.has(i)?"★ Favorit":"☆ Favorit"}</button><button class="ghost-btn list-video" type="button" data-i="${i}">${playlist.has(i)?"✓ Playlist":"＋ Playlist"}</button></div></div>`:"" ).join("")}</div>`}
 function wireRows(root){/* click ditangani oleh event delegation global agar tetap aktif setelah render ulang */}
-function renderTutorial(){const root=$("tutorial");if(!root)return;root.innerHTML=`<h2>Tutorial Video</h2><p class="lead">Daftar semua video tutorial dan materi.</p>${videoRows(videos.map((_,i)=>i))}${materials.length?`<h2 style="margin-top:22px">Materi</h2><div class="doc-list">${materials.map((m,i)=>`<div class="doc-item"><h3>${esc(m.title)}</h3><p>${esc(m.videoTitle||m.video_title||"")} · ${esc(m.category||"")}</p><button class="ghost-btn open-material" type="button" data-i="${i}" style="margin-top:10px;width:auto;padding:8px 14px">Buka materi</button></div>`).join("")}</div>`:""}`;wireRows(root);root.querySelectorAll(".open-material").forEach(b=>b.onclick=()=>openMaterial(+b.dataset.i))}
+function renderTutorial(){const root=$("tutorial");if(!root)return;root.innerHTML=`<div class="page-toolbar"><div><h2>Tutorial Video</h2><p class="lead" style="margin:4px 0 0">Daftar semua video tutorial dan materi.</p></div><button class="admin-add admin-only" id="openAddVideo" type="button">＋ Tambah Video</button></div>${videoRows(videos.map((_,i)=>i))}${materials.length?`<h2 style="margin-top:22px">Materi</h2><div class="doc-list">${materials.map((m,i)=>`<div class="doc-item"><h3>${esc(m.title)}</h3><p>${esc(m.videoTitle||m.video_title||"")} · ${esc(m.category||"")}</p><button class="ghost-btn open-material" type="button" data-i="${i}" style="margin-top:10px;width:auto;padding:8px 14px">Buka materi</button></div>`).join("")}</div>`:""}`;root.querySelector("#openAddVideo")?.addEventListener("click",()=>openTambah("video"));root.querySelectorAll(".open-material").forEach(b=>b.onclick=()=>openMaterial(+b.dataset.i))}
 function renderListPage(id){const root=$(id);if(!root)return;let arr=[],title="";if(id==="favorit"){arr=[...favorites];title="Favorit"}if(id==="playlist"){arr=[...playlist];title="Playlist Saya"}if(id==="riwayat"){arr=history.filter(i=>videos[i]);title="Riwayat"}root.innerHTML=`<h2>${title}</h2><p class="lead">${id==="riwayat"?"Tutorial yang terakhir dibuka.":"Koleksi video pilihanmu."}</p>${videoRows(arr)}`;wireRows(root)}
 function renderCategories(){const root=$("kategori");if(!root)return;const map={};videos.forEach((v,i)=>(map[v[3]||"Lainnya"]??=[]).push(i));root.innerHTML=`<h2>Kategori</h2><p class="lead">Cari tutorial berdasarkan kategori.</p><div class="category-grid">${Object.entries(map).map(([k,a])=>`<div class="category-card" data-cat="${esc(k)}"><b>${esc(k)}</b><span>${a.length} video</span></div>`).join("")}</div>`;root.querySelectorAll(".category-card").forEach(c=>c.onclick=()=>{const i=videos.findIndex(v=>v[3]===c.dataset.cat);if(i>=0){setActive(i,false);showPage("dashboard")}})}
 function renderMaterialsMini(){const list=$("activeMaterialList");if(!list)return;const arr=materials.filter(m=>(m.videoTitle||m.video_title)===videos[active][0]);list.innerHTML=arr.length?`<div class="material-list-mini">${arr.map((m)=>{const idx=materials.indexOf(m);return `<div class="material-chip" data-mi="${idx}"><strong>${esc(m.title)}</strong><small>${esc(m.category||"Materi")}</small></div>`}).join("")}</div>`:`<div class="content-box" style="padding:10px"><b>Belum ada materi tertulis</b><p style="margin:3px 0 0">Klik Tambahkan materi untuk membuatnya.</p></div>`;list.querySelectorAll(".material-chip").forEach(x=>x.onclick=()=>openMaterial(+x.dataset.mi))}
@@ -695,10 +693,34 @@ $("addMaterialBtn")?.addEventListener("click",()=>openTambah("materi"));$("conte
 $$("[data-content-tab]").forEach(b=>b.addEventListener("click",()=>selectTab(b.dataset.contentTab)));function selectTab(tab){$$("[data-content-tab]").forEach(b=>b.classList.toggle("active",b.dataset.contentTab===tab));$("tab-materi")?.classList.toggle("active",tab==="materi");$("tab-video")?.classList.toggle("active",tab==="video")}
 function syncMaterialPreview(){if($("previewMaterialTitle"))$("previewMaterialTitle").textContent=$("materialPageTitle")?.value||"Judul Materi";if($("previewMaterialCategory"))$("previewMaterialCategory").textContent=$("materialPageCategory")?.value||"Kategori";if($("previewMaterialSummary"))$("previewMaterialSummary").textContent=$("materialSummary")?.value||"Ringkasan materi akan tampil di sini.";if($("previewMaterialContent"))$("previewMaterialContent").textContent=$("materialContent")?.value||"Isi materi akan tampil di sini."}
 ["materialPageTitle","materialPageCategory","materialSummary","materialContent"].forEach(id=>$(id)?.addEventListener("input",syncMaterialPreview));
-$("saveMaterial")?.addEventListener("click",async()=>{if(!isAdmin)return openAuth();const obj={videoTitle:videos[active][0],title:$("materialPageTitle").value.trim(),category:$("materialPageCategory").value,summary:$("materialSummary").value.trim(),content:$("materialContent").value.trim()};if(!obj.title||!obj.category||!obj.content)return say("Judul, kategori, dan isi materi wajib diisi");const remote={video_title:obj.videoTitle,title:obj.title,category:obj.category,summary:obj.summary,content:obj.content};if(await remoteInsert("materials",remote)){}else{materials.push(obj);persist()}["materialPageTitle","materialSummary","materialContent"].forEach(id=>$(id).value="");renderMaterialsMini();showPage("dashboard");say("Materi disimpan")});
+$("saveMaterial")?.addEventListener("click",async()=>{
+  if(!isAdmin)return openAuth();
+  const obj={videoTitle:videos[active][0],title:$("materialPageTitle").value.trim(),category:$("materialPageCategory").value,summary:$("materialSummary").value.trim(),content:$("materialContent").value.trim()};
+  if(!obj.title||!obj.category||!obj.content)return say("Judul, kategori, dan isi materi wajib diisi");
+  const attachment=await uploadMedia($("materialAttachment")?.files?.[0],"materials");
+  const remote={video_title:obj.videoTitle,title:obj.title,category:obj.category,summary:obj.summary,content:obj.content,attachment_url:attachment};
+  if(!(await remoteInsert("materials",remote))){materials.push({...obj,attachment_url:attachment});persist()}else{await loadRemote()}
+  ["materialPageTitle","materialSummary","materialContent"].forEach(id=>$(id).value=""); if($("materialAttachment"))$("materialAttachment").value="";
+  renderMaterialsMini();showPage("dashboard");say("Materi disimpan");
+});
 function syncVideoPreview(){if($("previewVideoTitle"))$("previewVideoTitle").textContent=$("newVideoTitle")?.value||"Judul Video";if($("previewVideoCategory"))$("previewVideoCategory").textContent=$("newVideoCategory")?.value||"Kategori";if($("previewVideoDuration"))$("previewVideoDuration").textContent=$("newVideoDuration")?.value||"0:00"}
 ["newVideoTitle","newVideoCategory","newVideoDuration"].forEach(id=>$(id)?.addEventListener("input",syncVideoPreview));
-$("saveVideo")?.addEventListener("click",async()=>{if(!isAdmin)return openAuth();const title=$("newVideoTitle").value.trim(),cat=$("newVideoCategory").value,dur=$("newVideoDuration").value.trim()||"5:00",desc=$("newVideoDescription").value.trim();if(!title||!cat)return say("Judul dan kategori video wajib diisi");const remote={title,category:cat,description:desc,duration:dur,duration_label:dur,language:$("newVideoLanguage")?.value||"Indonesia",video_url:$("newVideoUrl")?.value||"",tags:($("newVideoTags")?.value||"").split(",").map(x=>x.trim()).filter(Boolean)};if(!(await remoteInsert("videos",remote))){videos.push([title,dur,dur,cat]);persist()}else{await loadRemote()}active=videos.length-1;renderCarousel();setActive(active,false);showPage("dashboard");say("Video disimpan")});
+$("newVideoThumbnail")?.addEventListener("change",e=>{const f=e.target.files?.[0];if(!f)return;const u=URL.createObjectURL(f);const box=$("videoThumbPreview");if(box){box.style.backgroundImage=`linear-gradient(#0005,#0005),url("${u}")`;box.querySelector("small").textContent=f.name}});
+$("newVideoFile")?.addEventListener("change",e=>{const f=e.target.files?.[0];if(f)say("Video dipilih: "+f.name)});
+$("saveVideo")?.addEventListener("click",async()=>{
+  if(!isAdmin)return openAuth();
+  const title=$("newVideoTitle").value.trim(),cat=$("newVideoCategory").value,dur=$("newVideoDuration").value.trim()||"5:00",desc=$("newVideoDescription").value.trim();
+  if(!title||!cat)return say("Judul dan kategori video wajib diisi");
+  let thumbUrl="",videoUrl=$("newVideoUrl")?.value.trim()||"";
+  if(sb&&isAdmin){
+    thumbUrl=await uploadMedia($("newVideoThumbnail")?.files?.[0],"thumbnails");
+    const uploadedVideo=await uploadMedia($("newVideoFile")?.files?.[0],"videos");
+    if(uploadedVideo)videoUrl=uploadedVideo;
+  }
+  const remote={title,category:cat,description:desc,duration:dur,duration_label:dur,language:$("newVideoLanguage")?.value||"Indonesia",thumbnail_url:thumbUrl,video_url:videoUrl,tags:($("newVideoTags")?.value||"").split(",").map(x=>x.trim()).filter(Boolean)};
+  if(!(await remoteInsert("videos",remote))){videos.push([title,dur,dur,cat]);persist()}else{await loadRemote()}
+  active=videos.length-1;renderCarousel();setActive(active,false,true);showPage("dashboard");say("Video disimpan");
+});
 const search=$("globalSearch"),results=$("searchResults");if(search&&results){search.addEventListener("input",()=>{const q=search.value.trim().toLowerCase();if(!q){results.classList.remove("show");return}const a=videos.map((v,i)=>({v,i})).filter(x=>(x.v[0]+" "+x.v[3]).toLowerCase().includes(q)).slice(0,8);results.innerHTML=a.length?a.map(x=>`<div class="search-item" data-i="${x.i}"><b>${esc(x.v[0])}</b><small>${esc(x.v[3])}</small></div>`).join(""):`<div class="search-empty">Tidak ditemukan</div>`;results.classList.add("show");results.querySelectorAll(".search-item").forEach(x=>x.onclick=()=>{setActive(+x.dataset.i,false);showPage("dashboard");results.classList.remove("show")})});document.addEventListener("click",e=>{if(!e.target.closest(".search-wrap"))results.classList.remove("show")})}
 function supabaseReady(){const c=window.PNG_CONFIG||{};return !!(window.supabase&&c.supabaseUrl&&c.supabaseAnonKey&&!c.supabaseUrl.includes("YOUR_")&&!c.supabaseAnonKey.includes("YOUR_"))}
 async function initSupabase(){if(!supabaseReady()){if($("syncBadge"))$("syncBadge").textContent="Mode lokal";return}try{sb=window.supabase.createClient(window.PNG_CONFIG.supabaseUrl,window.PNG_CONFIG.supabaseAnonKey);const {data}=await sb.auth.getSession();applySession(data.session);sb.auth.onAuthStateChange((_e,s)=>applySession(s));await loadRemote();if($("syncBadge"))$("syncBadge").textContent="Online"}catch(e){console.error(e);say("Supabase gagal tersambung")}}
@@ -707,6 +729,18 @@ function openAuth(help){if($("authHelp")&&help)$("authHelp").textContent=help;$(
 function closeAuth(){$("authModal")?.classList.remove("show");$("authModal")?.setAttribute("aria-hidden","true")}
 $("adminAuthBtn")?.addEventListener("click",async()=>{if(isAdmin&&sb){await sb.auth.signOut();return}openAuth(supabaseReady()?"Masuk dengan akun admin Supabase.":"Supabase belum disambungkan. Isi config.js terlebih dahulu agar Admin Login aktif.")});$("closeAuth")?.addEventListener("click",closeAuth);$("authModal")?.addEventListener("click",e=>{if(e.target.id==="authModal")closeAuth()});
 $("doLogin")?.addEventListener("click",async()=>{if(!supabaseReady())return say("Isi Project URL dan anon key di config.js dulu");if(!sb)await initSupabase();const email=$("adminEmail").value.trim(),password=$("adminPassword").value;if(!email||!password)return say("Isi email dan password");const {error}=await sb.auth.signInWithPassword({email,password});if(error)return say("Login gagal: "+error.message);closeAuth();say("Login admin berhasil")});
+async function uploadMedia(file,folder){
+  if(!file)return "";
+  if(!sb||!isAdmin)return "";
+  try{
+    const safe=(file.name||"file").replace(/[^a-zA-Z0-9._-]+/g,"-");
+    const path=`${folder}/${Date.now()}-${Math.random().toString(36).slice(2,8)}-${safe}`;
+    const {error}=await sb.storage.from("png-media").upload(path,file,{upsert:false});
+    if(error)throw error;
+    const {data}=sb.storage.from("png-media").getPublicUrl(path);
+    return data?.publicUrl||"";
+  }catch(e){console.error(e);say("Upload file gagal");return ""}
+}
 async function remoteInsert(table,obj){if(!sb||!isAdmin)return false;try{const {error}=await sb.from(table).insert(obj);if(error)throw error;await loadRemote();return true}catch(e){console.error(e);say("Gagal simpan online, data tidak diubah");return true}}
 async function loadRemote(){if(!sb)return;try{const [v,m,f,s]=await Promise.all([sb.from("videos").select("*").order("created_at"),sb.from("materials").select("*").order("created_at"),sb.from("faq").select("*").order("created_at"),sb.from("sop").select("*").order("created_at")]);if(v.data?.length)videos=[...baseVideos.map(x=>[...x]),...v.data.map(x=>[x.title,x.duration||"5:00",x.duration_label||x.duration||"5:00",x.category||"Tutorial"])];if(m.data)materials=m.data.map(x=>({...x,videoTitle:x.video_title}));if(f.data?.length)faqs=f.data;if(s.data?.length)sops=s.data;active=Math.min(active,videos.length-1);renderCarousel();setActive(active,false);renderFAQ();renderSOP()}catch(e){console.error(e)}}
 // Event delegation tunggal: tombol yang dirender ulang tetap selalu aktif.
@@ -742,6 +776,7 @@ document.addEventListener("keydown",e=>{
   if(doc){e.preventDefault();doc.click();}
 });
 window.addEventListener("resize",updateCoverFlow);
+window.addEventListener("png-supabase-ready",initSupabase);
 renderCarousel();setupDrag();renderFAQ();renderSOP();renderCategories();setActive(active,false);syncMaterialPreview();syncVideoPreview();initSupabase();
 })();
 
