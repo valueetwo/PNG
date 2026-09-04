@@ -405,6 +405,18 @@ body.is-owner .owner-only{display:block!important}
 .user-admin-list{display:grid;gap:9px;margin-top:12px}.user-admin-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px;border:1px solid #292e35;border-radius:10px;background:#080b0f}.user-admin-row small{color:#929ba6}.user-admin-actions{display:flex;gap:6px;flex-wrap:wrap}.user-admin-actions button{padding:7px 10px;border-radius:7px;border:1px solid #343b45;background:#0b0f14;color:#d8dde5}.user-admin-actions .promote{border-color:#1f6a42;color:#66d99a}.user-admin-actions .demote{border-color:#7a171f;color:#ff6974}.user-admin-actions .delete-user{border-color:#7a171f;color:#ff6974;background:#16090b}.user-admin-actions .delete-user:hover{background:#4b0b11}
 @media(max-width:760px){.user-admin-row{grid-template-columns:1fr}.user-admin-actions{width:100%}.user-admin-actions button{flex:1}}
 
+/* ===== SINGLE VIDEO COMPACT: hilangkan ruang kosong saat hanya ada 1 video ===== */
+.related.single-related{min-height:0!important}
+.related.single-related #scroller{flex:0 0 auto!important;min-height:0!important;height:auto!important;justify-content:center!important;align-items:flex-start!important;overflow-x:hidden!important;padding:14px 28px 10px!important}
+.related.single-related #scroller .card{transform:none!important;opacity:1!important;filter:none!important}
+@media(max-width:760px){
+  .related.single-related{min-height:0!important}
+  .related.single-related #scroller{min-height:0!important;height:auto!important;padding:14px 10px 8px!important;scroll-padding-inline:0!important}
+}
+@media(max-width:420px){
+  .related.single-related #scroller{min-height:0!important;padding:13px 8px 7px!important}
+}
+
 </style>
 </head>
 <body>
@@ -731,6 +743,7 @@ function renderCarousel(){
   carouselCopies=realCount<=3?1:loopCopies;
   carouselMiddleCopy=carouselCopies===1?0:Math.floor(carouselCopies/2);
   scroller.classList.toggle("single-video",realCount===1);
+  scroller.closest(".related")?.classList.toggle("single-related",realCount===1);
   scroller.innerHTML="";
   for(let copy=0;copy<carouselCopies;copy++){
     videos.forEach((v,i)=>{
@@ -792,6 +805,11 @@ function updateCoverFlow(){
   if(!scroller)return;
   cancelAnimationFrame(carouselRaf);
   carouselRaf=requestAnimationFrame(()=>{
+    if(realCount===1){
+      const only=scroller.querySelector(".card");
+      if(only){only.style.transform="none";only.style.opacity="1";only.style.filter="none";only.style.zIndex="1";}
+      return;
+    }
     const outer=scroller.getBoundingClientRect();
     const center=outer.left+outer.width/2;
     let closestCard=null,best=Infinity;
