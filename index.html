@@ -252,6 +252,34 @@ body:not(.is-admin) .admin-lock-note{display:block}
 
 
 
+/* ===== HALAMAN KONTEN FULL WIDTH — hilangkan kolom info kosong ===== */
+.layout.content-mode{grid-template-columns:190px minmax(0,1fr)}
+.layout.content-mode .main{grid-column:2;min-width:0}
+.layout.content-mode .info{display:none!important}
+@media(max-width:1150px){
+  .layout.content-mode{grid-template-columns:170px minmax(0,1fr)}
+}
+@media(max-width:760px){
+  .layout.content-mode{display:block}
+  .layout.content-mode .main{grid-column:auto}
+}
+
+
+/* ===== REAL VIDEO PLAYER + SUB MATERI ===== */
+.media-layer{position:absolute;inset:0;z-index:6;display:none;background:#000;border-radius:inherit;overflow:hidden}
+.media-layer iframe,.media-layer video{width:100%;height:100%;border:0;display:block;background:#000}
+.player.has-real-media .media-layer{display:block}
+.player.has-real-media>.wave,.player.has-real-media>.wave2,.player.has-real-media>.wave3,.player.has-real-media>.hero,.player.has-real-media>.subtitle-overlay,.player.has-real-media>.controls{display:none}
+.video-materials{margin-top:12px;padding-top:10px;border-top:1px solid #20252c}
+.video-materials-title{font-size:11px;color:#ff4652;font-weight:800;margin-bottom:7px}
+.video-submaterial{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 9px;margin-top:6px;border:1px solid #252a31;border-radius:8px;background:#090c10}
+.video-submaterial>div{min-width:0}
+.video-submaterial strong{display:block;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.video-submaterial small{display:block;color:#8f98a3;font-size:9px;margin-top:2px}
+.video-submaterial .ghost-btn{flex:0 0 auto;width:auto!important;padding:6px 9px!important;font-size:10px!important}
+.video-row{display:block!important}
+@media(max-width:760px){.video-submaterial{align-items:flex-start}.video-submaterial .ghost-btn{padding:6px 8px!important}}
+
 /* ===== MOBILE READY — hanya layout mobile, mesin carousel desktop tidak diubah ===== */
 .mobile-menu-btn{display:none;width:40px;height:40px;border:1px solid #303640;border-radius:9px;background:#0a0d12;color:#fff;font-size:20px;align-items:center;justify-content:center;padding:0}
 .mobile-menu-backdrop{display:none;position:fixed;inset:0;background:#000a;z-index:79}
@@ -366,6 +394,16 @@ body:not(.is-admin) .admin-lock-note{display:block}
   .form-actions button{width:100%}
 }
 
+
+/* ===== ROLE SYSTEM: viewer / admin / owner ===== */
+.owner-only{display:none!important}
+body.is-owner .owner-only{display:block!important}
+.role-badge{display:inline-block;padding:3px 7px;border-radius:999px;border:1px solid #333b46;font-size:9px;color:#aeb6c0;margin-left:6px}
+.role-badge.admin{border-color:#8a1820;color:#ff5a65}.role-badge.owner{border-color:#8b6b15;color:#ffd85b}
+.auth-mode-tabs{display:flex;gap:8px;margin:10px 0 6px}.auth-mode-tabs button{flex:1;padding:8px;border-radius:8px;border:1px solid #303640;background:#0b0f14;color:#cfd5dc}.auth-mode-tabs button.active{border-color:#8a1820;color:white;background:#571018}
+.user-admin-list{display:grid;gap:9px;margin-top:12px}.user-admin-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px;border:1px solid #292e35;border-radius:10px;background:#080b0f}.user-admin-row small{color:#929ba6}.user-admin-actions{display:flex;gap:6px;flex-wrap:wrap}.user-admin-actions button{padding:7px 10px;border-radius:7px;border:1px solid #343b45;background:#0b0f14;color:#d8dde5}.user-admin-actions .promote{border-color:#1f6a42;color:#66d99a}.user-admin-actions .demote{border-color:#7a171f;color:#ff6974}
+@media(max-width:760px){.user-admin-row{grid-template-columns:1fr}.user-admin-actions{width:100%}.user-admin-actions button{flex:1}}
+
 </style>
 </head>
 <body>
@@ -388,6 +426,7 @@ body:not(.is-admin) .admin-lock-note{display:block}
       <button data-page="favorit">☆ &nbsp; Favorit</button>
       <button data-page="riwayat">◷ &nbsp; Riwayat</button>
       <button data-page="playlist">☷ &nbsp; Playlist Saya</button>
+      <button class="owner-only" data-page="pengguna">⚙ &nbsp; Kelola Pengguna</button>
     </div>
 
     <div class="sidebar-bottom">
@@ -405,7 +444,8 @@ body:not(.is-admin) .admin-lock-note{display:block}
       <h2>Tutorial Video</h2>
     </div>
 
-    <section class="player">
+    <section class="player" id="mainPlayer">
+      <div class="media-layer" id="mediaLayer"></div>
       <div class="wave"></div><div class="wave2"></div><div class="wave3"></div>
       <div class="subtitle-overlay" id="subtitleOverlay">Subtitle aktif</div>
       <div class="hero">
@@ -472,7 +512,7 @@ body:not(.is-admin) .admin-lock-note{display:block}
       <div id="tab-materi" class="content-tab-page active">
         <div class="content-editor-layout">
           <section class="content-editor-box">
-            <h3>Informasi Materi</h3><div class="material-target-note">Materi ini akan ditambahkan ke video aktif: <strong id="materialTargetVideo">Manajemen Data</strong></div>
+            <h3>Informasi Materi</h3><div class="video-edit-note" id="materialEditNote">✏ Mode Edit Materi — perubahan akan mengganti sub materi yang dipilih.</div><div class="editor-field"><label>Video Induk <b>*</b></label><select id="materialParentVideo"><option value="">Pilih video untuk sub materi</option></select></div>
             <div class="editor-field"><label>Judul Materi <b>*</b></label><input id="materialPageTitle" type="text" placeholder="Masukkan judul materi"></div>
             <div class="editor-field"><label>Kategori <b>*</b></label><select id="materialPageCategory"><option value="">Pilih kategori</option></select></div>
             <div class="editor-field"><label>Peringatan</label><textarea id="materialSummary" class="small-textarea" placeholder="Tuliskan pesan peringatan..."></textarea></div>
@@ -521,6 +561,11 @@ body:not(.is-admin) .admin-lock-note{display:block}
       </div>
     </div>
 
+    <div id="pengguna" class="page-view simple-page">
+      <div class="page-toolbar"><div><h2>Kelola Pengguna</h2><p class="lead" style="margin:4px 0 0">Hanya pemilik dashboard yang dapat memberi atau mencabut izin admin.</p></div></div>
+      <div class="content-box"><h3>Akun terdaftar</h3><p>Semua akun baru otomatis menjadi Viewer. Pemilik dapat mengubah Viewer menjadi Admin dari halaman ini.</p><div id="userAdminList" class="user-admin-list"></div></div>
+    </div>
+
   </main>
 
   <aside class="info">
@@ -548,11 +593,12 @@ body:not(.is-admin) .admin-lock-note{display:block}
 
 <div class="auth-modal" id="authModal" aria-hidden="true">
   <div class="auth-card">
-    <h3 id="authTitle">Admin Login</h3>
-    <p id="authHelp">Login admin diperlukan untuk menambah Video, Materi, FAQ, dan SOP. Pengunjung tetap bisa melihat semua konten.</p>
+    <h3 id="authTitle">Masuk ke PNG</h3>
+    <p id="authHelp">Akun baru otomatis menjadi Viewer. Hanya pemilik dashboard yang dapat memberikan izin Admin.</p>
+    <div class="auth-mode-tabs"><button id="authLoginTab" class="active" type="button">Login</button><button id="authRegisterTab" type="button">Daftar</button></div>
     <div id="authForm">
-      <input id="adminEmail" type="email" autocomplete="username" placeholder="Email admin">
-      <input id="adminPassword" type="password" autocomplete="current-password" placeholder="Password admin">
+      <input id="adminEmail" type="email" autocomplete="username" placeholder="Email">
+      <input id="adminPassword" type="password" autocomplete="current-password" placeholder="Password">
       <div class="auth-actions"><button class="ghost-btn" id="closeAuth" type="button">Batal</button><button class="red-btn" id="doLogin" type="button">Login</button></div>
     </div>
     <div class="sync-badge local" id="syncBadge">Mode lokal / Supabase belum dihubungkan</div>
@@ -605,7 +651,7 @@ let sops=Array.isArray(saved.sops)&&saved.sops.length?saved.sops:[...DEFAULT_SOP
 let favorites=new Set(saved.favorites||[]), playlist=new Set(saved.playlist||[]), history=saved.history||[];
 let active=Math.min(Number.isInteger(saved.active)?saved.active:3,videos.length-1);
 let playing=false, elapsed=0, timer=null, muted=false, subtitle=false, dragMoved=false;
-let isAdmin=false, sb=null, editingVideoIndex=null;
+let isAdmin=false, isOwner=false, currentSession=null, currentRole="viewer", authMode="login", sb=null, editingVideoIndex=null, editingMaterialIndex=null;
 function persist(){try{localStorage.setItem(KEY,JSON.stringify({videos,materials,faqs,sops,favorites:[...favorites],playlist:[...playlist],history,active}))}catch(e){/* private/blocked storage: UI tetap jalan */}}
 function say(msg){const t=$("toast"); if(!t)return; t.textContent=msg;t.classList.add("show");clearTimeout(t._timer);t._timer=setTimeout(()=>t.classList.remove("show"),1800)}
 function secs(t){const a=String(t||"0:00").split(":").map(Number);return (a[0]||0)*60+(a[1]||0)}
@@ -614,16 +660,42 @@ function showPage(id){
   $$(".nav button[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===id));
   $$(".page-view").forEach(p=>p.classList.toggle("active",p.id===id));
   const info=document.querySelector(".info"); if(info)info.style.display=id==="dashboard"?"block":"none";
-  if(id==="tutorial")renderTutorial(); if(id==="faq")renderFAQ(); if(id==="sop")renderSOP(); if(id==="kategori")renderCategories(); if(id==="favorit")renderListPage("favorit"); if(id==="playlist")renderListPage("playlist"); if(id==="riwayat")renderListPage("riwayat");
+  const layout=document.querySelector(".layout"); if(layout)layout.classList.toggle("content-mode",id!=="dashboard");
+  if(id==="tutorial")renderTutorial(); if(id==="faq")renderFAQ(); if(id==="sop")renderSOP(); if(id==="kategori")renderCategories(); if(id==="favorit")renderListPage("favorit"); if(id==="playlist")renderListPage("playlist"); if(id==="riwayat")renderListPage("riwayat"); if(id==="pengguna")renderUserManagement();
   if(id==="dashboard")requestAnimationFrame(()=>{centerCard(active,false);updateCoverFlow()});
 }
 window.showPage=showPage;
 $$(".nav button[data-page]").forEach(b=>b.addEventListener("click",()=>showPage(b.dataset.page)));
+function parseVideoSource(url){
+  const raw=String(url||"").trim(); if(!raw)return null;
+  try{
+    const u=new URL(raw,location.href); const host=u.hostname.replace(/^www\./,"").toLowerCase();
+    if(host==="youtu.be"){const id=u.pathname.split("/").filter(Boolean)[0];if(id)return {type:"youtube",src:`https://www.youtube.com/embed/${encodeURIComponent(id)}?rel=0`}}
+    if(host.endsWith("youtube.com")){
+      let id=u.searchParams.get("v");
+      if(!id){const parts=u.pathname.split("/").filter(Boolean);if(["embed","shorts","live"].includes(parts[0]))id=parts[1]}
+      if(id)return {type:"youtube",src:`https://www.youtube.com/embed/${encodeURIComponent(id)}?rel=0`};
+    }
+    if(host.endsWith("vimeo.com")){const id=u.pathname.split("/").filter(Boolean).find(x=>/^\d+$/.test(x));if(id)return {type:"vimeo",src:`https://player.vimeo.com/video/${id}`}}
+    if(/\.(mp4|webm|ogg|mov)(\?|#|$)/i.test(u.pathname+u.search+u.hash))return {type:"file",src:u.href};
+    return {type:"file",src:u.href};
+  }catch(_){return null}
+}
+function renderRealVideo(v){
+  const player=$("mainPlayer")||document.querySelector(".player"), layer=$("mediaLayer"); if(!player||!layer)return;
+  const src=parseVideoSource(v?._videoUrl||""); layer.innerHTML=""; player.classList.toggle("has-real-media",!!src);
+  if(!src)return;
+  if(src.type==="youtube"||src.type==="vimeo"){
+    const f=document.createElement("iframe");f.src=src.src;f.title=v?.[0]||"Video";f.allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";f.allowFullscreen=true;layer.appendChild(f);
+  }else{
+    const vid=document.createElement("video");vid.src=src.src;vid.controls=true;vid.playsInline=true;vid.preload="metadata";layer.appendChild(vid);
+  }
+}
 function setActive(i,center=true,recordHistory=true){
   if(!videos.length)return; active=Math.max(0,Math.min(i,videos.length-1)); elapsed=0; playing=false; clearInterval(timer);
   const v=videos[active]; if($("heroTitle"))$("heroTitle").textContent=v[0]; if($("infoTitle"))$("infoTitle").textContent=v[0]; if($("duration"))$("duration").textContent=v[2]||v[1]; if($("category"))$("category").textContent=v[3]||"Tutorial";
   if($("infoDesc"))$("infoDesc").textContent=v._description||("Panduan "+String(v[0]).toLowerCase()+" pada sistem PNG Dashboard.");
-  if($("materialTargetVideo"))$("materialTargetVideo").textContent=v[0]; if($("playBtn"))$("playBtn").textContent="▶";
+  if($("materialTargetVideo"))$("materialTargetVideo").textContent=v[0]; if($("playBtn"))$("playBtn").textContent="▶"; renderRealVideo(v);
   if(recordHistory) history=[active,...history.filter(x=>x!==active)].slice(0,20); persist(); updatePlayer(); renderMaterialsMini(); refreshFavButtons();
   if(center)centerCard(active,true);
 }
@@ -815,9 +887,12 @@ function refreshFavButtons(){
 }
 $("playerFavBtn")?.addEventListener("click",()=>toggleFav(active));$("playerPlaylistBtn")?.addEventListener("click",()=>togglePlaylist(active));
 function renderListPageIfOpen(){const p=document.querySelector(".page-view.active");if(p&&["favorit","playlist","riwayat"].includes(p.id))renderListPage(p.id)}
-function videoRows(indices){if(!indices.length)return `<div class="page-empty">Belum ada data.</div>`;return `<div class="doc-list">${indices.map(i=>videos[i]?`<div class="doc-item video-row" data-video-index="${i}"><h3>${esc(videos[i][0])}</h3><p>${esc(videos[i][3])} · ${esc(videos[i][2]||videos[i][1])}</p><div class="video-row-actions"><button class="ghost-btn open-video" type="button" data-i="${i}">Buka</button><button class="ghost-btn fav-video" type="button" data-i="${i}">${favorites.has(i)?"★ Favorit":"☆ Favorit"}</button><button class="ghost-btn list-video" type="button" data-i="${i}">${playlist.has(i)?"✓ Playlist":"＋ Playlist"}</button><button class="ghost-btn edit-video admin-only" type="button" data-i="${i}">✏ Edit</button><button class="ghost-btn delete-video admin-only" type="button" data-i="${i}">🗑 Hapus</button></div></div>`:"" ).join("")}</div>`}
+function videoRows(indices,includeMaterials=false){
+  if(!indices.length)return `<div class="page-empty">Belum ada data.</div>`;
+  return `<div class="doc-list">${indices.map(i=>{const v=videos[i];if(!v)return "";const subs=materials.filter(m=>(m.videoTitle||m.video_title)===v[0]);return `<div class="doc-item video-row" data-video-index="${i}"><h3>${esc(v[0])}</h3><p>${esc(v[3])} · ${esc(v[2]||v[1])}</p><div class="video-row-actions"><button class="ghost-btn open-video" type="button" data-i="${i}">Buka</button><button class="ghost-btn fav-video" type="button" data-i="${i}">${favorites.has(i)?"★ Favorit":"☆ Favorit"}</button><button class="ghost-btn list-video" type="button" data-i="${i}">${playlist.has(i)?"✓ Playlist":"＋ Playlist"}</button><button class="ghost-btn edit-video admin-only" type="button" data-i="${i}">✏ Edit</button><button class="ghost-btn delete-video admin-only" type="button" data-i="${i}">🗑 Hapus</button></div>${includeMaterials?`<div class="video-materials"><div class="video-materials-title">Sub Materi (${subs.length})</div>${subs.length?subs.map(m=>{const mi=materials.indexOf(m);return `<div class="video-submaterial"><div><strong>${esc(m.title)}</strong><small>${esc(m.category||"Materi")}</small></div><div class="video-row-actions" style="margin-top:0"><button class="ghost-btn open-material" type="button" data-i="${mi}">Buka</button><button class="ghost-btn edit-material admin-only" type="button" data-i="${mi}">✏ Edit</button></div></div>`}).join(""):`<small style="color:#7f8892">Belum ada sub materi.</small>`}</div>`:""}</div>`}).join("")}</div>`
+}
 function wireRows(root){/* click ditangani oleh event delegation global agar tetap aktif setelah render ulang */}
-function renderTutorial(){const root=$("tutorial");if(!root)return;root.innerHTML=`<div class="page-toolbar"><div><h2>Tutorial Video</h2><p class="lead" style="margin:4px 0 0">Daftar semua video tutorial dan materi.</p></div><button class="admin-add admin-only" id="openAddVideo" type="button">＋ Tambah Video</button></div>${videoRows(videos.map((_,i)=>i))}${materials.length?`<h2 style="margin-top:22px">Materi</h2><div class="doc-list">${materials.map((m,i)=>`<div class="doc-item"><h3>${esc(m.title)}</h3><p>${esc(m.videoTitle||m.video_title||"")} · ${esc(m.category||"")}</p><button class="ghost-btn open-material" type="button" data-i="${i}" style="margin-top:10px;width:auto;padding:8px 14px">Buka materi</button></div>`).join("")}</div>`:""}`;root.querySelector("#openAddVideo")?.addEventListener("click",()=>openTambah("video"));root.querySelectorAll(".open-material").forEach(b=>b.onclick=()=>openMaterial(+b.dataset.i))}
+function renderTutorial(){const root=$("tutorial");if(!root)return;root.innerHTML=`<div class="page-toolbar"><div><h2>Tutorial Video</h2><p class="lead" style="margin:4px 0 0">Daftar video tutorial beserta sub materi masing-masing.</p></div><button class="admin-add admin-only" id="openAddVideo" type="button">＋ Tambah Video</button></div>${videoRows(videos.map((_,i)=>i),true)}`;root.querySelector("#openAddVideo")?.addEventListener("click",()=>openTambah("video"));root.querySelectorAll(".open-material").forEach(b=>b.onclick=()=>openMaterial(+b.dataset.i))}
 function renderListPage(id){const root=$(id);if(!root)return;let arr=[],title="";if(id==="favorit"){arr=[...favorites];title="Favorit"}if(id==="playlist"){arr=[...playlist];title="Playlist Saya"}if(id==="riwayat"){arr=history.filter(i=>videos[i]);title="Riwayat"}root.innerHTML=`<h2>${title}</h2><p class="lead">${id==="riwayat"?"Tutorial yang terakhir dibuka.":"Koleksi video pilihanmu."}</p>${videoRows(arr)}`;wireRows(root)}
 function populateCategorySelects(){
   [$("materialPageCategory"),$("newVideoCategory")].forEach(sel=>{
@@ -855,7 +930,7 @@ $("openMaterialDetail")?.addEventListener("click",()=>{
 $("materialDetailBack")?.addEventListener("click",()=>showPage("dashboard"));
 function renderFAQ(){const l=$("faqList");if(!l)return;l.innerHTML=faqs.map((x,i)=>`<article class="doc-item clickable-doc faq-doc" tabindex="0" data-doc-index="${i}"><h3>${esc(x.question||x.q)}</h3><span class="doc-hint">Klik untuk buka jawaban</span><div class="doc-answer"><p>${esc(x.answer||x.a)}</p></div><div class="doc-admin-row"><button class="ghost-btn doc-delete-btn delete-faq admin-only" type="button" data-i="${i}">🗑 Hapus FAQ</button></div></article>`).join("")}
 function renderSOP(){const l=$("sopList");if(!l)return;l.innerHTML=sops.map((x,i)=>`<article class="doc-item clickable-doc sop-doc" tabindex="0" data-doc-index="${i}"><h3>${esc(x.title)}</h3><span class="doc-hint">Klik untuk buka SOP</span><div class="doc-answer"><p>${esc(x.content)}</p></div><div class="doc-admin-row"><button class="ghost-btn doc-delete-btn delete-sop admin-only" type="button" data-i="${i}">🗑 Hapus SOP</button></div></article>`).join("")}
-function requireAdmin(action){if(isAdmin){action();return true}openAuth("Login admin diperlukan untuk mengubah konten.");return false}
+function requireAdmin(action){if(isAdmin){action();return true}if(currentSession){say("Akun Viewer tidak punya izin Admin");return false}openAuth("Login diperlukan. Akun Viewer hanya dapat melihat konten.");return false}
 async function deleteFaq(i){
   if(!isAdmin)return openAuth();
   const x=faqs[i];if(!x)return;
@@ -874,36 +949,82 @@ $("openFaqForm")?.addEventListener("click",()=>requireAdmin(()=>$("faqForm").cla
 $("saveFaq")?.addEventListener("click",async()=>{if(!isAdmin)return openAuth();const q=$("faqQuestion").value.trim(),a=$("faqAnswer").value.trim();if(!q||!a)return say("Isi pertanyaan dan jawaban");const obj={question:q,answer:a};const rr=await remoteInsert("faq",obj);if(rr===false)return;if(rr===null){faqs.unshift(obj);persist()}$("faqQuestion").value=$("faqAnswer").value="";$("faqForm").classList.remove("open");renderFAQ();say("FAQ disimpan")});
 $("openSopForm")?.addEventListener("click",()=>requireAdmin(()=>$("sopForm").classList.add("open")));$("cancelSop")?.addEventListener("click",()=>$("sopForm")?.classList.remove("open"));
 $("saveSop")?.addEventListener("click",async()=>{if(!isAdmin)return openAuth();const title=$("sopTitle").value.trim(),content=$("sopContent").value.trim();if(!title||!content)return say("Isi judul dan SOP");const obj={title,content};const rr=await remoteInsert("sop",obj);if(rr===false)return;if(rr===null){sops.unshift(obj);persist()}$("sopTitle").value=$("sopContent").value="";$("sopForm").classList.remove("open");renderSOP();say("SOP disimpan")});
+function populateMaterialParentSelect(selected=""){
+  const sel=$("materialParentVideo");if(!sel)return;
+  sel.innerHTML='<option value="">Pilih video untuk sub materi</option>'+videos.map((v,i)=>`<option value="${i}">${esc(v[0])}</option>`).join("");
+  if(selected!==""&&selected!==null&&selected!==undefined)sel.value=String(selected);
+}
+function resetMaterialForm(){
+  editingMaterialIndex=null;
+  populateMaterialParentSelect("");
+  ["materialPageTitle","materialSummary","materialContent"].forEach(id=>{if($(id))$(id).value=""});
+  if($("materialPageCategory"))$("materialPageCategory").value="";
+  if($("materialAttachment"))$("materialAttachment").value="";
+  if($("saveMaterial"))$("saveMaterial").innerHTML="▣ &nbsp; Simpan Materi Baru";
+  $("materialEditNote")?.classList.remove("show");
+  syncMaterialPreview();
+}
+function openMaterialEditor(i){
+  if(!isAdmin)return openAuth("Login admin dulu untuk mengedit materi.");
+  const m=materials[i];if(!m)return;
+  editingMaterialIndex=i;
+  showPage("tambah-konten");selectTab("materi");
+  const parentTitle=m.videoTitle||m.video_title||"";
+  const parentIndex=videos.findIndex(v=>v[0]===parentTitle);
+  populateMaterialParentSelect(parentIndex>=0?parentIndex:"");
+  $("materialPageTitle").value=m.title||"";
+  $("materialPageCategory").value=m.category||"";
+  $("materialSummary").value=m.summary||"";
+  $("materialContent").value=m.content||"";
+  if($("saveMaterial"))$("saveMaterial").textContent="✓ Simpan Perubahan Materi";
+  $("materialEditNote")?.classList.add("show");
+  syncMaterialPreview();
+}
 function resetVideoForm(){editingVideoIndex=null;["newVideoTitle","newVideoDescription","newVideoDuration","newVideoUrl","newVideoTags","newVideoThumbnailUrl"].forEach(id=>{if($(id))$(id).value=""});if($("newVideoCategory"))$("newVideoCategory").value="";if($("newVideoLanguage"))$("newVideoLanguage").value="Indonesia";if($("newVideoThumbnail"))$("newVideoThumbnail").value="";if($("newVideoFile"))$("newVideoFile").value="";if($("saveVideo"))$("saveVideo").innerHTML="▣ &nbsp; Simpan Video";$("videoEditNote")?.classList.remove("show");const box=$("videoThumbPreview");if(box){box.style.backgroundImage="";const sm=box.querySelector("small");if(sm)sm.textContent="Thumbnail video akan muncul di sini"}syncVideoPreview()}
 function openVideoEditor(i){if(!isAdmin)return openAuth("Login admin dulu untuk mengedit video.");const v=videos[i];if(!v)return;editingVideoIndex=i;showPage("tambah-konten");selectTab("video");$("newVideoTitle").value=v[0]||"";$("newVideoCategory").value=v[3]||"";$("newVideoDescription").value=v._description||"";$("newVideoDuration").value=v[1]||"";$("newVideoLanguage").value=v._language||"Indonesia";$("newVideoUrl").value=v._videoUrl||"";$("newVideoTags").value=(v._tags||[]).join(", ");$("newVideoThumbnailUrl").value=v._thumb||"";if($("saveVideo"))$("saveVideo").textContent="✓ Simpan Perubahan";$("videoEditNote")?.classList.add("show");const box=$("videoThumbPreview");if(box&&v._thumb){box.style.backgroundImage=`linear-gradient(#0005,#0005),url("${v._thumb}")`;const sm=box.querySelector("small");if(sm)sm.textContent="Thumbnail saat ini"}syncVideoPreview()}
-function openTambah(tab="materi"){if(!isAdmin)return openAuth("Login admin dulu untuk menambah konten.");if(tab==="video")resetVideoForm();showPage("tambah-konten");selectTab(tab);$("materialTargetVideo").textContent=videos[active][0]}
+function openTambah(tab="materi"){if(!isAdmin)return openAuth("Login admin dulu untuk menambah konten.");if(tab==="video")resetVideoForm();if(tab==="materi")resetMaterialForm();showPage("tambah-konten");selectTab(tab)}
 $("addMaterialBtn")?.addEventListener("click",()=>openTambah("materi"));$("contentBack")?.addEventListener("click",()=>showPage("dashboard"));$("cancelMaterial")?.addEventListener("click",()=>showPage("dashboard"));$("cancelVideo")?.addEventListener("click",()=>showPage("dashboard"));
 $$("[data-content-tab]").forEach(b=>b.addEventListener("click",()=>selectTab(b.dataset.contentTab)));function selectTab(tab){$$("[data-content-tab]").forEach(b=>b.classList.toggle("active",b.dataset.contentTab===tab));$("tab-materi")?.classList.toggle("active",tab==="materi");$("tab-video")?.classList.toggle("active",tab==="video")}
 function syncMaterialPreview(){if($("previewMaterialTitle"))$("previewMaterialTitle").textContent=$("materialPageTitle")?.value||"Judul Materi";if($("previewMaterialCategory"))$("previewMaterialCategory").textContent=$("materialPageCategory")?.value||"Kategori";if($("previewMaterialSummary"))$("previewMaterialSummary").textContent=$("materialSummary")?.value||"Ringkasan materi akan tampil di sini.";if($("previewMaterialContent"))$("previewMaterialContent").textContent=$("materialContent")?.value||"Isi materi akan tampil di sini."}
 ["materialPageTitle","materialPageCategory","materialSummary","materialContent"].forEach(id=>$(id)?.addEventListener("input",syncMaterialPreview));
 $("saveMaterial")?.addEventListener("click",async()=>{
   if(!isAdmin)return openAuth();
-  const targetTitle=videos[active]?.[0]||"";
+  const parentIndex=Number($("materialParentVideo")?.value);
+  if(!Number.isInteger(parentIndex)||!videos[parentIndex])return say("Pilih video induk untuk sub materi");
+  const targetTitle=videos[parentIndex][0];
   const obj={videoTitle:targetTitle,title:$("materialPageTitle").value.trim(),category:$("materialPageCategory").value,summary:$("materialSummary").value.trim(),content:$("materialContent").value.trim()};
   if(!obj.title||!obj.category||!obj.content)return say("Judul, kategori, dan isi materi wajib diisi");
+  const existing=editingMaterialIndex!==null?materials[editingMaterialIndex]:null;
   const attachment=await uploadMedia($("materialAttachment")?.files?.[0],"materials");
   const remote={video_title:obj.videoTitle,title:obj.title,category:obj.category,summary:obj.summary,content:obj.content};
   if(attachment)remote.attachment_url=attachment;
+  else if(existing?.attachment_url)remote.attachment_url=existing.attachment_url;
+
+  if(editingMaterialIndex!==null){
+    if(sb&&existing?.id){
+      try{const {error}=await sb.from("materials").update(remote).eq("id",existing.id);if(error)throw error;await loadRemote()}catch(e){console.error(e);say("Gagal mengubah materi");return}
+    }else{
+      materials[editingMaterialIndex]={...existing,...obj,attachment_url:remote.attachment_url||""};persist();
+    }
+    active=parentIndex;
+    resetMaterialForm();
+    showPage("tutorial");renderTutorial();
+    say("Materi berhasil diperbarui");
+    return;
+  }
+
   const savedRemote=await remoteInsert("materials",remote);
   if(savedRemote===false)return;
   if(savedRemote===null){materials.push({...obj,attachment_url:attachment});persist()}
-  const targetIndex=videos.findIndex(v=>v[0]===targetTitle);
-  if(targetIndex>=0)active=targetIndex;
-  ["materialPageTitle","materialSummary","materialContent"].forEach(id=>$(id).value="");
-  if($("materialPageCategory"))$("materialPageCategory").value="";
-  if($("materialAttachment"))$("materialAttachment").value="";
-  syncMaterialPreview();
-  showPage("dashboard");
-  renderMaterialsMini();
-  say("Materi disimpan dan sudah tampil");
+  active=parentIndex;
+  resetMaterialForm();
+  showPage("tutorial");renderTutorial();
+  say("Sub materi baru berhasil ditambahkan");
 });
 function syncVideoPreview(){if($("previewVideoTitle"))$("previewVideoTitle").textContent=$("newVideoTitle")?.value||"Judul Video";if($("previewVideoCategory"))$("previewVideoCategory").textContent=$("newVideoCategory")?.value||"Kategori";if($("previewVideoDuration"))$("previewVideoDuration").textContent=$("newVideoDuration")?.value||"0:00"}
+function syncVideoLinkPreview(){const box=document.querySelector(".video-fake-player");if(!box)return;const src=parseVideoSource($("newVideoUrl")?.value||"");if(!src){box.innerHTML='<div class="wave"></div><div class="wave2"></div><button type="button">▶</button>';return}if(src.type==="youtube"||src.type==="vimeo"){box.innerHTML=`<iframe src="${esc(src.src)}" title="Preview video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="width:100%;height:100%;border:0"></iframe>`}else{box.innerHTML=`<video src="${esc(src.src)}" controls playsinline style="width:100%;height:100%;object-fit:contain;background:#000"></video>`}}
 ["newVideoTitle","newVideoCategory","newVideoDuration"].forEach(id=>$(id)?.addEventListener("input",syncVideoPreview));
+$("newVideoUrl")?.addEventListener("input",syncVideoLinkPreview);
 $("newVideoThumbnail")?.addEventListener("change",e=>{const f=e.target.files?.[0];if(!f)return;const u=URL.createObjectURL(f);const box=$("videoThumbPreview");if(box){box.style.backgroundImage=`linear-gradient(#0005,#0005),url("${u}")`;box.querySelector("small").textContent=f.name}});
 $("newVideoThumbnailUrl")?.addEventListener("input",e=>{const u=e.target.value.trim();const box=$("videoThumbPreview");if(box){box.style.backgroundImage=u?`linear-gradient(#0005,#0005),url("${u}")`:"";const sm=box.querySelector("small");if(sm)sm.textContent=u?"Preview dari URL":"Thumbnail video akan muncul di sini"}});
 $("newVideoFile")?.addEventListener("change",e=>{const f=e.target.files?.[0];if(f)say("Video dipilih: "+f.name)});
@@ -952,12 +1073,30 @@ async function deleteVideo(i){
 
 const search=$("globalSearch"),results=$("searchResults");if(search&&results){search.addEventListener("input",()=>{const q=search.value.trim().toLowerCase();if(!q){results.classList.remove("show");return}const a=videos.map((v,i)=>({v,i})).filter(x=>(x.v[0]+" "+x.v[3]).toLowerCase().includes(q)).slice(0,8);results.innerHTML=a.length?a.map(x=>`<div class="search-item" data-i="${x.i}"><b>${esc(x.v[0])}</b><small>${esc(x.v[3])}</small></div>`).join(""):`<div class="search-empty">Tidak ditemukan</div>`;results.classList.add("show");results.querySelectorAll(".search-item").forEach(x=>x.onclick=()=>{setActive(+x.dataset.i,false);showPage("dashboard");results.classList.remove("show")})});document.addEventListener("click",e=>{if(!e.target.closest(".search-wrap"))results.classList.remove("show")})}
 function supabaseReady(){const c=window.PNG_CONFIG||{};return !!(window.supabase&&c.supabaseUrl&&c.supabaseAnonKey&&!c.supabaseUrl.includes("YOUR_")&&!c.supabaseAnonKey.includes("YOUR_"))}
-async function initSupabase(){if(!supabaseReady()){if($("syncBadge"))$("syncBadge").textContent="Mode lokal";return}try{sb=window.supabase.createClient(window.PNG_CONFIG.supabaseUrl,window.PNG_CONFIG.supabaseAnonKey);const {data}=await sb.auth.getSession();applySession(data.session);sb.auth.onAuthStateChange((_e,s)=>applySession(s));await loadRemote();if($("syncBadge"))$("syncBadge").textContent="Online"}catch(e){console.error(e);say("Supabase gagal tersambung")}}
-function applySession(session){isAdmin=!!session;document.body.classList.toggle("is-admin",isAdmin);if($("adminAuthBtn"))$("adminAuthBtn").textContent=isAdmin?"🔓 Logout":"🔒 Admin Login";if($("adminUserLabel"))$("adminUserLabel").textContent=isAdmin?(session.user?.email||"Admin"):""}
-function openAuth(help){if($("authHelp")&&help)$("authHelp").textContent=help;$("authModal")?.classList.add("show");$("authModal")?.setAttribute("aria-hidden","false")}
+async function initSupabase(){if(!supabaseReady()){if($("syncBadge"))$("syncBadge").textContent="Mode lokal";return}try{sb=window.supabase.createClient(window.PNG_CONFIG.supabaseUrl,window.PNG_CONFIG.supabaseAnonKey);const {data}=await sb.auth.getSession();await applySession(data.session);sb.auth.onAuthStateChange(async(_e,s)=>{await applySession(s)});await loadRemote();if($("syncBadge"))$("syncBadge").textContent="Online"}catch(e){console.error(e);say("Supabase gagal tersambung")}}
+async function applySession(session){
+  currentSession=session||null; currentRole="viewer"; isAdmin=false; isOwner=false;
+  if(session&&sb){
+    try{const {data,error}=await sb.from("user_roles").select("role,is_owner,email").eq("user_id",session.user.id).maybeSingle();if(error)throw error;if(data){currentRole=data.role||"viewer";isOwner=!!data.is_owner;isAdmin=isOwner||currentRole==="admin"}}catch(e){console.warn("Role belum tersedia",e)}
+  }
+  document.body.classList.toggle("is-admin",isAdmin);document.body.classList.toggle("is-owner",isOwner);
+  if($("adminAuthBtn"))$("adminAuthBtn").textContent=session?"🔓 Logout":"🔒 Login / Daftar";
+  if($("adminUserLabel"))$("adminUserLabel").innerHTML=session?`${esc(session.user?.email||"User")} <span class="role-badge ${isOwner?"owner":isAdmin?"admin":""}">${isOwner?"OWNER":isAdmin?"ADMIN":"VIEWER"}</span>`:"";
+  const activePage=document.querySelector(".page-view.active");if(activePage?.id==="pengguna"&&!isOwner)showPage("dashboard");
+}
+function setAuthMode(mode){authMode=mode==="register"?"register":"login";$("authLoginTab")?.classList.toggle("active",authMode==="login");$("authRegisterTab")?.classList.toggle("active",authMode==="register");if($("doLogin"))$("doLogin").textContent=authMode==="login"?"Login":"Daftar";if($("authTitle"))$("authTitle").textContent=authMode==="login"?"Masuk ke PNG":"Daftar Akun Viewer";if($("authHelp"))$("authHelp").textContent=authMode==="login"?"Masuk dengan akun yang sudah terdaftar.":"Akun baru otomatis menjadi Viewer. Pemilik dashboard dapat memberikan izin Admin nanti."}
+function openAuth(help){if(help&&$("authHelp"))$("authHelp").textContent=help;$("authModal")?.classList.add("show");$("authModal")?.setAttribute("aria-hidden","false")}
 function closeAuth(){$("authModal")?.classList.remove("show");$("authModal")?.setAttribute("aria-hidden","true")}
-$("adminAuthBtn")?.addEventListener("click",async()=>{if(isAdmin&&sb){await sb.auth.signOut();return}openAuth(supabaseReady()?"Masuk dengan akun admin Supabase.":"Supabase belum disambungkan. Isi config.js terlebih dahulu agar Admin Login aktif.")});$("closeAuth")?.addEventListener("click",closeAuth);$("authModal")?.addEventListener("click",e=>{if(e.target.id==="authModal")closeAuth()});
-$("doLogin")?.addEventListener("click",async()=>{if(!supabaseReady())return say("Isi Project URL dan anon key di config.js dulu");if(!sb)await initSupabase();const email=$("adminEmail").value.trim(),password=$("adminPassword").value;if(!email||!password)return say("Isi email dan password");const {error}=await sb.auth.signInWithPassword({email,password});if(error)return say("Login gagal: "+error.message);closeAuth();say("Login admin berhasil")});
+$("authLoginTab")?.addEventListener("click",()=>setAuthMode("login"));$("authRegisterTab")?.addEventListener("click",()=>setAuthMode("register"));
+$("adminAuthBtn")?.addEventListener("click",async()=>{if(currentSession&&sb){await sb.auth.signOut();say("Logout berhasil");return}setAuthMode("login");openAuth(supabaseReady()?"Masuk atau daftar akun PNG.":"Supabase belum disambungkan. Isi config.js terlebih dahulu.")});$("closeAuth")?.addEventListener("click",closeAuth);$("authModal")?.addEventListener("click",e=>{if(e.target.id==="authModal")closeAuth()});
+$("doLogin")?.addEventListener("click",async()=>{if(!supabaseReady())return say("Isi Project URL dan anon key di config.js dulu");if(!sb)await initSupabase();const email=$("adminEmail").value.trim(),password=$("adminPassword").value;if(!email||!password)return say("Isi email dan password");if(authMode==="register"){const {data,error}=await sb.auth.signUp({email,password});if(error)return say("Daftar gagal: "+error.message);closeAuth();if(data.session)say("Daftar berhasil — akun Viewer aktif");else say("Daftar berhasil. Cek email untuk konfirmasi") }else{const {error}=await sb.auth.signInWithPassword({email,password});if(error)return say("Login gagal: "+error.message);closeAuth();say("Login berhasil")}});
+async function renderUserManagement(){
+  const root=$("userAdminList");if(!root)return;if(!isOwner){root.innerHTML='<div class="page-empty">Hanya pemilik dashboard yang dapat mengelola pengguna.</div>';return}
+  root.innerHTML='<div class="page-empty">Memuat pengguna...</div>';
+  const {data,error}=await sb.from("user_roles").select("user_id,email,role,is_owner,created_at").order("created_at",{ascending:true});if(error){console.error(error);root.innerHTML='<div class="page-empty">Gagal memuat pengguna.</div>';return}
+  root.innerHTML=(data||[]).map(u=>`<div class="user-admin-row"><div><strong>${esc(u.email||u.user_id)}</strong><br><small>${u.is_owner?"Owner":(u.role||"viewer").toUpperCase()}</small></div><div class="user-admin-actions">${u.is_owner?'<span class="role-badge owner">OWNER</span>':u.role==="admin"?`<button class="demote" data-user="${u.user_id}" data-role="viewer">Jadikan Viewer</button>`:`<button class="promote" data-user="${u.user_id}" data-role="admin">Jadikan Admin</button>`}</div></div>`).join("")||'<div class="page-empty">Belum ada pengguna.</div>';
+  root.querySelectorAll("button[data-user]").forEach(b=>b.onclick=async()=>{const userId=b.dataset.user,role=b.dataset.role;if(!confirm(role==="admin"?"Berikan izin Admin ke akun ini?":"Cabut izin Admin dan jadikan Viewer?"))return;const {error}=await sb.from("user_roles").update({role}).eq("user_id",userId).eq("is_owner",false);if(error){console.error(error);say("Gagal mengubah izin");return}say("Izin pengguna diperbarui");await renderUserManagement()})
+}
 async function uploadMedia(file,folder){
   if(!file)return "";
   if(!sb||!isAdmin)return "";
@@ -998,6 +1137,8 @@ document.addEventListener("click",e=>{
   if(del){e.preventDefault();e.stopPropagation();deleteVideo(+del.dataset.i);return;}
   const material=e.target.closest(".open-material");
   if(material){e.preventDefault();e.stopPropagation();openMaterial(+material.dataset.i);return;}
+  const editMaterial=e.target.closest(".edit-material");
+  if(editMaterial){e.preventDefault();e.stopPropagation();openMaterialEditor(+editMaterial.dataset.i);return;}
 
   const deleteFaqBtn=e.target.closest(".delete-faq");
   if(deleteFaqBtn){e.preventDefault();e.stopPropagation();deleteFaq(+deleteFaqBtn.dataset.i);return;}
