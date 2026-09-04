@@ -241,6 +241,7 @@ body:not(.is-admin) .admin-lock-note{display:block}
 
 /* ===== MASTER CAROUSEL: gunakan mekanisme versi normal yang sudah terbukti ===== */
 #scroller{position:relative;touch-action:pan-y;}
+#scroller.single-video{justify-content:center;overflow-x:hidden!important;padding-left:28px!important;padding-right:28px!important}
 #scroller .card-actions{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;margin-top:6px}
 #scroller .mini-btn{width:auto!important;min-width:0!important;flex:0 0 auto!important;padding:5px 7px!important;font-size:10px!important}
 .video-row-actions{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:10px}
@@ -681,6 +682,21 @@ function parseVideoSource(url){
     return {type:"file",src:u.href};
   }catch(_){return null}
 }
+function youtubeThumbnailFromUrl(url){
+  const raw=String(url||"").trim(); if(!raw)return "";
+  try{
+    const u=new URL(raw,location.href); const host=u.hostname.replace(/^www\./,"").toLowerCase();
+    let id="";
+    if(host==="youtu.be")id=u.pathname.split("/").filter(Boolean)[0]||"";
+    else if(host.endsWith("youtube.com")){
+      id=u.searchParams.get("v")||"";
+      if(!id){const parts=u.pathname.split("/").filter(Boolean);if(["embed","shorts","live"].includes(parts[0]))id=parts[1]||""}
+    }
+    return id?`https://i.ytimg.com/vi/${encodeURIComponent(id)}/hqdefault.jpg`:"";
+  }catch(_){return ""}
+}
+function effectiveVideoThumb(v){return String(v?._thumb||"").trim()||youtubeThumbnailFromUrl(v?._videoUrl||"")}
+
 function renderRealVideo(v){
   const player=$("mainPlayer")||document.querySelector(".player"), layer=$("mediaLayer"); if(!player||!layer)return;
   const src=parseVideoSource(v?._videoUrl||""); layer.innerHTML=""; player.classList.toggle("has-real-media",!!src);
@@ -703,20 +719,30 @@ function esc(x){return String(x??"").replace(/[&<>\"]/g,m=>({"&":"&amp;","<":"&l
 
 const loopCopies=3;
 let realCount=videos.length;
+let carouselCopies=1;
+let carouselMiddleCopy=0;
 let carouselRaf=0;
 
 function renderCarousel(){
   const scroller=$("scroller");
   if(!scroller)return;
   realCount=videos.length;
+  // 1–3 video tampil sesuai jumlah aslinya. Loop 3-copy baru aktif saat koleksi sudah cukup banyak.
+  carouselCopies=realCount<=3?1:loopCopies;
+  carouselMiddleCopy=carouselCopies===1?0:Math.floor(carouselCopies/2);
+  scroller.classList.toggle("single-video",realCount===1);
   scroller.innerHTML="";
-  for(let copy=0;copy<loopCopies;copy++){
+  for(let copy=0;copy<carouselCopies;copy++){
     videos.forEach((v,i)=>{
       const card=document.createElement("article");
       card.className="card";
       card.dataset.real=i;
-      const thumbStyle=v._thumb?` style="background-image:linear-gradient(#0003,#0003),url('${esc(v._thumb)}')"`:"";
-      card.innerHTML=`<div class="thumb${v._thumb?" has-image":""}"${thumbStyle}><span class="duration">${esc(v[1])}</span></div><h4>${esc(v[0])}</h4><p>${esc(v[3]||"Video tutorial")}</p><div class="card-actions"><button class="mini-btn fav-btn" type="button">☆ Favorit</button><button class="mini-btn list-btn" type="button">＋ Playlist</button></div><div class="card-admin-actions"><button class="mini-btn edit-btn admin-card-btn" type="button">✏ Edit</button><button class="mini-btn delete-btn admin-card-btn" type="button">🗑 Hapus</button></div>`;
+      const thumb=effectiveVideoThumb(v);
+      card.innerHTML=`<div class="thumb${thumb?" has-image":""}"><span class="duration">${esc(v[1])}</span></div><h4>${esc(v[0])}</h4><p>${esc(v[3]||"Video tutorial")}</p><div class="card-actions"><button class="mini-btn fav-btn" type="button">☆ Favorit</button><button class="mini-btn list-btn" type="button">＋ Playlist</button></div><div class="card-admin-actions"><button class="mini-btn edit-btn admin-card-btn" type="button">✏ Edit</button><button class="mini-btn delete-btn admin-card-btn" type="button">🗑 Hapus</button></div>`;
+      if(thumb){
+        const thumbEl=card.querySelector(".thumb");
+        thumbEl.style.backgroundImage=`linear-gradient(#0003,#0003),url(${JSON.stringify(thumb)})`;
+      }
       card.addEventListener("click",e=>{
         if(e.target.closest("button"))return;
         if(!carouselHasMoved){setActive(i,false,true);centerRealCard(i,true)}
@@ -737,7 +763,7 @@ function cardStep(){
 function jumpToMiddleCopy(realIndex){
   const scroller=$("scroller");
   if(!scroller||!realCount)return;
-  const idx=realCount+realIndex;
+  const idx=carouselMiddleCopy*realCount+realIndex;
   const card=scroller.children[idx];
   if(!card)return;
   scroller.scrollLeft=card.offsetLeft-(scroller.clientWidth-card.offsetWidth)/2;
@@ -745,7 +771,7 @@ function jumpToMiddleCopy(realIndex){
 function centerRealCard(realIndex,smooth=false){
   const scroller=$("scroller");
   if(!scroller||!realCount)return;
-  const middleIndex=realCount+realIndex;
+  const middleIndex=carouselMiddleCopy*realCount+realIndex;
   const card=scroller.children[middleIndex];
   if(!card)return;
   const left=card.offsetLeft-(scroller.clientWidth-card.offsetWidth)/2;
@@ -754,7 +780,7 @@ function centerRealCard(realIndex,smooth=false){
 function centerCard(i,smooth=true){centerRealCard(i,smooth)}
 function normalizeLoop(){
   const scroller=$("scroller");
-  if(!scroller||!realCount)return;
+  if(!scroller||!realCount||carouselCopies===1)return;
   const step=cardStep();
   const oneSet=step*realCount;
   if(!oneSet)return;
@@ -1022,7 +1048,24 @@ $("saveMaterial")?.addEventListener("click",async()=>{
   say("Sub materi baru berhasil ditambahkan");
 });
 function syncVideoPreview(){if($("previewVideoTitle"))$("previewVideoTitle").textContent=$("newVideoTitle")?.value||"Judul Video";if($("previewVideoCategory"))$("previewVideoCategory").textContent=$("newVideoCategory")?.value||"Kategori";if($("previewVideoDuration"))$("previewVideoDuration").textContent=$("newVideoDuration")?.value||"0:00"}
-function syncVideoLinkPreview(){const box=document.querySelector(".video-fake-player");if(!box)return;const src=parseVideoSource($("newVideoUrl")?.value||"");if(!src){box.innerHTML='<div class="wave"></div><div class="wave2"></div><button type="button">▶</button>';return}if(src.type==="youtube"||src.type==="vimeo"){box.innerHTML=`<iframe src="${esc(src.src)}" title="Preview video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="width:100%;height:100%;border:0"></iframe>`}else{box.innerHTML=`<video src="${esc(src.src)}" controls playsinline style="width:100%;height:100%;object-fit:contain;background:#000"></video>`}}
+function syncVideoLinkPreview(){
+  const videoUrl=$("newVideoUrl")?.value||"";
+  const box=document.querySelector(".video-fake-player");
+  const src=parseVideoSource(videoUrl);
+  if(box){
+    if(!src)box.innerHTML='<div class="wave"></div><div class="wave2"></div><button type="button">▶</button>';
+    else if(src.type==="youtube"||src.type==="vimeo")box.innerHTML=`<iframe src="${esc(src.src)}" title="Preview video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="width:100%;height:100%;border:0"></iframe>`;
+    else box.innerHTML=`<video src="${esc(src.src)}" controls playsinline style="width:100%;height:100%;object-fit:contain;background:#000"></video>`;
+  }
+  // Kalau link YouTube dipakai tanpa thumbnail manual, otomatis pakai cover video YouTube.
+  if(!$("newVideoThumbnailUrl")?.value.trim()&&!$("newVideoThumbnail")?.files?.length){
+    const autoThumb=youtubeThumbnailFromUrl(videoUrl),preview=$("videoThumbPreview");
+    if(preview){
+      preview.style.backgroundImage=autoThumb?`linear-gradient(#0005,#0005),url(${JSON.stringify(autoThumb)})`:"";
+      const sm=preview.querySelector("small");if(sm)sm.textContent=autoThumb?"Cover otomatis dari video YouTube":"Thumbnail video akan muncul di sini";
+    }
+  }
+}
 ["newVideoTitle","newVideoCategory","newVideoDuration"].forEach(id=>$(id)?.addEventListener("input",syncVideoPreview));
 $("newVideoUrl")?.addEventListener("input",syncVideoLinkPreview);
 $("newVideoThumbnail")?.addEventListener("change",e=>{const f=e.target.files?.[0];if(!f)return;const u=URL.createObjectURL(f);const box=$("videoThumbPreview");if(box){box.style.backgroundImage=`linear-gradient(#0005,#0005),url("${u}")`;box.querySelector("small").textContent=f.name}});
@@ -1035,6 +1078,7 @@ $("saveVideo")?.addEventListener("click",async()=>{
   const old=editingVideoIndex!==null?videos[editingVideoIndex]:null;
   const oldTitle=old?.[0]||"";
   let thumbUrl=$("newVideoThumbnailUrl")?.value.trim()||old?._thumb||"",videoUrl=$("newVideoUrl")?.value.trim()||old?._videoUrl||"";
+  if(!thumbUrl)thumbUrl=youtubeThumbnailFromUrl(videoUrl);
   if(sb&&isAdmin){
     const uploadedThumb=await uploadMedia($("newVideoThumbnail")?.files?.[0],"thumbnails");if(uploadedThumb)thumbUrl=uploadedThumb;
     const uploadedVideo=await uploadMedia($("newVideoFile")?.files?.[0],"videos");if(uploadedVideo)videoUrl=uploadedVideo;
