@@ -231,6 +231,7 @@ body:not(.is-admin) .admin-lock-note{display:block}
 .doc-item.clickable-doc .doc-answer{display:none;margin-top:10px;padding-top:10px;border-top:1px solid #232831}
 .doc-item.clickable-doc.open .doc-answer{display:block}
 .doc-item.clickable-doc .doc-hint{display:inline-block;margin-top:9px;color:#ff4652;font-size:10px}
+.doc-admin-row{display:none;justify-content:flex-end;margin-top:10px}.is-admin .doc-admin-row{display:flex}.doc-delete-btn{width:auto!important;min-width:0!important;padding:6px 10px!important;border:1px solid #6b161d!important;background:#16090c!important;color:#ff6671!important;border-radius:7px!important;font-size:10px!important}.doc-delete-btn:hover{background:#4b0b11!important;color:#fff!important}
 .doc-item.video-row{cursor:pointer}
 .doc-item.video-row:hover{border-color:#4a151b}
 .doc-item.video-row .video-row-actions{cursor:default}
@@ -852,9 +853,23 @@ $("openMaterialDetail")?.addEventListener("click",()=>{
   showPage("materi-detail");
 });
 $("materialDetailBack")?.addEventListener("click",()=>showPage("dashboard"));
-function renderFAQ(){const l=$("faqList");if(!l)return;l.innerHTML=faqs.map((x,i)=>`<article class="doc-item clickable-doc faq-doc" tabindex="0" data-doc-index="${i}"><h3>${esc(x.question||x.q)}</h3><span class="doc-hint">Klik untuk buka jawaban</span><div class="doc-answer"><p>${esc(x.answer||x.a)}</p></div></article>`).join("")}
-function renderSOP(){const l=$("sopList");if(!l)return;l.innerHTML=sops.map((x,i)=>`<article class="doc-item clickable-doc sop-doc" tabindex="0" data-doc-index="${i}"><h3>${esc(x.title)}</h3><span class="doc-hint">Klik untuk buka SOP</span><div class="doc-answer"><p>${esc(x.content)}</p></div></article>`).join("")}
+function renderFAQ(){const l=$("faqList");if(!l)return;l.innerHTML=faqs.map((x,i)=>`<article class="doc-item clickable-doc faq-doc" tabindex="0" data-doc-index="${i}"><h3>${esc(x.question||x.q)}</h3><span class="doc-hint">Klik untuk buka jawaban</span><div class="doc-answer"><p>${esc(x.answer||x.a)}</p></div><div class="doc-admin-row"><button class="ghost-btn doc-delete-btn delete-faq admin-only" type="button" data-i="${i}">🗑 Hapus FAQ</button></div></article>`).join("")}
+function renderSOP(){const l=$("sopList");if(!l)return;l.innerHTML=sops.map((x,i)=>`<article class="doc-item clickable-doc sop-doc" tabindex="0" data-doc-index="${i}"><h3>${esc(x.title)}</h3><span class="doc-hint">Klik untuk buka SOP</span><div class="doc-answer"><p>${esc(x.content)}</p></div><div class="doc-admin-row"><button class="ghost-btn doc-delete-btn delete-sop admin-only" type="button" data-i="${i}">🗑 Hapus SOP</button></div></article>`).join("")}
 function requireAdmin(action){if(isAdmin){action();return true}openAuth("Login admin diperlukan untuk mengubah konten.");return false}
+async function deleteFaq(i){
+  if(!isAdmin)return openAuth();
+  const x=faqs[i];if(!x)return;
+  if(!confirm(`Hapus FAQ “${x.question||x.q||"ini"}”?`))return;
+  if(sb&&x.id){try{const {error}=await sb.from("faq").delete().eq("id",x.id);if(error)throw error;await loadRemote();say("FAQ dihapus");return}catch(e){console.error(e);say("Gagal menghapus FAQ");return}}
+  faqs.splice(i,1);persist();renderFAQ();say("FAQ dihapus");
+}
+async function deleteSop(i){
+  if(!isAdmin)return openAuth();
+  const x=sops[i];if(!x)return;
+  if(!confirm(`Hapus SOP “${x.title||"ini"}”?`))return;
+  if(sb&&x.id){try{const {error}=await sb.from("sop").delete().eq("id",x.id);if(error)throw error;await loadRemote();say("SOP dihapus");return}catch(e){console.error(e);say("Gagal menghapus SOP");return}}
+  sops.splice(i,1);persist();renderSOP();say("SOP dihapus");
+}
 $("openFaqForm")?.addEventListener("click",()=>requireAdmin(()=>$("faqForm").classList.add("open")));$("cancelFaq")?.addEventListener("click",()=>$("faqForm")?.classList.remove("open"));
 $("saveFaq")?.addEventListener("click",async()=>{if(!isAdmin)return openAuth();const q=$("faqQuestion").value.trim(),a=$("faqAnswer").value.trim();if(!q||!a)return say("Isi pertanyaan dan jawaban");const obj={question:q,answer:a};const rr=await remoteInsert("faq",obj);if(rr===false)return;if(rr===null){faqs.unshift(obj);persist()}$("faqQuestion").value=$("faqAnswer").value="";$("faqForm").classList.remove("open");renderFAQ();say("FAQ disimpan")});
 $("openSopForm")?.addEventListener("click",()=>requireAdmin(()=>$("sopForm").classList.add("open")));$("cancelSop")?.addEventListener("click",()=>$("sopForm")?.classList.remove("open"));
@@ -983,6 +998,11 @@ document.addEventListener("click",e=>{
   if(del){e.preventDefault();e.stopPropagation();deleteVideo(+del.dataset.i);return;}
   const material=e.target.closest(".open-material");
   if(material){e.preventDefault();e.stopPropagation();openMaterial(+material.dataset.i);return;}
+
+  const deleteFaqBtn=e.target.closest(".delete-faq");
+  if(deleteFaqBtn){e.preventDefault();e.stopPropagation();deleteFaq(+deleteFaqBtn.dataset.i);return;}
+  const deleteSopBtn=e.target.closest(".delete-sop");
+  if(deleteSopBtn){e.preventDefault();e.stopPropagation();deleteSop(+deleteSopBtn.dataset.i);return;}
 
   const faq=e.target.closest(".faq-doc");
   if(faq){faq.classList.toggle("open");const hint=faq.querySelector(".doc-hint");if(hint)hint.textContent=faq.classList.contains("open")?"Klik untuk tutup":"Klik untuk buka jawaban";return;}
