@@ -270,47 +270,53 @@ body:not(.is-admin) .admin-lock-note{display:block}
   .admin-auth-btn{white-space:nowrap;padding:7px 9px;font-size:10px}
   .admin-user-label{display:none}
 
-  .layout{display:block;padding:6px;min-height:calc(100vh - 112px)}
+  .layout{display:block;padding:6px;min-height:calc(100dvh - 112px)}
   .main,.info{border-radius:11px}
   .main{padding:8px;overflow:hidden}
   .info{margin-top:7px;padding:13px}
 
+  /* Drawer mulai DI BAWAH header + search agar tidak lagi kepotong di iPhone. */
   .sidebar{
-    display:flex!important;position:fixed;left:0;top:0;bottom:0;width:min(76vw,270px);
-    min-height:100dvh;margin:0;border-radius:0 14px 14px 0;z-index:90;padding:72px 10px 14px;
-    transform:translateX(-105%);transition:transform .22s ease;overflow-y:auto;overscroll-behavior:contain;
-    box-shadow:18px 0 40px #000b
+    display:flex!important;position:fixed;left:6px;top:112px;bottom:max(10px,env(safe-area-inset-bottom));
+    width:min(76vw,258px);min-height:0;height:auto;margin:0;border-radius:14px;z-index:90;
+    padding:8px 9px calc(10px + env(safe-area-inset-bottom));
+    transform:translateX(calc(-100% - 14px));transition:transform .22s ease;
+    overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;box-shadow:18px 0 40px #000b
   }
   body.mobile-menu-open .sidebar{transform:translateX(0)}
   body.mobile-menu-open .mobile-menu-backdrop{display:block}
-  .nav button{padding:13px 12px;font-size:14px}
-  .sidebar-bottom{padding-top:22px}
-  .mascot-wrap{height:150px}.mascot{width:100px}
+  .nav{gap:3px}
+  .nav button{padding:10px 10px;font-size:12px;min-height:38px}
+  .sidebar-bottom{margin-top:16px;padding-top:8px}
+  .mascot-wrap{height:112px;padding-bottom:2px}.mascot{width:82px}
+  .help{padding:10px;font-size:10px;line-height:1.45}.help strong{font-size:11px;margin-bottom:5px}
 
   .main-head h2{font-size:16px;margin:2px 0 9px}
-  .player{height:235px;border-radius:10px}
-  .hero h1{font-size:clamp(28px,9vw,42px);padding:0 14px;line-height:1.08}
+  .player{height:225px;border-radius:10px}
+  .hero h1{font-size:clamp(27px,8.6vw,40px);padding:0 14px;line-height:1.08}
   .hero p{font-size:10px;letter-spacing:2px}
-  .controls{left:10px;right:10px;bottom:9px;gap:7px;font-size:10px}
-  .play{width:32px;height:32px;flex:0 0 32px}
-  .player-actions{gap:4px}
-  .control-icon{width:30px;height:30px;padding:0}
+  .controls{left:10px;right:10px;bottom:9px;gap:6px;font-size:9px}
+  .play{width:30px;height:30px;flex:0 0 30px}
+  .player-actions{gap:2px}
+  .control-icon{width:27px;height:27px;padding:0}
   .settings-menu{right:0;left:auto;max-width:calc(100vw - 28px)}
 
-  .related{min-height:312px;padding:10px 8px 6px;border-radius:10px}
-  .related-head{gap:8px}.related-head h3{font-size:14px}.related-head span{font-size:9px;text-align:right}
+  /* Carousel mobile: lebih kecil, turun sedikit, dan swipe horizontal tidak direbut Safari. */
+  .related{min-height:268px;padding:10px 7px 8px;border-radius:10px;margin-top:9px}
+  .related-head{gap:8px;padding:0 2px 3px}.related-head h3{font-size:13px}.related-head span{font-size:8px;text-align:right}
   #scroller{
-    min-height:245px;padding:20px calc(50% - 78px) 12px;gap:12px;
+    min-height:205px;padding:24px calc(50% - 62px) 10px;gap:8px;
     overflow-x:auto!important;overflow-y:hidden!important;-webkit-overflow-scrolling:touch;
-    touch-action:pan-x!important;overscroll-behavior-x:contain;scrollbar-width:none
+    touch-action:pan-y!important;overscroll-behavior-x:contain;scrollbar-width:none;
+    scroll-padding-inline:calc(50% - 62px)
   }
   #scroller::-webkit-scrollbar{display:none}
-  #scroller .card{flex:0 0 156px!important;min-width:156px;touch-action:pan-x}
-  #scroller .thumb{height:108px}
-  #scroller .card h4{font-size:11px}
-  #scroller .card p{font-size:9px}
-  #scroller .card-actions,#scroller .card-admin-actions{gap:4px}
-  #scroller .mini-btn{padding:5px 6px!important;font-size:9px!important}
+  #scroller .card{flex:0 0 124px!important;min-width:124px;touch-action:pan-y!important}
+  #scroller .thumb{height:84px;border-radius:9px}
+  #scroller .card h4{font-size:10px;line-height:1.2;margin:6px 0 3px}
+  #scroller .card p{font-size:8px}
+  #scroller .card-actions,#scroller .card-admin-actions{gap:3px;margin-top:5px}
+  #scroller .mini-btn{padding:4px 5px!important;font-size:8px!important}
 
   .info h2{font-size:16px}.info-title{font-size:14px}
   .meta{grid-template-columns:1fr 1fr;gap:9px;font-size:10px}
@@ -340,16 +346,20 @@ body:not(.is-admin) .admin-lock-note{display:block}
 }
 
 @media(max-width:420px){
-  .topbar{grid-template-columns:40px minmax(0,1fr) auto;padding:7px 8px}
-  .brand{font-size:19px}.brand-mark{width:24px;height:23px}
-  .admin-auth-btn{font-size:0;width:38px;height:36px;padding:0}
-  .admin-auth-btn::first-letter{font-size:15px}
-  .player{height:215px}
-  .hero h1{font-size:29px}
-  #scroller{min-height:230px;padding-left:calc(50% - 72px);padding-right:calc(50% - 72px)}
-  #scroller .card{flex-basis:144px!important;min-width:144px}
-  #scroller .thumb{height:100px}
-  .related{min-height:292px}
+  .topbar{grid-template-columns:38px minmax(0,1fr) auto;padding:7px 7px;gap:6px}
+  .mobile-menu-btn{width:38px;height:38px}
+  .brand{font-size:18px}.brand-mark{width:23px;height:22px}
+  .admin-auth-btn{font-size:0;width:36px;height:34px;padding:0}
+  .admin-auth-btn::first-letter{font-size:14px}
+  .sidebar{left:5px;top:108px;width:min(72vw,238px)}
+  .nav button{font-size:11px;padding:9px 9px;min-height:36px}
+  .mascot-wrap{height:96px}.mascot{width:72px}.help{font-size:9px;padding:9px}
+  .player{height:205px}
+  .hero h1{font-size:27px}
+  #scroller{min-height:196px;padding:23px calc(50% - 58px) 9px;gap:7px;scroll-padding-inline:calc(50% - 58px)}
+  #scroller .card{flex-basis:116px!important;min-width:116px}
+  #scroller .thumb{height:78px}
+  .related{min-height:254px}
   .meta{grid-template-columns:1fr 1.1fr}
   .form-actions{flex-direction:column}
   .form-actions button{width:100%}
@@ -463,7 +473,7 @@ body:not(.is-admin) .admin-lock-note{display:block}
           <section class="content-editor-box">
             <h3>Informasi Materi</h3><div class="material-target-note">Materi ini akan ditambahkan ke video aktif: <strong id="materialTargetVideo">Manajemen Data</strong></div>
             <div class="editor-field"><label>Judul Materi <b>*</b></label><input id="materialPageTitle" type="text" placeholder="Masukkan judul materi"></div>
-            <div class="editor-field"><label>Kategori <b>*</b></label><select id="materialPageCategory"><option value="">Pilih kategori</option><option>ADMIN</option><option>GAMES</option><option>QRIS</option><option>CLOUDFRONT</option></select></div>
+            <div class="editor-field"><label>Kategori <b>*</b></label><select id="materialPageCategory"><option value="">Pilih kategori</option></select></div>
             <div class="editor-field"><label>Peringatan</label><textarea id="materialSummary" class="small-textarea" placeholder="Tuliskan pesan peringatan..."></textarea></div>
             <div class="editor-field"><label>Isi Materi <b>*</b></label><div class="text-toolbar"><button type="button"><b>B</b></button><button type="button"><i>I</i></button><button type="button"><u>U</u></button><button type="button">☷</button><button type="button">🔗</button></div><textarea id="materialContent" class="material-textarea" placeholder="Tulis materi lengkap di sini..."></textarea></div>
             <div class="editor-field"><label>File Pendukung</label><input id="materialAttachment" type="file" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt"></div>
@@ -482,7 +492,7 @@ body:not(.is-admin) .admin-lock-note{display:block}
             <h3>Informasi Video</h3>
             <div class="video-edit-note" id="videoEditNote">✏ Mode Edit — perubahan akan mengganti video yang dipilih.</div>
             <div class="editor-field"><label>Judul Video <b>*</b></label><input id="newVideoTitle" type="text" placeholder="Masukkan judul video tutorial"></div>
-            <div class="editor-field"><label>Kategori <b>*</b></label><select id="newVideoCategory"><option value="">Pilih kategori</option><option>ADMIN</option><option>GAMES</option><option>QRIS</option><option>CLOUDFRONT</option></select></div>
+            <div class="editor-field"><label>Kategori <b>*</b></label><select id="newVideoCategory"><option value="">Pilih kategori</option></select></div>
             <div class="editor-field"><label>Deskripsi Video</label><textarea id="newVideoDescription" class="small-textarea" maxlength="500" placeholder="Tuliskan deskripsi singkat tentang video..."></textarea></div>
             <div class="editor-two"><div class="editor-field"><label>Durasi Video</label><input id="newVideoDuration" type="text" placeholder="Contoh: 05:30"></div><div class="editor-field"><label>Bahasa</label><select id="newVideoLanguage"><option>Indonesia</option><option>English</option></select></div></div>
             <div class="editor-field"><label>Thumbnail Video</label><label class="upload-box" for="newVideoThumbnail"><strong>▧</strong><span>Klik untuk upload thumbnail</span><small>JPG atau PNG</small></label><input id="newVideoThumbnail" type="file" accept="image/png,image/jpeg" hidden></div>
@@ -573,6 +583,8 @@ const baseVideos=[
   ["Membuat Notifikasi","5:36","5 menit 36 detik","Notifikasi"],
   ["Pengaturan Profil","4:27","4 menit 27 detik","Profil"]
 ];
+const CATEGORIES=["ADMIN","GAMES","QRIS","CLOUDFRONT"];
+
 const DEFAULT_FAQ=[
   {question:"Bagaimana cara login?",answer:"Gunakan akun yang sudah diberikan lalu masuk melalui halaman login."},
   {question:"Lupa kata sandi?",answer:"Hubungi admin atau gunakan alur pemulihan akun yang tersedia."}
@@ -806,7 +818,26 @@ function videoRows(indices){if(!indices.length)return `<div class="page-empty">B
 function wireRows(root){/* click ditangani oleh event delegation global agar tetap aktif setelah render ulang */}
 function renderTutorial(){const root=$("tutorial");if(!root)return;root.innerHTML=`<div class="page-toolbar"><div><h2>Tutorial Video</h2><p class="lead" style="margin:4px 0 0">Daftar semua video tutorial dan materi.</p></div><button class="admin-add admin-only" id="openAddVideo" type="button">＋ Tambah Video</button></div>${videoRows(videos.map((_,i)=>i))}${materials.length?`<h2 style="margin-top:22px">Materi</h2><div class="doc-list">${materials.map((m,i)=>`<div class="doc-item"><h3>${esc(m.title)}</h3><p>${esc(m.videoTitle||m.video_title||"")} · ${esc(m.category||"")}</p><button class="ghost-btn open-material" type="button" data-i="${i}" style="margin-top:10px;width:auto;padding:8px 14px">Buka materi</button></div>`).join("")}</div>`:""}`;root.querySelector("#openAddVideo")?.addEventListener("click",()=>openTambah("video"));root.querySelectorAll(".open-material").forEach(b=>b.onclick=()=>openMaterial(+b.dataset.i))}
 function renderListPage(id){const root=$(id);if(!root)return;let arr=[],title="";if(id==="favorit"){arr=[...favorites];title="Favorit"}if(id==="playlist"){arr=[...playlist];title="Playlist Saya"}if(id==="riwayat"){arr=history.filter(i=>videos[i]);title="Riwayat"}root.innerHTML=`<h2>${title}</h2><p class="lead">${id==="riwayat"?"Tutorial yang terakhir dibuka.":"Koleksi video pilihanmu."}</p>${videoRows(arr)}`;wireRows(root)}
-function renderCategories(){const root=$("kategori");if(!root)return;const map={};videos.forEach((v,i)=>(map[v[3]||"Lainnya"]??=[]).push(i));root.innerHTML=`<h2>Kategori</h2><p class="lead">Cari tutorial berdasarkan kategori.</p><div class="category-grid">${Object.entries(map).map(([k,a])=>`<div class="category-card" data-cat="${esc(k)}"><b>${esc(k)}</b><span>${a.length} video</span></div>`).join("")}</div>`;root.querySelectorAll(".category-card").forEach(c=>c.onclick=()=>{const i=videos.findIndex(v=>v[3]===c.dataset.cat);if(i>=0){setActive(i,false);showPage("dashboard")}})}
+function populateCategorySelects(){
+  [$("materialPageCategory"),$("newVideoCategory")].forEach(sel=>{
+    if(!sel)return;
+    const current=sel.value;
+    sel.innerHTML='<option value="">Pilih kategori</option>'+CATEGORIES.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join("");
+    if(CATEGORIES.includes(current))sel.value=current;
+  });
+}
+function renderCategories(){
+  const root=$("kategori");if(!root)return;
+  root.innerHTML=`<h2>Kategori</h2><p class="lead">Cari tutorial berdasarkan kategori.</p><div class="category-grid">${CATEGORIES.map(k=>{const count=videos.filter(v=>v[3]===k).length;return `<div class="category-card" data-cat="${esc(k)}"><b>${esc(k)}</b><span>${count} video</span></div>`}).join("")}</div>`;
+  root.querySelectorAll(".category-card").forEach(c=>c.onclick=()=>{
+    const indices=videos.map((v,i)=>v[3]===c.dataset.cat?i:-1).filter(i=>i>=0);
+    if(indices.length){
+      const rootTutorial=$("tutorial");
+      if(rootTutorial){rootTutorial.innerHTML=`<div class="page-toolbar"><div><h2>${esc(c.dataset.cat)}</h2><p class="lead" style="margin:4px 0 0">${indices.length} video dalam kategori ini.</p></div></div>${videoRows(indices)}`;}
+      showPage("tutorial");
+    }else say("Belum ada video di kategori "+c.dataset.cat);
+  });
+}
 function renderMaterialsMini(){const list=$("activeMaterialList");if(!list)return;const arr=materials.filter(m=>(m.videoTitle||m.video_title)===videos[active][0]);list.innerHTML=arr.length?`<div class="material-list-mini">${arr.map((m)=>{const idx=materials.indexOf(m);return `<div class="material-chip" data-mi="${idx}"><strong>${esc(m.title)}</strong><small>${esc(m.category||"Materi")}</small></div>`}).join("")}</div>`:`<div class="content-box" style="padding:10px"><b>Belum ada materi tertulis</b><p style="margin:3px 0 0">Klik Tambahkan materi untuk membuatnya.</p></div>`;list.querySelectorAll(".material-chip").forEach(x=>x.onclick=()=>openMaterial(+x.dataset.mi))}
 function openMaterial(i){const m=materials[i];if(!m)return;$("materialDetailVideo").textContent=m.videoTitle||m.video_title||"Materi video";$("materialDetailCategory").textContent=m.category||"Materi";$("materialDetailTitle").textContent=m.title;$("materialDetailSummary").textContent=m.summary||"";$("materialDetailBody").textContent=m.content||"";showPage("materi-detail")}
 $("openMaterialDetail")?.addEventListener("click",()=>{
@@ -984,6 +1015,7 @@ window.addEventListener("resize",()=>{if(window.innerWidth>760)setMobileMenu(fal
 window.addEventListener("resize",updateCoverFlow);
 window.addEventListener("png-supabase-ready",initSupabase);
 renderCarousel();setupDrag();renderFAQ();renderSOP();renderCategories();setActive(active,false);syncMaterialPreview();syncVideoPreview();initSupabase();
+populateCategorySelects();
 })();
 
 </script>
