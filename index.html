@@ -418,6 +418,14 @@ body.is-owner .owner-only{display:block!important}
   .related.single-related #scroller{min-height:0!important;padding:13px 8px 7px!important}
 }
 
+
+/* ===== COMPACT DESKTOP HOME: hilangkan space kosong carousel + besarkan player ===== */
+@media(min-width:761px){
+  #dashboard .player{height:430px}
+  #dashboard .related{min-height:0;height:auto;padding-bottom:10px}
+  #dashboard #scroller{flex:0 0 auto;min-height:0;height:220px;padding-top:18px;padding-bottom:10px}
+}
+
 </style>
 </head>
 <body>
