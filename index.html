@@ -421,9 +421,12 @@ body.is-owner .owner-only{display:block!important}
 
 /* ===== COMPACT DESKTOP HOME: hilangkan space kosong carousel + besarkan player ===== */
 @media(min-width:761px){
+  .main{align-self:start}
   #dashboard .player{height:430px}
-  #dashboard .related{min-height:0;height:auto;padding-bottom:10px}
-  #dashboard #scroller{flex:0 0 auto;min-height:0;height:220px;padding-top:18px;padding-bottom:10px}
+  #dashboard .related{min-height:0!important;height:auto!important;padding-bottom:8px}
+  #dashboard #scroller{flex:0 0 auto!important;min-height:0!important;height:auto!important;padding-top:18px;padding-bottom:18px;overflow-x:auto!important;overflow-y:visible!important}
+  #dashboard .related{overflow:visible!important}
+  #dashboard #scroller .card{padding-bottom:4px}
 }
 
 </style>
@@ -527,11 +530,11 @@ body.is-owner .owner-only{display:block!important}
         <div><h2>Tambah Konten</h2><p class="lead">Tambahkan materi tulisan atau video tutorial baru.</p></div>
       </div>
       <div class="content-tabs">
-        <button class="content-tab active" data-content-tab="materi" type="button">2. Materi</button>
-        <button class="content-tab" data-content-tab="video" type="button">1. Video</button>
+        <button class="content-tab active" data-content-tab="video" type="button">1. Video</button>
+        <button class="content-tab" data-content-tab="materi" type="button">2. Materi</button>
       </div>
 
-      <div id="tab-materi" class="content-tab-page active">
+      <div id="tab-materi" class="content-tab-page">
         <div class="content-editor-layout">
           <section class="content-editor-box">
             <h3>Informasi Materi</h3><div class="video-edit-note" id="materialEditNote">✏ Mode Edit Materi — perubahan akan mengganti sub materi yang dipilih.</div><div class="editor-field"><label>Video Induk <b>*</b></label><select id="materialParentVideo"><option value="">Pilih video untuk sub materi</option></select></div>
@@ -549,7 +552,7 @@ body.is-owner .owner-only{display:block!important}
         <div class="content-save-bar"><button class="content-cancel" id="cancelMaterial" type="button">Batal</button><button class="content-save" id="saveMaterial" type="button">▣ &nbsp; Simpan Materi</button></div>
       </div>
 
-      <div id="tab-video" class="content-tab-page">
+      <div id="tab-video" class="content-tab-page active">
         <div class="video-editor-layout">
           <section class="content-editor-box">
             <h3>Informasi Video</h3>
