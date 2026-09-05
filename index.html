@@ -438,7 +438,9 @@ body.is-owner .owner-only{display:block!important}
   }
   #dashboard #scroller{
     flex:0 0 auto!important;min-height:285px!important;height:285px!important;
-    padding:42px 28px 28px!important;align-items:flex-start!important;
+    /* 178px card => 89px half-card. Side padding membuat card pertama/terakhir bisa tepat di tengah. */
+    padding:42px max(28px,calc(50% - 89px)) 28px!important;
+    align-items:flex-start!important;
     overflow-x:auto!important;overflow-y:hidden!important
   }
   #dashboard #scroller .card{padding-bottom:8px}
@@ -838,7 +840,14 @@ function renderCarousel(){
       }
       card.addEventListener("click",e=>{
         if(e.target.closest("button"))return;
-        if(!carouselHasMoved){setActive(i,false,true);centerRealCard(i,true)}
+        if(!carouselHasMoved){
+          setActive(i,false,true);
+          if(window.innerWidth>760){
+            rebalanceCarouselAround(i);
+          }else{
+            centerRealCard(i,true);
+          }
+        }
       });
       scroller.appendChild(card);
     });
