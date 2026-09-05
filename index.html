@@ -435,6 +435,33 @@ body.is-owner .owner-only{display:block!important}
   #dashboard #scroller .card{padding-bottom:8px}
 }
 
+
+
+/* ===== FINAL MOBILE CAROUSEL FIX ===== */
+@media(max-width:760px){
+  #dashboard .related{
+    min-height:0!important;height:auto!important;overflow:visible!important;
+    padding:10px 8px 10px!important;
+  }
+  #dashboard #scroller{
+    flex:0 0 auto!important;min-height:232px!important;height:auto!important;
+    padding:28px 22px 24px!important;gap:12px!important;
+    align-items:flex-start!important;overflow-x:auto!important;overflow-y:hidden!important;
+    scroll-padding-inline:22px!important;
+  }
+  #dashboard #scroller .card{
+    flex:0 0 132px!important;min-width:132px!important;padding-bottom:10px!important;
+  }
+  #dashboard #scroller .thumb{height:90px!important}
+  #dashboard #scroller .card-actions,
+  #dashboard #scroller .card-admin-actions{flex-wrap:wrap!important}
+}
+@media(max-width:420px){
+  #dashboard #scroller{min-height:224px!important;padding:26px 18px 22px!important;gap:10px!important;scroll-padding-inline:18px!important}
+  #dashboard #scroller .card{flex-basis:128px!important;min-width:128px!important}
+  #dashboard #scroller .thumb{height:86px!important}
+}
+
 </style>
 </head>
 <body>
@@ -694,6 +721,7 @@ function showPage(id){
   const info=document.querySelector(".info"); if(info)info.style.display=id==="dashboard"?"block":"none";
   const layout=document.querySelector(".layout"); if(layout)layout.classList.toggle("content-mode",id!=="dashboard");
   if(id==="tutorial")renderTutorial(); if(id==="faq")renderFAQ(); if(id==="sop")renderSOP(); if(id==="kategori")renderCategories(); if(id==="favorit")renderListPage("favorit"); if(id==="playlist")renderListPage("playlist"); if(id==="riwayat")renderListPage("riwayat"); if(id==="pengguna")renderUserManagement();
+  if(id==="tambah-konten")selectTab("video");
   if(id==="dashboard")requestAnimationFrame(()=>{centerCard(active,false);updateCoverFlow()});
 }
 window.showPage=showPage;
@@ -838,8 +866,8 @@ function updateCoverFlow(){
       const ad=Math.abs(d);
       if(ad<best){best=ad;closestCard=card}
       const compactDesktop=window.innerWidth>760;
-      const scale=compactDesktop?Math.max(.84,1.14-ad*.12):Math.max(.80,1.24-ad*.15);
-      const lift=compactDesktop?Math.max(0,24-ad*10):Math.max(0,42-ad*16);
+      const scale=compactDesktop?Math.max(.84,1.14-ad*.12):Math.max(.90,1.08-ad*.08);
+      const lift=compactDesktop?Math.max(0,24-ad*10):Math.max(0,14-ad*7);
       const opacity=Math.max(.52,1-ad*.14);
       const rotate=Math.max(-10,Math.min(10,d*-4));
       card.style.transform=`translateY(${-lift}px) scale(${scale}) rotateY(${rotate}deg)`;
