@@ -519,8 +519,8 @@ body.is-owner .owner-only{display:block!important}
         <div><h2>Tambah Konten</h2><p class="lead">Tambahkan materi tulisan atau video tutorial baru.</p></div>
       </div>
       <div class="content-tabs">
-        <button class="content-tab active" data-content-tab="materi" type="button">Tambah Materi</button>
-        <button class="content-tab" data-content-tab="video" type="button">Tambah Video</button>
+        <button class="content-tab active" data-content-tab="materi" type="button">2. Materi</button>
+        <button class="content-tab" data-content-tab="video" type="button">1. Video</button>
       </div>
 
       <div id="tab-materi" class="content-tab-page active">
@@ -549,7 +549,7 @@ body.is-owner .owner-only{display:block!important}
             <div class="editor-field"><label>Judul Video <b>*</b></label><input id="newVideoTitle" type="text" placeholder="Masukkan judul video tutorial"></div>
             <div class="editor-field"><label>Kategori <b>*</b></label><select id="newVideoCategory"><option value="">Pilih kategori</option></select></div>
             <div class="editor-field"><label>Deskripsi Video</label><textarea id="newVideoDescription" class="small-textarea" maxlength="500" placeholder="Tuliskan deskripsi singkat tentang video..."></textarea></div>
-            <div class="editor-two"><div class="editor-field"><label>Durasi Video</label><input id="newVideoDuration" type="text" placeholder="Contoh: 05:30"></div><div class="editor-field"><label>Bahasa</label><select id="newVideoLanguage"><option>Indonesia</option><option>English</option></select></div></div>
+            <div class="editor-two"><div class="editor-field"><label>Durasi Video <small style="color:#7f8892">(otomatis)</small></label><input id="newVideoDuration" type="text" placeholder="Otomatis dari video" readonly></div><div class="editor-field"><label>Bahasa</label><select id="newVideoLanguage"><option>Indonesia</option><option>English</option></select></div></div>
             <div class="editor-field"><label>Thumbnail Video</label><label class="upload-box" for="newVideoThumbnail"><strong>▧</strong><span>Klik untuk upload thumbnail</span><small>JPG atau PNG</small></label><input id="newVideoThumbnail" type="file" accept="image/png,image/jpeg" hidden></div>
             <div class="editor-field"><label>Atau URL Thumbnail</label><input id="newVideoThumbnailUrl" type="url" placeholder="https://.../thumbnail.jpg"></div>
             <div class="editor-field"><label>Upload Video</label><label class="upload-box" for="newVideoFile"><strong>⇧</strong><span>Klik untuk memilih video</span><small>MP4, MOV, AVI atau MKV</small></label><input id="newVideoFile" type="file" accept="video/*" hidden></div>
@@ -935,10 +935,10 @@ $("playerFavBtn")?.addEventListener("click",()=>toggleFav(active));$("playerPlay
 function renderListPageIfOpen(){const p=document.querySelector(".page-view.active");if(p&&["favorit","playlist","riwayat"].includes(p.id))renderListPage(p.id)}
 function videoRows(indices,includeMaterials=false){
   if(!indices.length)return `<div class="page-empty">Belum ada data.</div>`;
-  return `<div class="doc-list">${indices.map(i=>{const v=videos[i];if(!v)return "";const subs=materials.filter(m=>(m.videoTitle||m.video_title)===v[0]);return `<div class="doc-item video-row" data-video-index="${i}"><h3>${esc(v[0])}</h3><p>${esc(v[3])} · ${esc(v[2]||v[1])}</p><div class="video-row-actions"><button class="ghost-btn open-video" type="button" data-i="${i}">Buka</button><button class="ghost-btn fav-video" type="button" data-i="${i}">${favorites.has(i)?"★ Favorit":"☆ Favorit"}</button><button class="ghost-btn list-video" type="button" data-i="${i}">${playlist.has(i)?"✓ Playlist":"＋ Playlist"}</button><button class="ghost-btn edit-video admin-only" type="button" data-i="${i}">✏ Edit</button><button class="ghost-btn delete-video admin-only" type="button" data-i="${i}">🗑 Hapus</button></div>${includeMaterials?`<div class="video-materials"><div class="video-materials-title">Sub Materi (${subs.length})</div>${subs.length?subs.map(m=>{const mi=materials.indexOf(m);return `<div class="video-submaterial"><div><strong>${esc(m.title)}</strong><small>${esc(m.category||"Materi")}</small></div><div class="video-row-actions" style="margin-top:0"><button class="ghost-btn open-material" type="button" data-i="${mi}">Buka</button><button class="ghost-btn edit-material admin-only" type="button" data-i="${mi}">✏ Edit</button></div></div>`}).join(""):`<small style="color:#7f8892">Belum ada sub materi.</small>`}</div>`:""}</div>`}).join("")}</div>`
+  return `<div class="doc-list">${indices.map(i=>{const v=videos[i];if(!v)return "";const subs=materials.filter(m=>(m.videoTitle||m.video_title)===v[0]);return `<div class="doc-item video-row" data-video-index="${i}"><h3>${esc(v[0])}</h3><p>${esc(v[3])} · ${esc(v[2]||v[1])}</p><div class="video-row-actions"><button class="ghost-btn open-video" type="button" data-i="${i}">Buka</button><button class="ghost-btn fav-video" type="button" data-i="${i}">${favorites.has(i)?"★ Favorit":"☆ Favorit"}</button><button class="ghost-btn list-video" type="button" data-i="${i}">${playlist.has(i)?"✓ Playlist":"＋ Playlist"}</button><button class="ghost-btn edit-video admin-only" type="button" data-i="${i}">✏ Edit</button><button class="ghost-btn delete-video admin-only" type="button" data-i="${i}">🗑 Hapus</button></div>${includeMaterials?`<div class="video-materials"><div class="video-materials-title">Sub Materi (${subs.length})</div>${subs.length?subs.map(m=>{const mi=materials.indexOf(m);return `<div class="video-submaterial"><div><strong>${esc(m.title)}</strong><small>${esc(m.category||"Materi")}</small></div><div class="video-row-actions" style="margin-top:0"><button class="ghost-btn open-material" type="button" data-i="${mi}">Buka</button><button class="ghost-btn edit-material admin-only" type="button" data-i="${mi}">✏ Edit</button><button class="ghost-btn delete-material admin-only" type="button" data-i="${mi}">🗑 Hapus</button></div></div>`}).join(""):`<small style="color:#7f8892">Belum ada sub materi.</small>`}</div>`:""}</div>`}).join("")}</div>`
 }
 function wireRows(root){/* click ditangani oleh event delegation global agar tetap aktif setelah render ulang */}
-function renderTutorial(){const root=$("tutorial");if(!root)return;root.innerHTML=`<div class="page-toolbar"><div><h2>Tutorial Video</h2><p class="lead" style="margin:4px 0 0">Daftar video tutorial beserta sub materi masing-masing.</p></div><button class="admin-add admin-only" id="openAddVideo" type="button">＋ Tambah Video</button></div>${videoRows(videos.map((_,i)=>i),true)}`;root.querySelector("#openAddVideo")?.addEventListener("click",()=>openTambah("video"));root.querySelectorAll(".open-material").forEach(b=>b.onclick=()=>openMaterial(+b.dataset.i))}
+function renderTutorial(){const root=$("tutorial");if(!root)return;root.innerHTML=`<div class="page-toolbar"><div><h2>Tutorial Video</h2><p class="lead" style="margin:4px 0 0">Daftar video tutorial beserta sub materi masing-masing.</p></div><button class="admin-add admin-only" id="openAddVideo" type="button">＋ Tambah Video + Materi</button></div>${videoRows(videos.map((_,i)=>i),true)}`;root.querySelector("#openAddVideo")?.addEventListener("click",()=>openTambah("video"));root.querySelectorAll(".open-material").forEach(b=>b.onclick=()=>openMaterial(+b.dataset.i))}
 function renderListPage(id){const root=$(id);if(!root)return;let arr=[],title="";if(id==="favorit"){arr=[...favorites];title="Favorit"}if(id==="playlist"){arr=[...playlist];title="Playlist Saya"}if(id==="riwayat"){arr=history.filter(i=>videos[i]);title="Riwayat"}root.innerHTML=`<h2>${title}</h2><p class="lead">${id==="riwayat"?"Tutorial yang terakhir dibuka.":"Koleksi video pilihanmu."}</p>${videoRows(arr)}`;wireRows(root)}
 function populateCategorySelects(){
   [$("materialPageCategory"),$("newVideoCategory")].forEach(sel=>{
@@ -984,6 +984,22 @@ async function deleteFaq(i){
   if(sb&&x.id){try{const {error}=await sb.from("faq").delete().eq("id",x.id);if(error)throw error;await loadRemote();say("FAQ dihapus");return}catch(e){console.error(e);say("Gagal menghapus FAQ");return}}
   faqs.splice(i,1);persist();renderFAQ();say("FAQ dihapus");
 }
+async function deleteMaterial(i){
+  if(!isAdmin)return openAuth();
+  const m=materials[i];if(!m)return;
+  if(!confirm(`Hapus materi “${m.title||"ini"}”?`))return;
+  if(sb&&m.id){
+    try{
+      const {error}=await sb.from("materials").delete().eq("id",m.id);
+      if(error)throw error;
+      await loadRemote();
+    }catch(e){console.error(e);say("Gagal menghapus materi");return}
+  }else{
+    materials.splice(i,1);persist();
+  }
+  renderTutorial();renderMaterialsMini();
+  say("Materi berhasil dihapus");
+}
 async function deleteSop(i){
   if(!isAdmin)return openAuth();
   const x=sops[i];if(!x)return;
@@ -1002,6 +1018,7 @@ function populateMaterialParentSelect(selected=""){
 }
 function resetMaterialForm(){
   editingMaterialIndex=null;
+  if($("materialParentVideo"))$("materialParentVideo").disabled=false;
   populateMaterialParentSelect("");
   ["materialPageTitle","materialSummary","materialContent"].forEach(id=>{if($(id))$(id).value=""});
   if($("materialPageCategory"))$("materialPageCategory").value="";
@@ -1035,7 +1052,9 @@ function syncMaterialPreview(){if($("previewMaterialTitle"))$("previewMaterialTi
 ["materialPageTitle","materialPageCategory","materialSummary","materialContent"].forEach(id=>$(id)?.addEventListener("input",syncMaterialPreview));
 $("saveMaterial")?.addEventListener("click",async()=>{
   if(!isAdmin)return openAuth();
-  const parentIndex=Number($("materialParentVideo")?.value);
+  const parentRaw=$("materialParentVideo")?.value ?? "";
+  if(parentRaw==="")return say("Pilih video induk untuk sub materi");
+  const parentIndex=Number(parentRaw);
   if(!Number.isInteger(parentIndex)||!videos[parentIndex])return say("Pilih video induk untuk sub materi");
   const targetTitle=videos[parentIndex][0];
   const obj={videoTitle:targetTitle,title:$("materialPageTitle").value.trim(),category:$("materialPageCategory").value,summary:$("materialSummary").value.trim(),content:$("materialContent").value.trim()};
@@ -1063,10 +1082,44 @@ $("saveMaterial")?.addEventListener("click",async()=>{
   if(savedRemote===false)return;
   if(savedRemote===null){materials.push({...obj,attachment_url:attachment});persist()}
   active=parentIndex;
+  pendingTutorialVideoTitle="";
+  if($("materialParentVideo"))$("materialParentVideo").disabled=false;
   resetMaterialForm();
   showPage("tutorial");renderTutorial();
-  say("Sub materi baru berhasil ditambahkan");
+  say("Video dan materi berhasil disimpan dan sudah terhubung");
 });
+function formatVideoDuration(seconds){
+  seconds=Math.max(0,Math.round(Number(seconds)||0));
+  const h=Math.floor(seconds/3600),m=Math.floor((seconds%3600)/60),sec=seconds%60;
+  return h?`${h}:${String(m).padStart(2,"0")}:${String(sec).padStart(2,"0")}`:`${m}:${String(sec).padStart(2,"0")}`;
+}
+function setAutoVideoDuration(seconds){
+  const text=formatVideoDuration(seconds);if(!seconds||!text)return;
+  if($("newVideoDuration"))$("newVideoDuration").value=text;syncVideoPreview();
+}
+function durationFromMediaUrl(url){
+  return new Promise(resolve=>{const v=document.createElement("video");v.preload="metadata";v.muted=true;v.playsInline=true;
+    const done=x=>{try{v.removeAttribute("src");v.load()}catch(_){}resolve(x||0)};
+    v.onloadedmetadata=()=>done(Number.isFinite(v.duration)?v.duration:0);v.onerror=()=>done(0);v.src=url;
+  });
+}
+let ytApiPromise=null;
+function ensureYouTubeApi(){
+  if(window.YT?.Player)return Promise.resolve();
+  if(ytApiPromise)return ytApiPromise;
+  ytApiPromise=new Promise(resolve=>{const prev=window.onYouTubeIframeAPIReady;window.onYouTubeIframeAPIReady=()=>{try{prev?.()}catch(_){}resolve()};const sc=document.createElement("script");sc.src="https://www.youtube.com/iframe_api";document.head.appendChild(sc);setTimeout(resolve,7000)});return ytApiPromise;
+}
+async function durationFromVideoUrl(url){
+  const src=parseVideoSource(url);if(!src)return 0;
+  if(src.type==="youtube"){
+    const id=(src.src.match(/\/embed\/([^?]+)/)||[])[1];if(!id)return 0;
+    await ensureYouTubeApi();if(!window.YT?.Player)return 0;
+    return await new Promise(resolve=>{const holder=document.createElement("div");holder.style.cssText="position:fixed;left:-9999px;top:-9999px;width:1px;height:1px";document.body.appendChild(holder);let p,t=setTimeout(()=>{try{p?.destroy()}catch(_){}holder.remove();resolve(0)},8000);try{p=new YT.Player(holder,{videoId:decodeURIComponent(id),events:{onReady:e=>{clearTimeout(t);const d=e.target.getDuration()||0;try{e.target.destroy()}catch(_){}holder.remove();resolve(d)},onError:()=>{clearTimeout(t);try{p?.destroy()}catch(_){}holder.remove();resolve(0)}}})}catch(_){clearTimeout(t);holder.remove();resolve(0)}});
+  }
+  if(src.type==="file")return await durationFromMediaUrl(src.src);
+  return 0;
+}
+let pendingTutorialVideoTitle="";
 function syncVideoPreview(){if($("previewVideoTitle"))$("previewVideoTitle").textContent=$("newVideoTitle")?.value||"Judul Video";if($("previewVideoCategory"))$("previewVideoCategory").textContent=$("newVideoCategory")?.value||"Kategori";if($("previewVideoDuration"))$("previewVideoDuration").textContent=$("newVideoDuration")?.value||"0:00"}
 function syncVideoLinkPreview(){
   const videoUrl=$("newVideoUrl")?.value||"";
@@ -1087,13 +1140,14 @@ function syncVideoLinkPreview(){
   }
 }
 ["newVideoTitle","newVideoCategory","newVideoDuration"].forEach(id=>$(id)?.addEventListener("input",syncVideoPreview));
-$("newVideoUrl")?.addEventListener("input",syncVideoLinkPreview);
+let durationUrlTimer=null;
+$("newVideoUrl")?.addEventListener("input",()=>{syncVideoLinkPreview();clearTimeout(durationUrlTimer);durationUrlTimer=setTimeout(async()=>{const u=$("newVideoUrl")?.value.trim();if(!u)return;const d=await durationFromVideoUrl(u);if(d)setAutoVideoDuration(d)},650)});
 $("newVideoThumbnail")?.addEventListener("change",e=>{const f=e.target.files?.[0];if(!f)return;const u=URL.createObjectURL(f);const box=$("videoThumbPreview");if(box){box.style.backgroundImage=`linear-gradient(#0005,#0005),url("${u}")`;box.querySelector("small").textContent=f.name}});
 $("newVideoThumbnailUrl")?.addEventListener("input",e=>{const u=e.target.value.trim();const box=$("videoThumbPreview");if(box){box.style.backgroundImage=u?`linear-gradient(#0005,#0005),url("${u}")`:"";const sm=box.querySelector("small");if(sm)sm.textContent=u?"Preview dari URL":"Thumbnail video akan muncul di sini"}});
-$("newVideoFile")?.addEventListener("change",e=>{const f=e.target.files?.[0];if(f)say("Video dipilih: "+f.name)});
+$("newVideoFile")?.addEventListener("change",e=>{const f=e.target.files?.[0];if(!f)return;say("Video dipilih: "+f.name);const u=URL.createObjectURL(f),v=document.createElement("video");v.preload="metadata";v.onloadedmetadata=()=>{setAutoVideoDuration(v.duration);URL.revokeObjectURL(u)};v.onerror=()=>URL.revokeObjectURL(u);v.src=u});
 $("saveVideo")?.addEventListener("click",async()=>{
   if(!isAdmin)return openAuth();
-  const title=$("newVideoTitle").value.trim(),cat=$("newVideoCategory").value,dur=$("newVideoDuration").value.trim()||"5:00",desc=$("newVideoDescription").value.trim();
+  const title=$("newVideoTitle").value.trim(),cat=$("newVideoCategory").value,dur=$("newVideoDuration").value.trim()||"0:00",desc=$("newVideoDescription").value.trim();
   if(!title||!cat)return say("Judul dan kategori video wajib diisi");
   const old=editingVideoIndex!==null?videos[editingVideoIndex]:null;
   const oldTitle=old?.[0]||"";
@@ -1118,7 +1172,14 @@ $("saveVideo")?.addEventListener("click",async()=>{
     active=Math.max(0,Math.min(editingVideoIndex,videos.length-1));resetVideoForm();setActive(active,false,true);showPage("dashboard");say("Perubahan video disimpan");return;
   }
   if(sb&&isAdmin){const {error}=await sb.from("videos").insert(remote);if(error){console.error(error);say("Gagal menyimpan video");return}await loadRemote();active=videos.length-1}else{const a=[title,dur,dur,cat];a._description=desc;a._thumb=thumbUrl;a._videoUrl=videoUrl;a._language=remote.language;a._tags=remote.tags;videos.push(a);persist();active=videos.length-1;renderCarousel()}
-  resetVideoForm();setActive(active,false,true);showPage("dashboard");say("Video disimpan");
+  pendingTutorialVideoTitle=title;
+  const exactIndex=videos.findIndex(v=>v[0]===title);
+  if(exactIndex>=0)active=exactIndex;
+  resetVideoForm();resetMaterialForm();showPage("tambah-konten");selectTab("materi");
+  populateMaterialParentSelect(exactIndex>=0?exactIndex:active);
+  if($("materialParentVideo")){ $("materialParentVideo").disabled=true; }
+  if($("saveMaterial"))$("saveMaterial").innerHTML="▣ &nbsp; Simpan Video + Materi";
+  say("Video sudah siap. Sekarang isi materinya lalu simpan.");
 });
 async function deleteVideo(i){
   if(!isAdmin)return openAuth("Login admin dulu untuk menghapus video.");
@@ -1237,6 +1298,8 @@ document.addEventListener("click",e=>{
   if(material){e.preventDefault();e.stopPropagation();openMaterial(+material.dataset.i);return;}
   const editMaterial=e.target.closest(".edit-material");
   if(editMaterial){e.preventDefault();e.stopPropagation();openMaterialEditor(+editMaterial.dataset.i);return;}
+  const deleteMaterialBtn=e.target.closest(".delete-material");
+  if(deleteMaterialBtn){e.preventDefault();e.stopPropagation();deleteMaterial(+deleteMaterialBtn.dataset.i);return;}
 
   const deleteFaqBtn=e.target.closest(".delete-faq");
   if(deleteFaqBtn){e.preventDefault();e.stopPropagation();deleteFaq(+deleteFaqBtn.dataset.i);return;}
