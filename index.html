@@ -869,7 +869,7 @@ function renderCarousel(){
     });
   }
   refreshFavButtons();
-  requestAnimationFrame(()=>{rebalanceCarouselAround(active);updateCoverFlow()});
+  requestAnimationFrame(()=>{centerRealCard(active,false);updateCoverFlow()});
 }
 
 function cardStep(){
@@ -1020,10 +1020,7 @@ function setupDrag(){
       scroller.scrollLeft+=delta;
       e.preventDefault();
       updateCoverFlow();
-      clearTimeout(scroller._loopTimer);
-      scroller._loopTimer=setTimeout(()=>{
-        rebalanceCarouselAround(active);
-      },120);
+
     }
   },{passive:false});
   scroller.addEventListener("pointerdown",e=>{
@@ -1062,7 +1059,7 @@ function setupDrag(){
   },{passive:false});
   const finishTouch=()=>{
     if(!touchDrag)return;touchDrag=false;carouselTouchDragging=false;
-    if(touchMoved){updateCoverFlow();rebalanceCarouselAround(active);history=[active,...history.filter(x=>x!==active)].slice(0,20);persist();}
+    if(touchMoved){updateCoverFlow();history=[active,...history.filter(x=>x!==active)].slice(0,20);persist();}
     setTimeout(()=>{touchMoved=false;carouselHasMoved=false;dragMoved=false},100);
   };
   scroller.addEventListener("touchend",finishTouch,{passive:true});
@@ -1076,7 +1073,7 @@ function setupDrag(){
     scroller.style.cursor="grab";
     [...scroller.children].forEach(c=>c.style.cursor="grab");
     updateCoverFlow();
-    if(carouselHasMoved){rebalanceCarouselAround(active);
+    if(carouselHasMoved){
       history=[active,...history.filter(x=>x!==active)].slice(0,20);persist();
       setTimeout(()=>{carouselHasMoved=false;dragMoved=false},80);
     }
