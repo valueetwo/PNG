@@ -495,13 +495,6 @@ body.is-owner .owner-only{display:block!important}
   line-height:1.7;
 }
 
-
-/* PC infinite Cover Flow: scrollbar disembunyikan karena posisi card diputar secara sirkular */
-@media(min-width:761px){
-  #dashboard #scroller{scrollbar-width:none!important}
-  #dashboard #scroller::-webkit-scrollbar{display:none!important}
-}
-
 </style>
 </head>
 <body>
@@ -814,17 +807,6 @@ function setActive(i,center=true,recordHistory=true){
   if(recordHistory) history=[active,...history.filter(x=>x!==active)].slice(0,20); persist(); updatePlayer(); renderMaterialsMini(); refreshFavButtons();
   if(center)centerCard(active,true);
 }
-function openSelectedVideo(i){
-  i=Number(i);
-  if(!Number.isInteger(i)||!videos[i])return;
-  carouselAutoSelectLockUntil=Date.now()+220;
-  setActive(i,false,true);
-  showPage("dashboard");
-  requestAnimationFrame(()=>{
-    centerRealCard(i,false);
-    updateCoverFlow();
-  });
-}
 function esc(x){return String(x??"").replace(/[&<>\"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]))}
 
 const loopCopies=3;
@@ -832,7 +814,6 @@ let realCount=videos.length;
 let carouselCopies=1;
 let carouselMiddleCopy=0;
 let carouselRaf=0;
-let carouselAutoSelectLockUntil=0;
 
 function renderCarousel(){
   const scroller=$("scroller");
@@ -857,19 +838,13 @@ function renderCarousel(){
       }
       card.addEventListener("click",e=>{
         if(e.target.closest("button"))return;
-        if(!carouselHasMoved){
-          const chosen=+card.dataset.real;
-          carouselAutoSelectLockUntil=Date.now()+180;
-          setActive(chosen,false,true);
-          centerRealCard(chosen,true);
-          updateCoverFlow();
-        }
+        if(!carouselHasMoved){setActive(i,false,true);centerRealCard(i,true)}
       });
       scroller.appendChild(card);
     });
   }
   refreshFavButtons();
-  requestAnimationFrame(()=>{centerRealCard(active,false);updateCoverFlow()});
+  requestAnimationFrame(()=>{rebalanceCarouselAround(active);updateCoverFlow()});
 }
 
 function cardStep(){
@@ -937,36 +912,12 @@ function rotateCarouselEdge(dir){
     scroller.insertBefore(last,cards[0]);
     scroller.scrollLeft+=step;
     return step;
+  }else{
+    const first=cards[0];
+    scroller.appendChild(first);
+    scroller.scrollLeft-=step;
+    return -step;
   }
-  const first=cards[0];
-  scroller.appendChild(first);
-  scroller.scrollLeft-=step;
-  return -step;
-}
-function keepCarouselInsideLoop(target,startKey){
-  const scroller=$("scroller");
-  if(!scroller||realCount<3)return {target,adjust:0};
-  const step=cardStep();
-  if(!step)return {target,adjust:0};
-  let adjust=0;
-  let max=Math.max(0,scroller.scrollWidth-scroller.clientWidth);
-  const safe=Math.min(step*2.2,Math.max(step,max*.28));
-
-  let guard=0;
-  while(target<safe && guard++<4){
-    const a=rotateCarouselEdge(-1);
-    if(!a)break;
-    adjust+=a;target+=a;
-    max=Math.max(0,scroller.scrollWidth-scroller.clientWidth);
-  }
-  guard=0;
-  while(target>max-safe && guard++<4){
-    const a=rotateCarouselEdge(1);
-    if(!a)break;
-    adjust+=a;target+=a;
-    max=Math.max(0,scroller.scrollWidth-scroller.clientWidth);
-  }
-  return {target,adjust};
 }
 function updateCoverFlow(){
   const scroller=$("scroller");
@@ -996,7 +947,7 @@ function updateCoverFlow(){
       card.style.filter=ad<.55?"brightness(1.14)":"brightness(.84)";
       card.style.zIndex=String(Math.max(1,30-Math.round(ad*5)));
     });
-    if(closestCard&&Date.now()>=carouselAutoSelectLockUntil){
+    if(closestCard){
       const real=+closestCard.dataset.real;
       if(real!==active)setActive(real,false,false);
     }
@@ -1012,11 +963,16 @@ function setupDrag(){
   scroller.addEventListener("scroll",()=>{
     updateCoverFlow();
     const step=cardStep(),oneSet=step*realCount;
-    if(oneSet&&(scroller.scrollLeft<oneSet*.18||scroller.scrollLeft>oneSet*1.82))normalizeLoop();
+    if(!carouselDrag&&!carouselTouchDragging&&oneSet&&(scroller.scrollLeft<oneSet*.18||scroller.scrollLeft>oneSet*1.82))normalizeLoop();
   },{passive:true});
   scroller.addEventListener("wheel",e=>{
-    if(Math.abs(e.deltaY)>Math.abs(e.deltaX)){
-      scroller.scrollLeft+=e.deltaY*2.0;
+    const delta=Math.abs(e.deltaY)>Math.abs(e.deltaX)?e.deltaY*2.0:e.deltaX;
+    if(delta){
+      const edge=12;
+      const max=Math.max(0,scroller.scrollWidth-scroller.clientWidth);
+      if(delta<0&&scroller.scrollLeft<=edge)rotateCarouselEdge(-1);
+      if(delta>0&&scroller.scrollLeft>=max-edge)rotateCarouselEdge(1);
+      scroller.scrollLeft+=delta;
       e.preventDefault();
       updateCoverFlow();
     }
@@ -1034,7 +990,17 @@ function setupDrag(){
     if(!carouselDrag||(carouselPointer!==null&&e.pointerId!==carouselPointer))return;
     const dx=e.clientX-carouselStartX;
     if(Math.abs(dx)>2){carouselHasMoved=true;dragMoved=true}
-    scroller.scrollLeft=carouselStartScroll-dx*1.7;
+    let target=carouselStartScroll-dx*1.7;
+    const edge=12;
+    const max=Math.max(0,scroller.scrollWidth-scroller.clientWidth);
+    if(target<=edge){
+      const adjust=rotateCarouselEdge(-1);
+      if(adjust){carouselStartScroll+=adjust;target+=adjust}
+    }else if(target>=max-edge){
+      const adjust=rotateCarouselEdge(1);
+      if(adjust){carouselStartScroll+=adjust;target+=adjust}
+    }
+    scroller.scrollLeft=target;
     updateCoverFlow();
     if(carouselHasMoved&&e.cancelable)e.preventDefault();
   });
@@ -1043,7 +1009,7 @@ function setupDrag(){
   let touchDrag=false,touchStartX=0,touchStartY=0,touchStartScroll=0,touchMoved=false;
   scroller.addEventListener("touchstart",e=>{
     if(e.touches.length!==1||e.target.closest("button,a,input,select,textarea"))return;
-    const t=e.touches[0];touchDrag=true;touchMoved=false;
+    const t=e.touches[0];touchDrag=true;carouselTouchDragging=true;touchMoved=false;
     touchStartX=t.clientX;touchStartY=t.clientY;touchStartScroll=scroller.scrollLeft;
   },{passive:true});
   scroller.addEventListener("touchmove",e=>{
@@ -1051,13 +1017,23 @@ function setupDrag(){
     const t=e.touches[0],dx=t.clientX-touchStartX,dy=t.clientY-touchStartY;
     if(Math.abs(dx)<=Math.abs(dy))return;
     if(Math.abs(dx)>3){touchMoved=true;carouselHasMoved=true;dragMoved=true}
-    scroller.scrollLeft=touchStartScroll-dx;
+    let target=touchStartScroll-dx;
+    const edge=10;
+    const max=Math.max(0,scroller.scrollWidth-scroller.clientWidth);
+    if(target<=edge){
+      const adjust=rotateCarouselEdge(-1);
+      if(adjust){touchStartScroll+=adjust;target+=adjust}
+    }else if(target>=max-edge){
+      const adjust=rotateCarouselEdge(1);
+      if(adjust){touchStartScroll+=adjust;target+=adjust}
+    }
+    scroller.scrollLeft=target;
     updateCoverFlow();
     if(e.cancelable)e.preventDefault();
   },{passive:false});
   const finishTouch=()=>{
-    if(!touchDrag)return;touchDrag=false;
-    if(touchMoved){normalizeLoop();updateCoverFlow();history=[active,...history.filter(x=>x!==active)].slice(0,20);persist();}
+    if(!touchDrag)return;touchDrag=false;carouselTouchDragging=false;
+    if(touchMoved){updateCoverFlow();rebalanceCarouselAround(active);history=[active,...history.filter(x=>x!==active)].slice(0,20);persist();}
     setTimeout(()=>{touchMoved=false;carouselHasMoved=false;dragMoved=false},100);
   };
   scroller.addEventListener("touchend",finishTouch,{passive:true});
@@ -1070,8 +1046,8 @@ function setupDrag(){
     carouselPointer=null;
     scroller.style.cursor="grab";
     [...scroller.children].forEach(c=>c.style.cursor="grab");
-    normalizeLoop();updateCoverFlow();
-    if(carouselHasMoved){
+    updateCoverFlow();
+    if(carouselHasMoved){rebalanceCarouselAround(active);
       history=[active,...history.filter(x=>x!==active)].slice(0,20);persist();
       setTimeout(()=>{carouselHasMoved=false;dragMoved=false},80);
     }
@@ -1390,7 +1366,7 @@ async function deleteVideo(i){
   active=Math.max(0,Math.min(active,videos.length-1));if(videos.length)setActive(active,false,false);say("Video dihapus");
 }
 
-const search=$("globalSearch"),results=$("searchResults");if(search&&results){search.addEventListener("input",()=>{const q=search.value.trim().toLowerCase();if(!q){results.classList.remove("show");return}const a=videos.map((v,i)=>({v,i})).filter(x=>(x.v[0]+" "+x.v[3]).toLowerCase().includes(q)).slice(0,8);results.innerHTML=a.length?a.map(x=>`<div class="search-item" data-i="${x.i}"><b>${esc(x.v[0])}</b><small>${esc(x.v[3])}</small></div>`).join(""):`<div class="search-empty">Tidak ditemukan</div>`;results.classList.add("show");results.querySelectorAll(".search-item").forEach(x=>x.onclick=()=>{openSelectedVideo(+x.dataset.i);results.classList.remove("show")})});document.addEventListener("click",e=>{if(!e.target.closest(".search-wrap"))results.classList.remove("show")})}
+const search=$("globalSearch"),results=$("searchResults");if(search&&results){search.addEventListener("input",()=>{const q=search.value.trim().toLowerCase();if(!q){results.classList.remove("show");return}const a=videos.map((v,i)=>({v,i})).filter(x=>(x.v[0]+" "+x.v[3]).toLowerCase().includes(q)).slice(0,8);results.innerHTML=a.length?a.map(x=>`<div class="search-item" data-i="${x.i}"><b>${esc(x.v[0])}</b><small>${esc(x.v[3])}</small></div>`).join(""):`<div class="search-empty">Tidak ditemukan</div>`;results.classList.add("show");results.querySelectorAll(".search-item").forEach(x=>x.onclick=()=>{setActive(+x.dataset.i,false);showPage("dashboard");results.classList.remove("show")})});document.addEventListener("click",e=>{if(!e.target.closest(".search-wrap"))results.classList.remove("show")})}
 function supabaseReady(){const c=window.PNG_CONFIG||{};return !!(window.supabase&&c.supabaseUrl&&c.supabaseAnonKey&&!c.supabaseUrl.includes("YOUR_")&&!c.supabaseAnonKey.includes("YOUR_"))}
 async function initSupabase(){if(!supabaseReady()){if($("syncBadge"))$("syncBadge").textContent="Mode lokal";return}try{sb=window.supabase.createClient(window.PNG_CONFIG.supabaseUrl,window.PNG_CONFIG.supabaseAnonKey);const {data}=await sb.auth.getSession();await applySession(data.session);sb.auth.onAuthStateChange(async(_e,s)=>{await applySession(s)});await loadRemote();if($("syncBadge"))$("syncBadge").textContent="Online"}catch(e){console.error(e);say("Supabase gagal tersambung")}}
 async function applySession(session){
@@ -1479,7 +1455,7 @@ document.addEventListener("click",e=>{
   if(scDelete){e.preventDefault();e.stopPropagation();const c=scDelete.closest(".card");if(c)deleteVideo(+c.dataset.real);return;}
 
   const open=e.target.closest(".open-video");
-  if(open){e.preventDefault();e.stopPropagation();openSelectedVideo(+open.dataset.i);return;}
+  if(open){e.preventDefault();e.stopPropagation();const i=+open.dataset.i;if(videos[i]){setActive(i,false);showPage("dashboard")}return;}
   const fav=e.target.closest(".fav-video");
   if(fav){e.preventDefault();e.stopPropagation();toggleFav(+fav.dataset.i);return;}
   const list=e.target.closest(".list-video");
@@ -1506,7 +1482,7 @@ document.addEventListener("click",e=>{
   if(sop){sop.classList.toggle("open");const hint=sop.querySelector(".doc-hint");if(hint)hint.textContent=sop.classList.contains("open")?"Klik untuk tutup":"Klik untuk buka SOP";return;}
 
   const row=e.target.closest(".video-row");
-  if(row && !e.target.closest("button")){openSelectedVideo(+row.dataset.videoIndex);return;}
+  if(row && !e.target.closest("button")){const i=+row.dataset.videoIndex;if(videos[i]){setActive(i,false);showPage("dashboard")}return;}
 });
 document.addEventListener("keydown",e=>{
   if(e.key!=="Enter"&&e.key!==" ")return;
