@@ -882,7 +882,7 @@ function updateCoverFlow(){
   });
 }
 
-let carouselDrag=false,carouselStartX=0,carouselStartScroll=0,carouselPointer=null,carouselHasMoved=false;
+let carouselDrag=false,carouselTouchDragging=false,carouselStartX=0,carouselStartScroll=0,carouselPointer=null,carouselHasMoved=false;
 function setupDrag(){
   const scroller=$("scroller");
   if(!scroller||scroller.dataset.dragReady==="1")return;
@@ -891,7 +891,7 @@ function setupDrag(){
   scroller.addEventListener("scroll",()=>{
     updateCoverFlow();
     const step=cardStep(),oneSet=step*realCount;
-    if(oneSet&&(scroller.scrollLeft<oneSet*.18||scroller.scrollLeft>oneSet*1.82))normalizeLoop();
+    if(!carouselDrag&&!carouselTouchDragging&&oneSet&&(scroller.scrollLeft<oneSet*.18||scroller.scrollLeft>oneSet*1.82))normalizeLoop();
   },{passive:true});
   scroller.addEventListener("wheel",e=>{
     if(Math.abs(e.deltaY)>Math.abs(e.deltaX)){
@@ -922,7 +922,7 @@ function setupDrag(){
   let touchDrag=false,touchStartX=0,touchStartY=0,touchStartScroll=0,touchMoved=false;
   scroller.addEventListener("touchstart",e=>{
     if(e.touches.length!==1||e.target.closest("button,a,input,select,textarea"))return;
-    const t=e.touches[0];touchDrag=true;touchMoved=false;
+    const t=e.touches[0];touchDrag=true;carouselTouchDragging=true;touchMoved=false;
     touchStartX=t.clientX;touchStartY=t.clientY;touchStartScroll=scroller.scrollLeft;
   },{passive:true});
   scroller.addEventListener("touchmove",e=>{
@@ -935,7 +935,7 @@ function setupDrag(){
     if(e.cancelable)e.preventDefault();
   },{passive:false});
   const finishTouch=()=>{
-    if(!touchDrag)return;touchDrag=false;
+    if(!touchDrag)return;touchDrag=false;carouselTouchDragging=false;
     if(touchMoved){normalizeLoop();updateCoverFlow();history=[active,...history.filter(x=>x!==active)].slice(0,20);persist();}
     setTimeout(()=>{touchMoved=false;carouselHasMoved=false;dragMoved=false},100);
   };
