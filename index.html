@@ -814,7 +814,6 @@ let realCount=videos.length;
 let carouselCopies=1;
 let carouselMiddleCopy=0;
 let carouselRaf=0;
-let externalVideoOpenLockUntil=0;
 
 function renderCarousel(){
   const scroller=$("scroller");
@@ -874,17 +873,6 @@ function centerRealCard(realIndex,smooth=false){
   scroller.scrollTo({left,behavior:smooth?"smooth":"auto"});
 }
 function centerCard(i,smooth=true){centerRealCard(i,smooth)}
-function openExactVideo(i){
-  i=Number(i);
-  if(!Number.isInteger(i)||!videos[i])return;
-  externalVideoOpenLockUntil=Date.now()+350;
-  setActive(i,false,true);
-  showPage("dashboard");
-  requestAnimationFrame(()=>{
-    centerRealCard(i,false);
-    requestAnimationFrame(()=>centerRealCard(i,false));
-  });
-}
 function rebalanceCarouselAround(realIndex){
   const scroller=$("scroller");
   if(!scroller||realCount<2)return;
@@ -913,6 +901,10 @@ function updateCoverFlow(){
   if(!scroller)return;
   cancelAnimationFrame(carouselRaf);
   carouselRaf=requestAnimationFrame(()=>{
+    // Jangan ubah video aktif saat Dashboard sedang tersembunyi.
+    // Ini mencegah Cover Flow lama menimpa video yang baru dipilih
+    // dari Tutorial/Kategori/Riwayat/Favorit/Playlist/Search.
+    if(!$("dashboard")?.classList.contains("active"))return;
     if(realCount===1){
       const only=scroller.querySelector(".card");
       if(only){only.style.transform="none";only.style.opacity="1";only.style.filter="none";only.style.zIndex="1";}
@@ -936,7 +928,7 @@ function updateCoverFlow(){
       card.style.filter=ad<.55?"brightness(1.14)":"brightness(.84)";
       card.style.zIndex=String(Math.max(1,30-Math.round(ad*5)));
     });
-    if(closestCard && Date.now()>=externalVideoOpenLockUntil){
+    if(closestCard){
       const real=+closestCard.dataset.real;
       if(real!==active)setActive(real,false,false);
     }
@@ -1330,7 +1322,7 @@ async function deleteVideo(i){
   active=Math.max(0,Math.min(active,videos.length-1));if(videos.length)setActive(active,false,false);say("Video dihapus");
 }
 
-const search=$("globalSearch"),results=$("searchResults");if(search&&results){search.addEventListener("input",()=>{const q=search.value.trim().toLowerCase();if(!q){results.classList.remove("show");return}const a=videos.map((v,i)=>({v,i})).filter(x=>(x.v[0]+" "+x.v[3]).toLowerCase().includes(q)).slice(0,8);results.innerHTML=a.length?a.map(x=>`<div class="search-item" data-i="${x.i}"><b>${esc(x.v[0])}</b><small>${esc(x.v[3])}</small></div>`).join(""):`<div class="search-empty">Tidak ditemukan</div>`;results.classList.add("show");results.querySelectorAll(".search-item").forEach(x=>x.onclick=()=>{openExactVideo(+x.dataset.i);results.classList.remove("show")})});document.addEventListener("click",e=>{if(!e.target.closest(".search-wrap"))results.classList.remove("show")})}
+const search=$("globalSearch"),results=$("searchResults");if(search&&results){search.addEventListener("input",()=>{const q=search.value.trim().toLowerCase();if(!q){results.classList.remove("show");return}const a=videos.map((v,i)=>({v,i})).filter(x=>(x.v[0]+" "+x.v[3]).toLowerCase().includes(q)).slice(0,8);results.innerHTML=a.length?a.map(x=>`<div class="search-item" data-i="${x.i}"><b>${esc(x.v[0])}</b><small>${esc(x.v[3])}</small></div>`).join(""):`<div class="search-empty">Tidak ditemukan</div>`;results.classList.add("show");results.querySelectorAll(".search-item").forEach(x=>x.onclick=()=>{setActive(+x.dataset.i,false);showPage("dashboard");results.classList.remove("show")})});document.addEventListener("click",e=>{if(!e.target.closest(".search-wrap"))results.classList.remove("show")})}
 function supabaseReady(){const c=window.PNG_CONFIG||{};return !!(window.supabase&&c.supabaseUrl&&c.supabaseAnonKey&&!c.supabaseUrl.includes("YOUR_")&&!c.supabaseAnonKey.includes("YOUR_"))}
 async function initSupabase(){if(!supabaseReady()){if($("syncBadge"))$("syncBadge").textContent="Mode lokal";return}try{sb=window.supabase.createClient(window.PNG_CONFIG.supabaseUrl,window.PNG_CONFIG.supabaseAnonKey);const {data}=await sb.auth.getSession();await applySession(data.session);sb.auth.onAuthStateChange(async(_e,s)=>{await applySession(s)});await loadRemote();if($("syncBadge"))$("syncBadge").textContent="Online"}catch(e){console.error(e);say("Supabase gagal tersambung")}}
 async function applySession(session){
@@ -1419,7 +1411,7 @@ document.addEventListener("click",e=>{
   if(scDelete){e.preventDefault();e.stopPropagation();const c=scDelete.closest(".card");if(c)deleteVideo(+c.dataset.real);return;}
 
   const open=e.target.closest(".open-video");
-  if(open){e.preventDefault();e.stopPropagation();openExactVideo(+open.dataset.i);return;}
+  if(open){e.preventDefault();e.stopPropagation();const i=+open.dataset.i;if(videos[i]){setActive(i,false);showPage("dashboard")}return;}
   const fav=e.target.closest(".fav-video");
   if(fav){e.preventDefault();e.stopPropagation();toggleFav(+fav.dataset.i);return;}
   const list=e.target.closest(".list-video");
@@ -1446,7 +1438,7 @@ document.addEventListener("click",e=>{
   if(sop){sop.classList.toggle("open");const hint=sop.querySelector(".doc-hint");if(hint)hint.textContent=sop.classList.contains("open")?"Klik untuk tutup":"Klik untuk buka SOP";return;}
 
   const row=e.target.closest(".video-row");
-  if(row && !e.target.closest("button")){openExactVideo(+row.dataset.videoIndex);return;}
+  if(row && !e.target.closest("button")){const i=+row.dataset.videoIndex;if(videos[i]){setActive(i,false);showPage("dashboard")}return;}
 });
 document.addEventListener("keydown",e=>{
   if(e.key!=="Enter"&&e.key!==" ")return;
