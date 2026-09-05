@@ -318,8 +318,17 @@ body:not(.is-admin) .admin-lock-note{display:block}
   body.mobile-menu-open .mobile-menu-backdrop{display:block}
   .nav{gap:3px}
   .nav button{padding:10px 10px;font-size:12px;min-height:38px}
-  .sidebar-bottom{margin-top:16px;padding-top:8px}
-  .mascot-wrap{height:112px;padding-bottom:2px}.mascot{width:82px}
+  .sidebar-bottom{
+    margin-top:auto!important;
+    padding-top:14px;
+    padding-bottom:2px;
+  }
+  .mascot-wrap{
+    height:112px;
+    padding-bottom:2px;
+    align-items:flex-end;
+  }
+  .mascot{width:82px}
   .help{padding:10px;font-size:10px;line-height:1.45}.help strong{font-size:11px;margin-bottom:5px}
 
   .main-head h2{font-size:16px;margin:2px 0 9px}
@@ -384,7 +393,7 @@ body:not(.is-admin) .admin-lock-note{display:block}
   .admin-auth-btn::first-letter{font-size:14px}
   .sidebar{left:5px;top:108px;width:min(72vw,238px)}
   .nav button{font-size:11px;padding:9px 9px;min-height:36px}
-  .mascot-wrap{height:96px}.mascot{width:72px}.help{font-size:9px;padding:9px}
+  .sidebar-bottom{margin-top:auto!important}.mascot-wrap{height:96px}.mascot{width:72px}.help{font-size:9px;padding:9px}
   .player{height:205px}
   .hero h1{font-size:27px}
   #scroller{min-height:196px;padding:23px calc(50% - 58px) 9px;gap:7px;scroll-padding-inline:calc(50% - 58px)}
@@ -460,6 +469,22 @@ body.is-owner .owner-only{display:block!important}
   #dashboard #scroller{min-height:224px!important;padding:26px 18px 22px!important;gap:10px!important;scroll-padding-inline:18px!important}
   #dashboard #scroller .card{flex-basis:128px!important;min-width:128px!important}
   #dashboard #scroller .thumb{height:86px!important}
+}
+
+
+/* ===== TASK 1-4 FINAL ===== */
+.video-row-main{display:grid;grid-template-columns:170px minmax(0,1fr);gap:14px;align-items:start}
+.video-list-thumb{width:170px;aspect-ratio:16/9;border:1px solid #3a171b;border-radius:10px;overflow:hidden;background:linear-gradient(145deg,#240205,#760710);display:grid;place-items:center;color:#ff4652;font-weight:900}
+.video-list-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.video-row-copy h3{margin:2px 0 6px}
+.category-card.active{border-color:#ef1725;background:#16090c}
+.category-results{margin-top:18px}
+.category-results-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.category-results-head h3{margin:0;font-size:16px}
+.faq-important{margin-top:10px;padding:10px 11px;border-left:3px solid #f0c15c;border-radius:7px;background:#171208;color:#f6d879;font-size:11px;line-height:1.55}
+@media(max-width:760px){
+  .video-row-main{grid-template-columns:1fr}
+  .video-list-thumb{width:100%;max-width:360px}
 }
 
 </style>
@@ -548,7 +573,7 @@ body.is-owner .owner-only{display:block!important}
     </div>
 
     <div id="tutorial" class="page-view simple-page"><h2>Tutorial Video</h2><p class="lead">Pilih tutorial yang ingin dipelajari.</p><div class="content-grid"><div class="content-box"><h3>Manajemen Data</h3><p>Panduan mengelola data pada PNG Dashboard.</p></div><div class="content-box"><h3>Pengaturan Akun</h3><p>Panduan pengaturan profil dan akun.</p></div><div class="content-box"><h3>Keamanan Data</h3><p>Materi dasar menjaga keamanan data.</p></div><div class="content-box"><h3>Backup & Restore</h3><p>Panduan pencadangan dan pemulihan data.</p></div></div></div>
-    <div id="faq" class="page-view simple-page"><div class="admin-split"><section><h2>FAQ</h2><p class="lead">Pertanyaan yang sering ditanyakan.</p><div id="faqList" class="doc-list"></div></section><aside class="admin-side"><div class="nezha-brand"><img src="nezha-png.png" alt="Nezha bersandar di PNG"></div><div class="admin-card"><h3>Tambah FAQ</h3><p>Tambahkan pertanyaan dan jawaban baru.</p><button class="admin-add admin-only" id="openFaqForm" type="button">＋ Tambah FAQ</button><div class="form-panel" id="faqForm"><input id="faqQuestion" placeholder="Pertanyaan"><textarea id="faqAnswer" placeholder="Jawaban FAQ"></textarea><div class="form-actions"><button class="ghost-btn" id="cancelFaq" type="button">Batal</button><button class="red-btn" id="saveFaq" type="button">Simpan</button></div></div></div></aside></div></div>
+    <div id="faq" class="page-view simple-page"><div class="admin-split"><section><h2>FAQ</h2><p class="lead">Pertanyaan yang sering ditanyakan.</p><div id="faqList" class="doc-list"></div></section><aside class="admin-side"><div class="nezha-brand"><img src="nezha-png.png" alt="Nezha bersandar di PNG"></div><div class="admin-card"><h3>Tambah FAQ</h3><p>Tambahkan pertanyaan dan jawaban baru.</p><button class="admin-add admin-only" id="openFaqForm" type="button">＋ Tambah FAQ</button><div class="form-panel" id="faqForm"><input id="faqQuestion" placeholder="Pertanyaan"><textarea id="faqAnswer" placeholder="Jawaban FAQ"></textarea><textarea id="faqImportantNote" placeholder="Catatan penting (opsional)"></textarea><div class="form-actions"><button class="ghost-btn" id="cancelFaq" type="button">Batal</button><button class="red-btn" id="saveFaq" type="button">Simpan</button></div></div></div></aside></div></div>
     <div id="sop" class="page-view simple-page"><div class="admin-split"><section><h2>SOP</h2><p class="lead">Dokumen prosedur kerja PNG.</p><div id="sopList" class="doc-list"></div></section><aside class="admin-side"><div class="nezha-brand"><img src="nezha-png.png" alt="Nezha bersandar di PNG"></div><div class="admin-card"><h3>Tambah SOP</h3><p>Tambahkan prosedur kerja baru.</p><button class="admin-add admin-only" id="openSopForm" type="button">＋ Tambah SOP</button><div class="form-panel" id="sopForm"><input id="sopTitle" placeholder="Judul SOP"><textarea id="sopContent" placeholder="Isi / langkah SOP"></textarea><div class="form-actions"><button class="ghost-btn" id="cancelSop" type="button">Batal</button><button class="red-btn" id="saveSop" type="button">Simpan</button></div></div></div></aside></div></div>
     <div id="kategori" class="page-view simple-page"><h2>Kategori</h2><p class="lead">Cari materi berdasarkan kategori.</p><div class="content-grid"><div class="content-box"><h3>Dasar Sistem</h3><p>Login, navigasi, dan penggunaan dasar.</p></div><div class="content-box"><h3>Manajemen Data</h3><p>Pengelolaan, laporan, backup, dan keamanan.</p></div></div></div>
     <div id="favorit" class="page-view simple-page"><h2>Favorit</h2><p class="lead">Tutorial yang kamu simpan akan tampil di sini.</p><div class="content-box"><h3>Belum ada favorit</h3><p>Nanti kita bisa tambahkan tombol bintang pada setiap tutorial.</p></div></div>
@@ -705,7 +730,7 @@ function makeBaseVideo(v,i){const a=[...v];a._baseKey=`base-${i}`;a._isBase=true
 function videoFromRow(r){const a=[r.title,r.duration||"5:00",r.duration_label||r.duration||"5:00",r.category||"Tutorial"];a._id=r.id;a._baseKey=r.base_key||"";a._remote=true;a._description=r.description||"";a._thumb=r.thumbnail_url||"";a._videoUrl=r.video_url||"";a._language=r.language||"Indonesia";a._tags=Array.isArray(r.tags)?r.tags:[];return a}
 let videos=Array.isArray(saved.videos)&&saved.videos.length?saved.videos:baseVideos.map(makeBaseVideo);
 let materials=Array.isArray(saved.materials)?saved.materials:[];
-let faqs=Array.isArray(saved.faqs)&&saved.faqs.length?saved.faqs:[...DEFAULT_FAQ];
+let faqs=Array.isArray(saved.faqs)?saved.faqs:[...DEFAULT_FAQ];
 let sops=Array.isArray(saved.sops)&&saved.sops.length?saved.sops:[...DEFAULT_SOP];
 let favorites=new Set(saved.favorites||[]), playlist=new Set(saved.playlist||[]), history=saved.history||[];
 let active=Math.min(Number.isInteger(saved.active)?saved.active:3,videos.length-1);
@@ -811,7 +836,7 @@ function renderCarousel(){
     });
   }
   refreshFavButtons();
-  requestAnimationFrame(()=>{jumpToMiddleCopy(active);updateCoverFlow()});
+  requestAnimationFrame(()=>{rebalanceCarouselAround(active);updateCoverFlow()});
 }
 
 function cardStep(){
@@ -820,24 +845,40 @@ function cardStep(){
   if(cards.length<2)return 196;
   return cards[1].offsetLeft-cards[0].offsetLeft;
 }
+function getRealCard(realIndex){
+  const scroller=$("scroller");
+  return scroller?.querySelector(`.card[data-real="${realIndex}"]`)||null;
+}
 function jumpToMiddleCopy(realIndex){
   const scroller=$("scroller");
   if(!scroller||!realCount)return;
-  const idx=carouselMiddleCopy*realCount+realIndex;
-  const card=scroller.children[idx];
+  const card=getRealCard(realIndex);
   if(!card)return;
   scroller.scrollLeft=card.offsetLeft-(scroller.clientWidth-card.offsetWidth)/2;
 }
 function centerRealCard(realIndex,smooth=false){
   const scroller=$("scroller");
   if(!scroller||!realCount)return;
-  const middleIndex=carouselMiddleCopy*realCount+realIndex;
-  const card=scroller.children[middleIndex];
+  const card=getRealCard(realIndex);
   if(!card)return;
   const left=card.offsetLeft-(scroller.clientWidth-card.offsetWidth)/2;
   scroller.scrollTo({left,behavior:smooth?"smooth":"auto"});
 }
 function centerCard(i,smooth=true){centerRealCard(i,smooth)}
+function rebalanceCarouselAround(realIndex){
+  const scroller=$("scroller");
+  if(!scroller||realCount<2)return;
+  const cards=[...scroller.querySelectorAll(".card")];
+  if(cards.length!==realCount)return;
+  const byReal=new Map(cards.map(c=>[+c.dataset.real,c]));
+  const middle=Math.floor(realCount/2);
+  for(let pos=0;pos<realCount;pos++){
+    const idx=(realIndex-middle+pos+realCount*4)%realCount;
+    const card=byReal.get(idx);
+    if(card)scroller.appendChild(card);
+  }
+  requestAnimationFrame(()=>{centerRealCard(realIndex,false);updateCoverFlow()});
+}
 function normalizeLoop(){
   const scroller=$("scroller");
   if(!scroller||!realCount||carouselCopies===1)return;
@@ -936,7 +977,7 @@ function setupDrag(){
   },{passive:false});
   const finishTouch=()=>{
     if(!touchDrag)return;touchDrag=false;carouselTouchDragging=false;
-    if(touchMoved){normalizeLoop();updateCoverFlow();history=[active,...history.filter(x=>x!==active)].slice(0,20);persist();}
+    if(touchMoved){updateCoverFlow();rebalanceCarouselAround(active);history=[active,...history.filter(x=>x!==active)].slice(0,20);persist();}
     setTimeout(()=>{touchMoved=false;carouselHasMoved=false;dragMoved=false},100);
   };
   scroller.addEventListener("touchend",finishTouch,{passive:true});
@@ -949,8 +990,8 @@ function setupDrag(){
     carouselPointer=null;
     scroller.style.cursor="grab";
     [...scroller.children].forEach(c=>c.style.cursor="grab");
-    normalizeLoop();updateCoverFlow();
-    if(carouselHasMoved){
+    updateCoverFlow();
+    if(carouselHasMoved){rebalanceCarouselAround(active);
       history=[active,...history.filter(x=>x!==active)].slice(0,20);persist();
       setTimeout(()=>{carouselHasMoved=false;dragMoved=false},80);
     }
@@ -981,7 +1022,23 @@ $("playerFavBtn")?.addEventListener("click",()=>toggleFav(active));$("playerPlay
 function renderListPageIfOpen(){const p=document.querySelector(".page-view.active");if(p&&["favorit","playlist","riwayat"].includes(p.id))renderListPage(p.id)}
 function videoRows(indices,includeMaterials=false){
   if(!indices.length)return `<div class="page-empty">Belum ada data.</div>`;
-  return `<div class="doc-list">${indices.map(i=>{const v=videos[i];if(!v)return "";const subs=materials.filter(m=>(m.videoTitle||m.video_title)===v[0]);return `<div class="doc-item video-row" data-video-index="${i}"><h3>${esc(v[0])}</h3><p>${esc(v[3])} · ${esc(v[2]||v[1])}</p><div class="video-row-actions"><button class="ghost-btn open-video" type="button" data-i="${i}">Buka</button><button class="ghost-btn fav-video" type="button" data-i="${i}">${favorites.has(i)?"★ Favorit":"☆ Favorit"}</button><button class="ghost-btn list-video" type="button" data-i="${i}">${playlist.has(i)?"✓ Playlist":"＋ Playlist"}</button><button class="ghost-btn edit-video admin-only" type="button" data-i="${i}">✏ Edit</button><button class="ghost-btn delete-video admin-only" type="button" data-i="${i}">🗑 Hapus</button></div>${includeMaterials?`<div class="video-materials"><div class="video-materials-title">Sub Materi (${subs.length})</div>${subs.length?subs.map(m=>{const mi=materials.indexOf(m);return `<div class="video-submaterial"><div><strong>${esc(m.title)}</strong><small>${esc(m.category||"Materi")}</small></div><div class="video-row-actions" style="margin-top:0"><button class="ghost-btn open-material" type="button" data-i="${mi}">Buka</button><button class="ghost-btn edit-material admin-only" type="button" data-i="${mi}">✏ Edit</button><button class="ghost-btn delete-material admin-only" type="button" data-i="${mi}">🗑 Hapus</button></div></div>`}).join(""):`<small style="color:#7f8892">Belum ada sub materi.</small>`}</div>`:""}</div>`}).join("")}</div>`
+  return `<div class="doc-list">${indices.map(i=>{
+    const v=videos[i];if(!v)return "";
+    const subs=materials.filter(m=>(m.videoTitle||m.video_title)===v[0]);
+    const thumb=effectiveVideoThumb(v);
+    const visual=thumb?`<div class="video-list-thumb"><img src="${esc(thumb)}" alt="${esc(v[0])}" loading="lazy"></div>`:`<div class="video-list-thumb">PNG</div>`;
+    return `<div class="doc-item video-row" data-video-index="${i}">
+      <div class="video-row-main">
+        ${visual}
+        <div class="video-row-copy">
+          <h3>${esc(v[0])}</h3>
+          <p>${esc(v[3])} · ${esc(v[2]||v[1])}</p>
+          <div class="video-row-actions"><button class="ghost-btn open-video" type="button" data-i="${i}">Buka</button><button class="ghost-btn fav-video" type="button" data-i="${i}">${favorites.has(i)?"★ Favorit":"☆ Favorit"}</button><button class="ghost-btn list-video" type="button" data-i="${i}">${playlist.has(i)?"✓ Playlist":"＋ Playlist"}</button><button class="ghost-btn edit-video admin-only" type="button" data-i="${i}">✏ Edit</button><button class="ghost-btn delete-video admin-only" type="button" data-i="${i}">🗑 Hapus</button></div>
+        </div>
+      </div>
+      ${includeMaterials?`<div class="video-materials"><div class="video-materials-title">Sub Materi (${subs.length})</div>${subs.length?subs.map(m=>{const mi=materials.indexOf(m);return `<div class="video-submaterial"><div><strong>${esc(m.title)}</strong><small>${esc(m.category||"Materi")}</small></div><div class="video-row-actions" style="margin-top:0"><button class="ghost-btn open-material" type="button" data-i="${mi}">Buka</button><button class="ghost-btn edit-material admin-only" type="button" data-i="${mi}">✏ Edit</button><button class="ghost-btn delete-material admin-only" type="button" data-i="${mi}">🗑 Hapus</button></div></div>`}).join(""):`<small style="color:#7f8892">Belum ada sub materi.</small>`}</div>`:""}
+    </div>`
+  }).join("")}</div>`
 }
 function wireRows(root){/* click ditangani oleh event delegation global agar tetap aktif setelah render ulang */}
 function renderTutorial(){const root=$("tutorial");if(!root)return;root.innerHTML=`<div class="page-toolbar"><div><h2>Tutorial Video</h2><p class="lead" style="margin:4px 0 0">Daftar video tutorial beserta sub materi masing-masing.</p></div><button class="admin-add admin-only" id="openAddVideo" type="button">＋ Tambah Video + Materi</button></div>${videoRows(videos.map((_,i)=>i),true)}`;root.querySelector("#openAddVideo")?.addEventListener("click",()=>openTambah("video"));root.querySelectorAll(".open-material").forEach(b=>b.onclick=()=>openMaterial(+b.dataset.i))}
@@ -994,16 +1051,17 @@ function populateCategorySelects(){
     if(CATEGORIES.includes(current))sel.value=current;
   });
 }
+let selectedCategory="";
 function renderCategories(){
   const root=$("kategori");if(!root)return;
-  root.innerHTML=`<h2>Kategori</h2><p class="lead">Cari tutorial berdasarkan kategori.</p><div class="category-grid">${CATEGORIES.map(k=>{const count=videos.filter(v=>v[3]===k).length;return `<div class="category-card" data-cat="${esc(k)}"><b>${esc(k)}</b><span>${count} video</span></div>`}).join("")}</div>`;
+  const selected=selectedCategory;
+  const indices=selected?videos.map((v,i)=>v[3]===selected?i:-1).filter(i=>i>=0):[];
+  root.innerHTML=`<h2>Kategori</h2><p class="lead">Pilih kategori untuk menampilkan video di halaman ini.</p>
+    <div class="category-grid">${CATEGORIES.map(k=>{const count=videos.filter(v=>v[3]===k).length;return `<div class="category-card${selected===k?" active":""}" data-cat="${esc(k)}"><b>${esc(k)}</b><span>${count} video</span></div>`}).join("")}</div>
+    ${selected?`<section class="category-results"><div class="category-results-head"><h3>${esc(selected)}</h3><span class="label">${indices.length} video</span></div>${videoRows(indices)}</section>`:""}`;
   root.querySelectorAll(".category-card").forEach(c=>c.onclick=()=>{
-    const indices=videos.map((v,i)=>v[3]===c.dataset.cat?i:-1).filter(i=>i>=0);
-    if(indices.length){
-      const rootTutorial=$("tutorial");
-      if(rootTutorial){rootTutorial.innerHTML=`<div class="page-toolbar"><div><h2>${esc(c.dataset.cat)}</h2><p class="lead" style="margin:4px 0 0">${indices.length} video dalam kategori ini.</p></div></div>${videoRows(indices)}`;}
-      showPage("tutorial");
-    }else say("Belum ada video di kategori "+c.dataset.cat);
+    selectedCategory=c.dataset.cat;
+    renderCategories();
   });
 }
 function renderMaterialsMini(){const list=$("activeMaterialList");if(!list)return;const arr=materials.filter(m=>(m.videoTitle||m.video_title)===videos[active][0]);list.innerHTML=arr.length?`<div class="material-list-mini">${arr.map((m)=>{const idx=materials.indexOf(m);return `<div class="material-chip" data-mi="${idx}"><strong>${esc(m.title)}</strong><small>${esc(m.category||"Materi")}</small></div>`}).join("")}</div>`:`<div class="content-box" style="padding:10px"><b>Belum ada materi tertulis</b><p style="margin:3px 0 0">Klik Tambahkan materi untuk membuatnya.</p></div>`;list.querySelectorAll(".material-chip").forEach(x=>x.onclick=()=>openMaterial(+x.dataset.mi))}
@@ -1020,14 +1078,24 @@ $("openMaterialDetail")?.addEventListener("click",()=>{
   showPage("materi-detail");
 });
 $("materialDetailBack")?.addEventListener("click",()=>showPage("dashboard"));
-function renderFAQ(){const l=$("faqList");if(!l)return;l.innerHTML=faqs.map((x,i)=>`<article class="doc-item clickable-doc faq-doc" tabindex="0" data-doc-index="${i}"><h3>${esc(x.question||x.q)}</h3><span class="doc-hint">Klik untuk buka jawaban</span><div class="doc-answer"><p>${esc(x.answer||x.a)}</p></div><div class="doc-admin-row"><button class="ghost-btn doc-delete-btn delete-faq admin-only" type="button" data-i="${i}">🗑 Hapus FAQ</button></div></article>`).join("")}
+function renderFAQ(){const l=$("faqList");if(!l)return;l.innerHTML=faqs.length?faqs.map((x,i)=>`<article class="doc-item clickable-doc faq-doc" tabindex="0" data-doc-index="${i}"><h3>${esc(x.question||x.q)}</h3><span class="doc-hint">Klik untuk buka jawaban</span><div class="doc-answer"><p>${esc(x.answer||x.a)}</p>${x.important_note?`<div class="faq-important"><b>💡 Catatan penting</b><br>${esc(x.important_note)}</div>`:""}</div><div class="doc-admin-row"><button class="ghost-btn doc-delete-btn delete-faq admin-only" type="button" data-i="${i}">🗑 Hapus FAQ</button></div></article>`).join(""):`<div class="page-empty">Belum ada FAQ.</div>`}
 function renderSOP(){const l=$("sopList");if(!l)return;l.innerHTML=sops.map((x,i)=>`<article class="doc-item clickable-doc sop-doc" tabindex="0" data-doc-index="${i}"><h3>${esc(x.title)}</h3><span class="doc-hint">Klik untuk buka SOP</span><div class="doc-answer"><p>${esc(x.content)}</p></div><div class="doc-admin-row"><button class="ghost-btn doc-delete-btn delete-sop admin-only" type="button" data-i="${i}">🗑 Hapus SOP</button></div></article>`).join("")}
 function requireAdmin(action){if(isAdmin){action();return true}if(currentSession){say("Akun Viewer tidak punya izin Admin");return false}openAuth("Login diperlukan. Akun Viewer hanya dapat melihat konten.");return false}
 async function deleteFaq(i){
   if(!isAdmin)return openAuth();
   const x=faqs[i];if(!x)return;
   if(!confirm(`Hapus FAQ “${x.question||x.q||"ini"}”?`))return;
-  if(sb&&x.id){try{const {error}=await sb.from("faq").delete().eq("id",x.id);if(error)throw error;await loadRemote();say("FAQ dihapus");return}catch(e){console.error(e);say("Gagal menghapus FAQ");return}}
+  if(sb&&x.id){
+    try{
+      const {data,error}=await sb.from("faq").delete().eq("id",x.id).select("id");
+      if(error)throw error;
+      if(!data?.length){say("FAQ belum terhapus — cek policy DELETE Supabase");return}
+      faqs.splice(i,1);persist();renderFAQ();
+      await loadRemote();
+      say("FAQ dihapus");
+      return;
+    }catch(e){console.error(e);say("Gagal menghapus FAQ: "+(e.message||"izin ditolak"));return}
+  }
   faqs.splice(i,1);persist();renderFAQ();say("FAQ dihapus");
 }
 async function deleteMaterial(i){
@@ -1054,7 +1122,7 @@ async function deleteSop(i){
   sops.splice(i,1);persist();renderSOP();say("SOP dihapus");
 }
 $("openFaqForm")?.addEventListener("click",()=>requireAdmin(()=>$("faqForm").classList.add("open")));$("cancelFaq")?.addEventListener("click",()=>$("faqForm")?.classList.remove("open"));
-$("saveFaq")?.addEventListener("click",async()=>{if(!isAdmin)return openAuth();const q=$("faqQuestion").value.trim(),a=$("faqAnswer").value.trim();if(!q||!a)return say("Isi pertanyaan dan jawaban");const obj={question:q,answer:a};const rr=await remoteInsert("faq",obj);if(rr===false)return;if(rr===null){faqs.unshift(obj);persist()}$("faqQuestion").value=$("faqAnswer").value="";$("faqForm").classList.remove("open");renderFAQ();say("FAQ disimpan")});
+$("saveFaq")?.addEventListener("click",async()=>{if(!isAdmin)return openAuth();const q=$("faqQuestion").value.trim(),a=$("faqAnswer").value.trim(),note=$("faqImportantNote")?.value.trim()||"";if(!q||!a)return say("Isi pertanyaan dan jawaban");const obj={question:q,answer:a,important_note:note};const rr=await remoteInsert("faq",obj);if(rr===false)return;if(rr===null){faqs.unshift(obj);persist()}$("faqQuestion").value=$("faqAnswer").value="";if($("faqImportantNote"))$("faqImportantNote").value="";$("faqForm").classList.remove("open");renderFAQ();say("FAQ disimpan")});
 $("openSopForm")?.addEventListener("click",()=>requireAdmin(()=>$("sopForm").classList.add("open")));$("cancelSop")?.addEventListener("click",()=>$("sopForm")?.classList.remove("open"));
 $("saveSop")?.addEventListener("click",async()=>{if(!isAdmin)return openAuth();const title=$("sopTitle").value.trim(),content=$("sopContent").value.trim();if(!title||!content)return say("Isi judul dan SOP");const obj={title,content};const rr=await remoteInsert("sop",obj);if(rr===false)return;if(rr===null){sops.unshift(obj);persist()}$("sopTitle").value=$("sopContent").value="";$("sopForm").classList.remove("open");renderSOP();say("SOP disimpan")});
 function populateMaterialParentSelect(selected=""){
@@ -1315,7 +1383,7 @@ async function uploadMedia(file,folder){
   }catch(e){console.error(e);say("Upload file gagal");return ""}
 }
 async function remoteInsert(table,obj){if(!sb||!isAdmin)return null;try{const {error}=await sb.from(table).insert(obj);if(error)throw error;await loadRemote();return true}catch(e){console.error(e);say("Gagal simpan online — jalankan SUPABASE-UPGRADE.sql");return false}}
-async function loadRemote(){if(!sb)return;try{const [v,m,f,s]=await Promise.all([sb.from("videos").select("*").order("created_at"),sb.from("materials").select("*").order("created_at"),sb.from("faq").select("*").order("created_at"),sb.from("sop").select("*").order("created_at")]);const rows=v.data||[];const overrides=new Map(rows.filter(r=>r.base_key).map(r=>[r.base_key,r]));const merged=[];baseVideos.forEach((bv,i)=>{const key=`base-${i}`,r=overrides.get(key);if(r?.is_deleted)return;if(r){const a=videoFromRow(r);a._isBase=true;merged.push(a)}else merged.push(makeBaseVideo(bv,i))});rows.filter(r=>!r.base_key&&!r.is_deleted).forEach(r=>merged.push(videoFromRow(r)));videos=merged;if(m.data)materials=m.data.map(x=>({...x,videoTitle:x.video_title}));if(f.data?.length)faqs=f.data;if(s.data?.length)sops=s.data;active=Math.min(active,Math.max(0,videos.length-1));renderCarousel();if(videos.length)setActive(active,false,false);renderFAQ();renderSOP()}catch(e){console.error(e);say("Data Supabase gagal dimuat")}}
+async function loadRemote(){if(!sb)return;try{const [v,m,f,s]=await Promise.all([sb.from("videos").select("*").order("created_at"),sb.from("materials").select("*").order("created_at"),sb.from("faq").select("*").order("created_at"),sb.from("sop").select("*").order("created_at")]);const rows=v.data||[];const overrides=new Map(rows.filter(r=>r.base_key).map(r=>[r.base_key,r]));const merged=[];baseVideos.forEach((bv,i)=>{const key=`base-${i}`,r=overrides.get(key);if(r?.is_deleted)return;if(r){const a=videoFromRow(r);a._isBase=true;merged.push(a)}else merged.push(makeBaseVideo(bv,i))});rows.filter(r=>!r.base_key&&!r.is_deleted).forEach(r=>merged.push(videoFromRow(r)));videos=merged;if(m.data)materials=m.data.map(x=>({...x,videoTitle:x.video_title}));if(f.data)faqs=f.data;if(s.data)sops=s.data;active=Math.min(active,Math.max(0,videos.length-1));renderCarousel();if(videos.length)setActive(active,false,false);renderFAQ();renderSOP()}catch(e){console.error(e);say("Data Supabase gagal dimuat")}}
 // Event delegation tunggal: tombol yang dirender ulang tetap selalu aktif.
 document.addEventListener("click",e=>{
   const nav=e.target.closest(".nav button[data-page]");
