@@ -487,6 +487,14 @@ body.is-owner .owner-only{display:block!important}
   .video-list-thumb{width:100%;max-width:360px}
 }
 
+
+/* FAQ: pertahankan Enter/baris baru dari input */
+.faq-answer-text,.faq-important-text{
+  white-space:pre-wrap;
+  overflow-wrap:anywhere;
+  line-height:1.7;
+}
+
 </style>
 </head>
 <body>
@@ -888,6 +896,29 @@ function normalizeLoop(){
   if(scroller.scrollLeft<oneSet*.45)scroller.scrollLeft+=oneSet;
   else if(scroller.scrollLeft>oneSet*1.55)scroller.scrollLeft-=oneSet;
 }
+
+/* Infinite carousel tanpa menggandakan video:
+   saat mendekati ujung, card asli dipindah ke sisi lain sambil menjaga posisi scroll. */
+function rotateCarouselEdge(dir){
+  const scroller=$("scroller");
+  if(!scroller||realCount<2)return 0;
+  const cards=[...scroller.querySelectorAll(".card")];
+  if(cards.length<2)return 0;
+  const step=Math.abs(cards[1].offsetLeft-cards[0].offsetLeft)||cardStep();
+  if(!step)return 0;
+
+  if(dir<0){
+    const last=cards[cards.length-1];
+    scroller.insertBefore(last,cards[0]);
+    scroller.scrollLeft+=step;
+    return step;
+  }else{
+    const first=cards[0];
+    scroller.appendChild(first);
+    scroller.scrollLeft-=step;
+    return -step;
+  }
+}
 function updateCoverFlow(){
   const scroller=$("scroller");
   if(!scroller)return;
@@ -935,8 +966,13 @@ function setupDrag(){
     if(!carouselDrag&&!carouselTouchDragging&&oneSet&&(scroller.scrollLeft<oneSet*.18||scroller.scrollLeft>oneSet*1.82))normalizeLoop();
   },{passive:true});
   scroller.addEventListener("wheel",e=>{
-    if(Math.abs(e.deltaY)>Math.abs(e.deltaX)){
-      scroller.scrollLeft+=e.deltaY*2.0;
+    const delta=Math.abs(e.deltaY)>Math.abs(e.deltaX)?e.deltaY*2.0:e.deltaX;
+    if(delta){
+      const edge=12;
+      const max=Math.max(0,scroller.scrollWidth-scroller.clientWidth);
+      if(delta<0&&scroller.scrollLeft<=edge)rotateCarouselEdge(-1);
+      if(delta>0&&scroller.scrollLeft>=max-edge)rotateCarouselEdge(1);
+      scroller.scrollLeft+=delta;
       e.preventDefault();
       updateCoverFlow();
     }
@@ -954,7 +990,17 @@ function setupDrag(){
     if(!carouselDrag||(carouselPointer!==null&&e.pointerId!==carouselPointer))return;
     const dx=e.clientX-carouselStartX;
     if(Math.abs(dx)>2){carouselHasMoved=true;dragMoved=true}
-    scroller.scrollLeft=carouselStartScroll-dx*1.7;
+    let target=carouselStartScroll-dx*1.7;
+    const edge=12;
+    const max=Math.max(0,scroller.scrollWidth-scroller.clientWidth);
+    if(target<=edge){
+      const adjust=rotateCarouselEdge(-1);
+      if(adjust){carouselStartScroll+=adjust;target+=adjust}
+    }else if(target>=max-edge){
+      const adjust=rotateCarouselEdge(1);
+      if(adjust){carouselStartScroll+=adjust;target+=adjust}
+    }
+    scroller.scrollLeft=target;
     updateCoverFlow();
     if(carouselHasMoved&&e.cancelable)e.preventDefault();
   });
@@ -971,7 +1017,17 @@ function setupDrag(){
     const t=e.touches[0],dx=t.clientX-touchStartX,dy=t.clientY-touchStartY;
     if(Math.abs(dx)<=Math.abs(dy))return;
     if(Math.abs(dx)>3){touchMoved=true;carouselHasMoved=true;dragMoved=true}
-    scroller.scrollLeft=touchStartScroll-dx;
+    let target=touchStartScroll-dx;
+    const edge=10;
+    const max=Math.max(0,scroller.scrollWidth-scroller.clientWidth);
+    if(target<=edge){
+      const adjust=rotateCarouselEdge(-1);
+      if(adjust){touchStartScroll+=adjust;target+=adjust}
+    }else if(target>=max-edge){
+      const adjust=rotateCarouselEdge(1);
+      if(adjust){touchStartScroll+=adjust;target+=adjust}
+    }
+    scroller.scrollLeft=target;
     updateCoverFlow();
     if(e.cancelable)e.preventDefault();
   },{passive:false});
@@ -1078,7 +1134,7 @@ $("openMaterialDetail")?.addEventListener("click",()=>{
   showPage("materi-detail");
 });
 $("materialDetailBack")?.addEventListener("click",()=>showPage("dashboard"));
-function renderFAQ(){const l=$("faqList");if(!l)return;l.innerHTML=faqs.length?faqs.map((x,i)=>`<article class="doc-item clickable-doc faq-doc" tabindex="0" data-doc-index="${i}"><h3>${esc(x.question||x.q)}</h3><span class="doc-hint">Klik untuk buka jawaban</span><div class="doc-answer"><p>${esc(x.answer||x.a)}</p>${x.important_note?`<div class="faq-important"><b>💡 Catatan penting</b><br>${esc(x.important_note)}</div>`:""}</div><div class="doc-admin-row"><button class="ghost-btn doc-delete-btn delete-faq admin-only" type="button" data-i="${i}">🗑 Hapus FAQ</button></div></article>`).join(""):`<div class="page-empty">Belum ada FAQ.</div>`}
+function renderFAQ(){const l=$("faqList");if(!l)return;l.innerHTML=faqs.length?faqs.map((x,i)=>`<article class="doc-item clickable-doc faq-doc" tabindex="0" data-doc-index="${i}"><h3>${esc(x.question||x.q)}</h3><span class="doc-hint">Klik untuk buka jawaban</span><div class="doc-answer"><p class="faq-answer-text">${esc(x.answer||x.a)}</p>${x.important_note?`<div class="faq-important"><b>💡 Catatan penting</b><div class="faq-important-text">${esc(x.important_note)}</div></div>`:""}</div><div class="doc-admin-row"><button class="ghost-btn doc-delete-btn delete-faq admin-only" type="button" data-i="${i}">🗑 Hapus FAQ</button></div></article>`).join(""):`<div class="page-empty">Belum ada FAQ.</div>`}
 function renderSOP(){const l=$("sopList");if(!l)return;l.innerHTML=sops.map((x,i)=>`<article class="doc-item clickable-doc sop-doc" tabindex="0" data-doc-index="${i}"><h3>${esc(x.title)}</h3><span class="doc-hint">Klik untuk buka SOP</span><div class="doc-answer"><p>${esc(x.content)}</p></div><div class="doc-admin-row"><button class="ghost-btn doc-delete-btn delete-sop admin-only" type="button" data-i="${i}">🗑 Hapus SOP</button></div></article>`).join("")}
 function requireAdmin(action){if(isAdmin){action();return true}if(currentSession){say("Akun Viewer tidak punya izin Admin");return false}openAuth("Login diperlukan. Akun Viewer hanya dapat melihat konten.");return false}
 async function deleteFaq(i){
