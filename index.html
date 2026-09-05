@@ -814,6 +814,17 @@ function setActive(i,center=true,recordHistory=true){
   if(recordHistory) history=[active,...history.filter(x=>x!==active)].slice(0,20); persist(); updatePlayer(); renderMaterialsMini(); refreshFavButtons();
   if(center)centerCard(active,true);
 }
+function openSelectedVideo(i){
+  i=Number(i);
+  if(!Number.isInteger(i)||!videos[i])return;
+  carouselAutoSelectLockUntil=Date.now()+220;
+  setActive(i,false,true);
+  showPage("dashboard");
+  requestAnimationFrame(()=>{
+    centerRealCard(i,false);
+    updateCoverFlow();
+  });
+}
 function esc(x){return String(x??"").replace(/[&<>\"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]))}
 
 const loopCopies=3;
@@ -821,7 +832,7 @@ let realCount=videos.length;
 let carouselCopies=1;
 let carouselMiddleCopy=0;
 let carouselRaf=0;
-let carouselSelecting=false;
+let carouselAutoSelectLockUntil=0;
 
 function renderCarousel(){
   const scroller=$("scroller");
@@ -848,10 +859,10 @@ function renderCarousel(){
         if(e.target.closest("button"))return;
         if(!carouselHasMoved){
           const chosen=+card.dataset.real;
-          carouselSelecting=true;
+          carouselAutoSelectLockUntil=Date.now()+180;
           setActive(chosen,false,true);
-          rebalanceCarouselAround(chosen);
-          setTimeout(()=>{carouselSelecting=false;updateCoverFlow()},80);
+          centerRealCard(chosen,true);
+          updateCoverFlow();
         }
       });
       scroller.appendChild(card);
@@ -985,7 +996,7 @@ function updateCoverFlow(){
       card.style.filter=ad<.55?"brightness(1.14)":"brightness(.84)";
       card.style.zIndex=String(Math.max(1,30-Math.round(ad*5)));
     });
-    if(closestCard&&!carouselSelecting){
+    if(closestCard&&Date.now()>=carouselAutoSelectLockUntil){
       const real=+closestCard.dataset.real;
       if(real!==active)setActive(real,false,false);
     }
@@ -1384,7 +1395,7 @@ async function deleteVideo(i){
   active=Math.max(0,Math.min(active,videos.length-1));if(videos.length)setActive(active,false,false);say("Video dihapus");
 }
 
-const search=$("globalSearch"),results=$("searchResults");if(search&&results){search.addEventListener("input",()=>{const q=search.value.trim().toLowerCase();if(!q){results.classList.remove("show");return}const a=videos.map((v,i)=>({v,i})).filter(x=>(x.v[0]+" "+x.v[3]).toLowerCase().includes(q)).slice(0,8);results.innerHTML=a.length?a.map(x=>`<div class="search-item" data-i="${x.i}"><b>${esc(x.v[0])}</b><small>${esc(x.v[3])}</small></div>`).join(""):`<div class="search-empty">Tidak ditemukan</div>`;results.classList.add("show");results.querySelectorAll(".search-item").forEach(x=>x.onclick=()=>{setActive(+x.dataset.i,false);showPage("dashboard");results.classList.remove("show")})});document.addEventListener("click",e=>{if(!e.target.closest(".search-wrap"))results.classList.remove("show")})}
+const search=$("globalSearch"),results=$("searchResults");if(search&&results){search.addEventListener("input",()=>{const q=search.value.trim().toLowerCase();if(!q){results.classList.remove("show");return}const a=videos.map((v,i)=>({v,i})).filter(x=>(x.v[0]+" "+x.v[3]).toLowerCase().includes(q)).slice(0,8);results.innerHTML=a.length?a.map(x=>`<div class="search-item" data-i="${x.i}"><b>${esc(x.v[0])}</b><small>${esc(x.v[3])}</small></div>`).join(""):`<div class="search-empty">Tidak ditemukan</div>`;results.classList.add("show");results.querySelectorAll(".search-item").forEach(x=>x.onclick=()=>{openSelectedVideo(+x.dataset.i);results.classList.remove("show")})});document.addEventListener("click",e=>{if(!e.target.closest(".search-wrap"))results.classList.remove("show")})}
 function supabaseReady(){const c=window.PNG_CONFIG||{};return !!(window.supabase&&c.supabaseUrl&&c.supabaseAnonKey&&!c.supabaseUrl.includes("YOUR_")&&!c.supabaseAnonKey.includes("YOUR_"))}
 async function initSupabase(){if(!supabaseReady()){if($("syncBadge"))$("syncBadge").textContent="Mode lokal";return}try{sb=window.supabase.createClient(window.PNG_CONFIG.supabaseUrl,window.PNG_CONFIG.supabaseAnonKey);const {data}=await sb.auth.getSession();await applySession(data.session);sb.auth.onAuthStateChange(async(_e,s)=>{await applySession(s)});await loadRemote();if($("syncBadge"))$("syncBadge").textContent="Online"}catch(e){console.error(e);say("Supabase gagal tersambung")}}
 async function applySession(session){
@@ -1473,7 +1484,7 @@ document.addEventListener("click",e=>{
   if(scDelete){e.preventDefault();e.stopPropagation();const c=scDelete.closest(".card");if(c)deleteVideo(+c.dataset.real);return;}
 
   const open=e.target.closest(".open-video");
-  if(open){e.preventDefault();e.stopPropagation();const i=+open.dataset.i;if(videos[i]){setActive(i,false);showPage("dashboard")}return;}
+  if(open){e.preventDefault();e.stopPropagation();openSelectedVideo(+open.dataset.i);return;}
   const fav=e.target.closest(".fav-video");
   if(fav){e.preventDefault();e.stopPropagation();toggleFav(+fav.dataset.i);return;}
   const list=e.target.closest(".list-video");
@@ -1500,7 +1511,7 @@ document.addEventListener("click",e=>{
   if(sop){sop.classList.toggle("open");const hint=sop.querySelector(".doc-hint");if(hint)hint.textContent=sop.classList.contains("open")?"Klik untuk tutup":"Klik untuk buka SOP";return;}
 
   const row=e.target.closest(".video-row");
-  if(row && !e.target.closest("button")){const i=+row.dataset.videoIndex;if(videos[i]){setActive(i,false);showPage("dashboard")}return;}
+  if(row && !e.target.closest("button")){openSelectedVideo(+row.dataset.videoIndex);return;}
 });
 document.addEventListener("keydown",e=>{
   if(e.key!=="Enter"&&e.key!==" ")return;
