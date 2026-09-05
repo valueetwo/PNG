@@ -851,11 +851,7 @@ function renderCarousel(){
           carouselSelecting=true;
           setActive(chosen,false,true);
           rebalanceCarouselAround(chosen);
-          requestAnimationFrame(()=>{
-            centerRealCard(chosen,false);
-            setActive(chosen,false,false);
-            requestAnimationFrame(()=>{carouselSelecting=false;updateCoverFlow()});
-          });
+          setTimeout(()=>{carouselSelecting=false;updateCoverFlow()},80);
         }
       });
       scroller.appendChild(card);
@@ -1010,11 +1006,13 @@ function setupDrag(){
   scroller.addEventListener("wheel",e=>{
     const delta=Math.abs(e.deltaY)>Math.abs(e.deltaX)?e.deltaY*2.0:e.deltaX;
     if(delta){
-      let target=scroller.scrollLeft+delta;
-      const loop=keepCarouselInsideLoop(target,"wheel");
-      scroller.scrollLeft=loop.target;
+      scroller.scrollLeft+=delta;
       e.preventDefault();
       updateCoverFlow();
+      clearTimeout(scroller._loopTimer);
+      scroller._loopTimer=setTimeout(()=>{
+        rebalanceCarouselAround(active);
+      },120);
     }
   },{passive:false});
   scroller.addEventListener("pointerdown",e=>{
@@ -1030,11 +1028,7 @@ function setupDrag(){
     if(!carouselDrag||(carouselPointer!==null&&e.pointerId!==carouselPointer))return;
     const dx=e.clientX-carouselStartX;
     if(Math.abs(dx)>2){carouselHasMoved=true;dragMoved=true}
-    let target=carouselStartScroll-dx*1.7;
-    const loop=keepCarouselInsideLoop(target,"pointer");
-    if(loop.adjust)carouselStartScroll+=loop.adjust;
-    target=loop.target;
-    scroller.scrollLeft=target;
+    scroller.scrollLeft=carouselStartScroll-dx*1.7;
     updateCoverFlow();
     if(carouselHasMoved&&e.cancelable)e.preventDefault();
   });
@@ -1051,11 +1045,7 @@ function setupDrag(){
     const t=e.touches[0],dx=t.clientX-touchStartX,dy=t.clientY-touchStartY;
     if(Math.abs(dx)<=Math.abs(dy))return;
     if(Math.abs(dx)>3){touchMoved=true;carouselHasMoved=true;dragMoved=true}
-    let target=touchStartScroll-dx;
-    const loop=keepCarouselInsideLoop(target,"touch");
-    if(loop.adjust)touchStartScroll+=loop.adjust;
-    target=loop.target;
-    scroller.scrollLeft=target;
+    scroller.scrollLeft=touchStartScroll-dx;
     updateCoverFlow();
     if(e.cancelable)e.preventDefault();
   },{passive:false});
