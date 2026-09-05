@@ -495,6 +495,13 @@ body.is-owner .owner-only{display:block!important}
   line-height:1.7;
 }
 
+
+/* PC infinite Cover Flow: scrollbar disembunyikan karena posisi card diputar secara sirkular */
+@media(min-width:761px){
+  #dashboard #scroller{scrollbar-width:none!important}
+  #dashboard #scroller::-webkit-scrollbar{display:none!important}
+}
+
 </style>
 </head>
 <body>
@@ -814,6 +821,7 @@ let realCount=videos.length;
 let carouselCopies=1;
 let carouselMiddleCopy=0;
 let carouselRaf=0;
+let carouselSelecting=false;
 
 function renderCarousel(){
   const scroller=$("scroller");
@@ -838,7 +846,17 @@ function renderCarousel(){
       }
       card.addEventListener("click",e=>{
         if(e.target.closest("button"))return;
-        if(!carouselHasMoved){setActive(i,false,true);centerRealCard(i,true)}
+        if(!carouselHasMoved){
+          const chosen=+card.dataset.real;
+          carouselSelecting=true;
+          setActive(chosen,false,true);
+          rebalanceCarouselAround(chosen);
+          requestAnimationFrame(()=>{
+            centerRealCard(chosen,false);
+            setActive(chosen,false,false);
+            requestAnimationFrame(()=>{carouselSelecting=false;updateCoverFlow()});
+          });
+        }
       });
       scroller.appendChild(card);
     });
@@ -912,12 +930,36 @@ function rotateCarouselEdge(dir){
     scroller.insertBefore(last,cards[0]);
     scroller.scrollLeft+=step;
     return step;
-  }else{
-    const first=cards[0];
-    scroller.appendChild(first);
-    scroller.scrollLeft-=step;
-    return -step;
   }
+  const first=cards[0];
+  scroller.appendChild(first);
+  scroller.scrollLeft-=step;
+  return -step;
+}
+function keepCarouselInsideLoop(target,startKey){
+  const scroller=$("scroller");
+  if(!scroller||realCount<3)return {target,adjust:0};
+  const step=cardStep();
+  if(!step)return {target,adjust:0};
+  let adjust=0;
+  let max=Math.max(0,scroller.scrollWidth-scroller.clientWidth);
+  const safe=Math.min(step*2.2,Math.max(step,max*.28));
+
+  let guard=0;
+  while(target<safe && guard++<4){
+    const a=rotateCarouselEdge(-1);
+    if(!a)break;
+    adjust+=a;target+=a;
+    max=Math.max(0,scroller.scrollWidth-scroller.clientWidth);
+  }
+  guard=0;
+  while(target>max-safe && guard++<4){
+    const a=rotateCarouselEdge(1);
+    if(!a)break;
+    adjust+=a;target+=a;
+    max=Math.max(0,scroller.scrollWidth-scroller.clientWidth);
+  }
+  return {target,adjust};
 }
 function updateCoverFlow(){
   const scroller=$("scroller");
@@ -947,7 +989,7 @@ function updateCoverFlow(){
       card.style.filter=ad<.55?"brightness(1.14)":"brightness(.84)";
       card.style.zIndex=String(Math.max(1,30-Math.round(ad*5)));
     });
-    if(closestCard){
+    if(closestCard&&!carouselSelecting){
       const real=+closestCard.dataset.real;
       if(real!==active)setActive(real,false,false);
     }
@@ -968,11 +1010,9 @@ function setupDrag(){
   scroller.addEventListener("wheel",e=>{
     const delta=Math.abs(e.deltaY)>Math.abs(e.deltaX)?e.deltaY*2.0:e.deltaX;
     if(delta){
-      const edge=12;
-      const max=Math.max(0,scroller.scrollWidth-scroller.clientWidth);
-      if(delta<0&&scroller.scrollLeft<=edge)rotateCarouselEdge(-1);
-      if(delta>0&&scroller.scrollLeft>=max-edge)rotateCarouselEdge(1);
-      scroller.scrollLeft+=delta;
+      let target=scroller.scrollLeft+delta;
+      const loop=keepCarouselInsideLoop(target,"wheel");
+      scroller.scrollLeft=loop.target;
       e.preventDefault();
       updateCoverFlow();
     }
@@ -991,15 +1031,9 @@ function setupDrag(){
     const dx=e.clientX-carouselStartX;
     if(Math.abs(dx)>2){carouselHasMoved=true;dragMoved=true}
     let target=carouselStartScroll-dx*1.7;
-    const edge=12;
-    const max=Math.max(0,scroller.scrollWidth-scroller.clientWidth);
-    if(target<=edge){
-      const adjust=rotateCarouselEdge(-1);
-      if(adjust){carouselStartScroll+=adjust;target+=adjust}
-    }else if(target>=max-edge){
-      const adjust=rotateCarouselEdge(1);
-      if(adjust){carouselStartScroll+=adjust;target+=adjust}
-    }
+    const loop=keepCarouselInsideLoop(target,"pointer");
+    if(loop.adjust)carouselStartScroll+=loop.adjust;
+    target=loop.target;
     scroller.scrollLeft=target;
     updateCoverFlow();
     if(carouselHasMoved&&e.cancelable)e.preventDefault();
@@ -1018,15 +1052,9 @@ function setupDrag(){
     if(Math.abs(dx)<=Math.abs(dy))return;
     if(Math.abs(dx)>3){touchMoved=true;carouselHasMoved=true;dragMoved=true}
     let target=touchStartScroll-dx;
-    const edge=10;
-    const max=Math.max(0,scroller.scrollWidth-scroller.clientWidth);
-    if(target<=edge){
-      const adjust=rotateCarouselEdge(-1);
-      if(adjust){touchStartScroll+=adjust;target+=adjust}
-    }else if(target>=max-edge){
-      const adjust=rotateCarouselEdge(1);
-      if(adjust){touchStartScroll+=adjust;target+=adjust}
-    }
+    const loop=keepCarouselInsideLoop(target,"touch");
+    if(loop.adjust)touchStartScroll+=loop.adjust;
+    target=loop.target;
     scroller.scrollLeft=target;
     updateCoverFlow();
     if(e.cancelable)e.preventDefault();
