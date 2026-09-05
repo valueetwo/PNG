@@ -896,29 +896,6 @@ function normalizeLoop(){
   if(scroller.scrollLeft<oneSet*.45)scroller.scrollLeft+=oneSet;
   else if(scroller.scrollLeft>oneSet*1.55)scroller.scrollLeft-=oneSet;
 }
-
-/* Infinite carousel tanpa menggandakan video:
-   saat mendekati ujung, card asli dipindah ke sisi lain sambil menjaga posisi scroll. */
-function rotateCarouselEdge(dir){
-  const scroller=$("scroller");
-  if(!scroller||realCount<2)return 0;
-  const cards=[...scroller.querySelectorAll(".card")];
-  if(cards.length<2)return 0;
-  const step=Math.abs(cards[1].offsetLeft-cards[0].offsetLeft)||cardStep();
-  if(!step)return 0;
-
-  if(dir<0){
-    const last=cards[cards.length-1];
-    scroller.insertBefore(last,cards[0]);
-    scroller.scrollLeft+=step;
-    return step;
-  }else{
-    const first=cards[0];
-    scroller.appendChild(first);
-    scroller.scrollLeft-=step;
-    return -step;
-  }
-}
 function updateCoverFlow(){
   const scroller=$("scroller");
   if(!scroller)return;
@@ -966,13 +943,8 @@ function setupDrag(){
     if(!carouselDrag&&!carouselTouchDragging&&oneSet&&(scroller.scrollLeft<oneSet*.18||scroller.scrollLeft>oneSet*1.82))normalizeLoop();
   },{passive:true});
   scroller.addEventListener("wheel",e=>{
-    const delta=Math.abs(e.deltaY)>Math.abs(e.deltaX)?e.deltaY*2.0:e.deltaX;
-    if(delta){
-      const edge=12;
-      const max=Math.max(0,scroller.scrollWidth-scroller.clientWidth);
-      if(delta<0&&scroller.scrollLeft<=edge)rotateCarouselEdge(-1);
-      if(delta>0&&scroller.scrollLeft>=max-edge)rotateCarouselEdge(1);
-      scroller.scrollLeft+=delta;
+    if(Math.abs(e.deltaY)>Math.abs(e.deltaX)){
+      scroller.scrollLeft+=e.deltaY*2.0;
       e.preventDefault();
       updateCoverFlow();
     }
@@ -990,17 +962,7 @@ function setupDrag(){
     if(!carouselDrag||(carouselPointer!==null&&e.pointerId!==carouselPointer))return;
     const dx=e.clientX-carouselStartX;
     if(Math.abs(dx)>2){carouselHasMoved=true;dragMoved=true}
-    let target=carouselStartScroll-dx*1.7;
-    const edge=12;
-    const max=Math.max(0,scroller.scrollWidth-scroller.clientWidth);
-    if(target<=edge){
-      const adjust=rotateCarouselEdge(-1);
-      if(adjust){carouselStartScroll+=adjust;target+=adjust}
-    }else if(target>=max-edge){
-      const adjust=rotateCarouselEdge(1);
-      if(adjust){carouselStartScroll+=adjust;target+=adjust}
-    }
-    scroller.scrollLeft=target;
+    scroller.scrollLeft=carouselStartScroll-dx*1.7;
     updateCoverFlow();
     if(carouselHasMoved&&e.cancelable)e.preventDefault();
   });
@@ -1017,17 +979,7 @@ function setupDrag(){
     const t=e.touches[0],dx=t.clientX-touchStartX,dy=t.clientY-touchStartY;
     if(Math.abs(dx)<=Math.abs(dy))return;
     if(Math.abs(dx)>3){touchMoved=true;carouselHasMoved=true;dragMoved=true}
-    let target=touchStartScroll-dx;
-    const edge=10;
-    const max=Math.max(0,scroller.scrollWidth-scroller.clientWidth);
-    if(target<=edge){
-      const adjust=rotateCarouselEdge(-1);
-      if(adjust){touchStartScroll+=adjust;target+=adjust}
-    }else if(target>=max-edge){
-      const adjust=rotateCarouselEdge(1);
-      if(adjust){touchStartScroll+=adjust;target+=adjust}
-    }
-    scroller.scrollLeft=target;
+    scroller.scrollLeft=touchStartScroll-dx;
     updateCoverFlow();
     if(e.cancelable)e.preventDefault();
   },{passive:false});
