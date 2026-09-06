@@ -520,6 +520,7 @@ body.is-owner .owner-only{display:block!important}
       <button data-page="riwayat">◷ &nbsp; Riwayat</button>
       <button data-page="playlist">☷ &nbsp; Playlist Saya</button>
       <button class="owner-only" data-page="pengguna">⚙ &nbsp; Account</button>
+      <button class="owner-only" data-page="activity-log">◷ &nbsp; Log Aktivitas</button>
     </div>
 
     <div class="sidebar-bottom">
@@ -659,6 +660,14 @@ body.is-owner .owner-only{display:block!important}
       <div class="content-box"><h3>Akun terdaftar</h3><p>Semua akun baru masuk sebagai permintaan Viewer dan harus disetujui Owner. Owner juga dapat memberikan izin Admin dari halaman ini.</p><div id="userAdminList" class="user-admin-list"></div></div>
     </div>
 
+    <div id="activity-log" class="page-view simple-page">
+      <div class="page-toolbar">
+        <div><h2>Log Aktivitas</h2><p class="lead" style="margin:4px 0 0">Khusus Owner — perubahan data terbaru di PNG Dashboard.</p></div>
+        <button class="admin-add owner-only" id="refreshActivityLog" type="button" style="width:auto;padding:8px 12px">↻ Refresh</button>
+      </div>
+      <div id="activityLogList" class="doc-list"><div class="page-empty">Memuat log...</div></div>
+    </div>
+
   </main>
 
   <aside class="info">
@@ -755,7 +764,7 @@ function showPage(id){
   $$(".page-view").forEach(p=>p.classList.toggle("active",p.id===id));
   const info=document.querySelector(".info"); if(info)info.style.display=id==="dashboard"?"block":"none";
   const layout=document.querySelector(".layout"); if(layout)layout.classList.toggle("content-mode",id!=="dashboard");
-  if(id==="tutorial")renderTutorial(); if(id==="faq")renderFAQ(); if(id==="sop")renderSOP(); if(id==="kategori")renderCategories(); if(id==="favorit")renderListPage("favorit"); if(id==="playlist")renderListPage("playlist"); if(id==="riwayat")renderListPage("riwayat"); if(id==="pengguna")renderUserManagement();
+  if(id==="tutorial")renderTutorial(); if(id==="faq")renderFAQ(); if(id==="sop")renderSOP(); if(id==="kategori")renderCategories(); if(id==="favorit")renderListPage("favorit"); if(id==="playlist")renderListPage("playlist"); if(id==="riwayat")renderListPage("riwayat"); if(id==="pengguna")renderUserManagement(); if(id==="activity-log")renderActivityLogs();
   if(id==="tambah-konten")selectTab("video");
   if(id==="dashboard")requestAnimationFrame(()=>{centerCard(active,false);updateCoverFlow()});
 }
@@ -1342,7 +1351,7 @@ async function applySession(session){
   document.body.classList.toggle("is-admin",isAdmin);document.body.classList.toggle("is-owner",isOwner);
   if($("adminAuthBtn"))$("adminAuthBtn").textContent=session?"🔓 Logout":"🔒 Login / Daftar";
   if($("adminUserLabel"))$("adminUserLabel").innerHTML=session?`${esc(session.user?.email||"User")} <span class="role-badge ${isOwner?"owner":isAdmin?"admin":""}">${isOwner?"OWNER":isAdmin?"ADMIN":"VIEWER"}</span>`:"";
-  const activePage=document.querySelector(".page-view.active");if(activePage?.id==="pengguna"&&!isOwner)showPage("dashboard");
+  const activePage=document.querySelector(".page-view.active");if(["pengguna","activity-log"].includes(activePage?.id)&&!isOwner)showPage("dashboard");
 }
 function setAuthStatus(message,type="pending"){const el=$("authStatus");if(!el)return;el.textContent=message||"";el.className="auth-status"+(message?` show ${type}`:"")}
 function friendlyAuthError(error,mode="login"){
@@ -1383,6 +1392,37 @@ $("doLogin")?.addEventListener("click",async()=>{
   if(!approved){await sb.auth.signOut();setAuthStatus("Permintaan akun masih dalam peninjauan Owner. Silakan coba Login lagi setelah akun disetujui.","pending");return}
   closeAuth();say(access?.is_owner?"Login berhasil sebagai Owner":access?.role==="admin"?"Login berhasil sebagai Admin":"Login berhasil sebagai Viewer");
 });
+
+async function renderActivityLogs(){
+  const root=$("activityLogList");
+  if(!root)return;
+  if(!isOwner||!sb){
+    root.innerHTML='<div class="page-empty">Hanya Owner yang dapat melihat log aktivitas.</div>';
+    return;
+  }
+  root.innerHTML='<div class="page-empty">Memuat log...</div>';
+  try{
+    const {data,error}=await sb
+      .from("activity_logs")
+      .select("id,created_at,actor_email,actor_role,action,target_type,target_name,detail")
+      .order("created_at",{ascending:false})
+      .limit(200);
+    if(error)throw error;
+    const rows=data||[];
+    root.innerHTML=rows.length?rows.map(r=>`
+      <article class="doc-item">
+        <h3>${esc(r.action||"Aktivitas")}${r.target_name?` — ${esc(r.target_name)}`:""}</h3>
+        <p>${esc(r.detail||r.target_type||"-")}</p>
+        <div class="doc-meta">${esc(r.actor_email||"akun")} · ${esc((r.actor_role||"viewer").toUpperCase())} · ${esc(new Date(r.created_at).toLocaleString("id-ID"))}</div>
+      </article>
+    `).join(""):'<div class="page-empty">Belum ada log aktivitas.</div>';
+  }catch(e){
+    console.error(e);
+    root.innerHTML='<div class="page-empty">Log belum dapat dimuat. Pastikan SQL Activity Log yang sebelumnya sudah dijalankan.</div>';
+  }
+}
+$("refreshActivityLog")?.addEventListener("click",renderActivityLogs);
+
 async function renderUserManagement(){
   const root=$("userAdminList");if(!root)return;if(!isOwner){root.innerHTML='<div class="page-empty">Hanya pemilik dashboard yang dapat mengelola pengguna.</div>';return}
   root.innerHTML='<div class="page-empty">Memuat pengguna...</div>';
