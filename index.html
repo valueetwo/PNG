@@ -414,22 +414,6 @@ body.is-owner .owner-only{display:block!important}
 .auth-mode-tabs{display:flex;gap:8px;margin:10px 0 6px}.auth-mode-tabs button{flex:1;padding:8px;border-radius:8px;border:1px solid #303640;background:#0b0f14;color:#cfd5dc}.auth-mode-tabs button.active{border-color:#8a1820;color:white;background:#571018}
 .user-admin-list{display:grid;gap:9px;margin-top:12px}.user-admin-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px;border:1px solid #292e35;border-radius:10px;background:#080b0f}.user-admin-row small{color:#929ba6}.user-admin-actions{display:flex;gap:6px;flex-wrap:wrap}.user-admin-actions button{padding:7px 10px;border-radius:7px;border:1px solid #343b45;background:#0b0f14;color:#d8dde5}.user-admin-actions .promote{border-color:#1f6a42;color:#66d99a}.user-admin-actions .demote{border-color:#7a171f;color:#ff6974}.user-admin-actions .delete-user{border-color:#7a171f;color:#ff6974;background:#16090b}.user-admin-actions .delete-user:hover{background:#4b0b11}
 @media(max-width:760px){.user-admin-row{grid-template-columns:1fr}.user-admin-actions{width:100%}.user-admin-actions button{flex:1}}
-/* ===== OWNER ACTIVITY LOG ===== */
-.log-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:12px 0}
-.log-toolbar input,.log-toolbar select{background:#090d12;border:1px solid #303741;color:#fff;border-radius:8px;padding:9px 10px}
-.log-toolbar input{min-width:220px;flex:1}
-.log-refresh{border:1px solid #6b161d;background:#14090b;color:#ff6671;border-radius:8px;padding:9px 12px;font-weight:700}
-.log-table-wrap{overflow:auto;border:1px solid #252a31;border-radius:11px;background:#070a0e}
-.log-table{width:100%;border-collapse:collapse;min-width:860px;font-size:11px}
-.log-table th,.log-table td{padding:10px 11px;border-bottom:1px solid #20252c;text-align:left;vertical-align:top}
-.log-table th{position:sticky;top:0;background:#0d1116;color:#ff4652;z-index:1}
-.log-table td{color:#c7cdd4}
-.log-table tr:last-child td{border-bottom:0}
-.log-action{display:inline-block;padding:3px 7px;border-radius:999px;border:1px solid #5e151c;color:#ff6671;font-weight:800;font-size:9px;white-space:nowrap}
-.log-role{font-size:9px;color:#9da5ae;text-transform:uppercase}
-.log-detail{color:#8f98a3;max-width:340px;white-space:normal;overflow-wrap:anywhere}
-@media(max-width:760px){.log-toolbar{align-items:stretch}.log-toolbar input,.log-toolbar select,.log-refresh{width:100%;min-width:0}}
-
 
 /* ===== SINGLE VIDEO COMPACT: hilangkan ruang kosong saat hanya ada 1 video ===== */
 .related.single-related{min-height:0!important}
@@ -677,15 +661,11 @@ body.is-owner .owner-only{display:block!important}
     </div>
 
     <div id="activity-log" class="page-view simple-page">
-      <div class="page-toolbar"><div><h2>Log Aktivitas</h2><p class="lead" style="margin:4px 0 0">Khusus Owner. Menampilkan aktivitas akun dan perubahan konten terbaru.</p></div></div>
-      <div class="content-box">
-        <div class="log-toolbar">
-          <input id="logSearch" type="search" placeholder="Cari akun, aktivitas, target...">
-          <select id="logActionFilter"><option value="">Semua aktivitas</option></select>
-          <button id="refreshActivityLog" class="log-refresh" type="button">↻ Refresh</button>
-        </div>
-        <div id="activityLogList"><div class="page-empty">Buka menu ini untuk memuat log.</div></div>
+      <div class="page-toolbar">
+        <div><h2>Log Aktivitas</h2><p class="lead" style="margin:4px 0 0">Khusus Owner — perubahan data terbaru di PNG Dashboard.</p></div>
+        <button class="admin-add owner-only" id="refreshActivityLog" type="button" style="width:auto;padding:8px 12px">↻ Refresh</button>
       </div>
+      <div id="activityLogList" class="doc-list"><div class="page-empty">Memuat log...</div></div>
     </div>
 
   </main>
@@ -784,7 +764,7 @@ function showPage(id){
   $$(".page-view").forEach(p=>p.classList.toggle("active",p.id===id));
   const info=document.querySelector(".info"); if(info)info.style.display=id==="dashboard"?"block":"none";
   const layout=document.querySelector(".layout"); if(layout)layout.classList.toggle("content-mode",id!=="dashboard");
-  if(id==="tutorial")renderTutorial(); if(id==="faq")renderFAQ(); if(id==="sop")renderSOP(); if(id==="kategori")renderCategories(); if(id==="favorit")renderListPage("favorit"); if(id==="playlist")renderListPage("playlist"); if(id==="riwayat")renderListPage("riwayat"); if(id==="pengguna")renderUserManagement() if(id==="activity-log")renderActivityLogs();
+  if(id==="tutorial")renderTutorial(); if(id==="faq")renderFAQ(); if(id==="sop")renderSOP(); if(id==="kategori")renderCategories(); if(id==="favorit")renderListPage("favorit"); if(id==="playlist")renderListPage("playlist"); if(id==="riwayat")renderListPage("riwayat"); if(id==="pengguna")renderUserManagement(); if(id==="activity-log")renderActivityLogs();
   if(id==="tambah-konten")selectTab("video");
   if(id==="dashboard")requestAnimationFrame(()=>{centerCard(active,false);updateCoverFlow()});
 }
@@ -1142,11 +1122,11 @@ async function deleteFaq(i){
       if(!data?.length){say("FAQ belum terhapus — cek policy DELETE Supabase");return}
       faqs.splice(i,1);persist();renderFAQ();
       await loadRemote();
-      await logActivity("HAPUS FAQ","faq",x.question||x.q||"","FAQ dihapus");say("FAQ dihapus");
+      say("FAQ dihapus");
       return;
     }catch(e){console.error(e);say("Gagal menghapus FAQ: "+(e.message||"izin ditolak"));return}
   }
-  faqs.splice(i,1);persist();renderFAQ();await logActivity("HAPUS FAQ","faq",x.question||x.q||"","FAQ dihapus");say("FAQ dihapus");
+  faqs.splice(i,1);persist();renderFAQ();say("FAQ dihapus");
 }
 async function deleteMaterial(i){
   if(!isAdmin)return openAuth();
@@ -1162,20 +1142,19 @@ async function deleteMaterial(i){
     materials.splice(i,1);persist();
   }
   renderTutorial();renderMaterialsMini();
-  await logActivity("HAPUS MATERI","material",m.title||"",`Video induk: ${m.videoTitle||m.video_title||"-"}`);
   say("Materi berhasil dihapus");
 }
 async function deleteSop(i){
   if(!isAdmin)return openAuth();
   const x=sops[i];if(!x)return;
   if(!confirm(`Hapus SOP “${x.title||"ini"}”?`))return;
-  if(sb&&x.id){try{const {error}=await sb.from("sop").delete().eq("id",x.id);if(error)throw error;await loadRemote();await logActivity("HAPUS SOP","sop",x.title||"","SOP dihapus");say("SOP dihapus");return}catch(e){console.error(e);say("Gagal menghapus SOP");return}}
-  sops.splice(i,1);persist();renderSOP();await logActivity("HAPUS SOP","sop",x.title||"","SOP dihapus");say("SOP dihapus");
+  if(sb&&x.id){try{const {error}=await sb.from("sop").delete().eq("id",x.id);if(error)throw error;await loadRemote();say("SOP dihapus");return}catch(e){console.error(e);say("Gagal menghapus SOP");return}}
+  sops.splice(i,1);persist();renderSOP();say("SOP dihapus");
 }
 $("openFaqForm")?.addEventListener("click",()=>requireAdmin(()=>$("faqForm").classList.add("open")));$("cancelFaq")?.addEventListener("click",()=>$("faqForm")?.classList.remove("open"));
-$("saveFaq")?.addEventListener("click",async()=>{if(!isAdmin)return openAuth();const q=$("faqQuestion").value.trim(),a=$("faqAnswer").value.trim(),note=$("faqImportantNote")?.value.trim()||"";if(!q||!a)return say("Isi pertanyaan dan jawaban");const obj={question:q,answer:a,important_note:note};const rr=await remoteInsert("faq",obj);if(rr===false)return;if(rr===null){faqs.unshift(obj);persist()}$("faqQuestion").value=$("faqAnswer").value="";if($("faqImportantNote"))$("faqImportantNote").value="";$("faqForm").classList.remove("open");renderFAQ();await logActivity("TAMBAH FAQ","faq",q,note?"Dengan catatan penting":"");say("FAQ disimpan")});
+$("saveFaq")?.addEventListener("click",async()=>{if(!isAdmin)return openAuth();const q=$("faqQuestion").value.trim(),a=$("faqAnswer").value.trim(),note=$("faqImportantNote")?.value.trim()||"";if(!q||!a)return say("Isi pertanyaan dan jawaban");const obj={question:q,answer:a,important_note:note};const rr=await remoteInsert("faq",obj);if(rr===false)return;if(rr===null){faqs.unshift(obj);persist()}$("faqQuestion").value=$("faqAnswer").value="";if($("faqImportantNote"))$("faqImportantNote").value="";$("faqForm").classList.remove("open");renderFAQ();say("FAQ disimpan")});
 $("openSopForm")?.addEventListener("click",()=>requireAdmin(()=>$("sopForm").classList.add("open")));$("cancelSop")?.addEventListener("click",()=>$("sopForm")?.classList.remove("open"));
-$("saveSop")?.addEventListener("click",async()=>{if(!isAdmin)return openAuth();const title=$("sopTitle").value.trim(),content=$("sopContent").value.trim();if(!title||!content)return say("Isi judul dan SOP");const obj={title,content};const rr=await remoteInsert("sop",obj);if(rr===false)return;if(rr===null){sops.unshift(obj);persist()}$("sopTitle").value=$("sopContent").value="";$("sopForm").classList.remove("open");renderSOP();await logActivity("TAMBAH SOP","sop",title,"SOP baru disimpan");say("SOP disimpan")});
+$("saveSop")?.addEventListener("click",async()=>{if(!isAdmin)return openAuth();const title=$("sopTitle").value.trim(),content=$("sopContent").value.trim();if(!title||!content)return say("Isi judul dan SOP");const obj={title,content};const rr=await remoteInsert("sop",obj);if(rr===false)return;if(rr===null){sops.unshift(obj);persist()}$("sopTitle").value=$("sopContent").value="";$("sopForm").classList.remove("open");renderSOP();say("SOP disimpan")});
 function populateMaterialParentSelect(selected=""){
   const sel=$("materialParentVideo");if(!sel)return;
   sel.innerHTML='<option value="">Pilih video untuk sub materi</option>'+videos.map((v,i)=>`<option value="${i}">${esc(v[0])}</option>`).join("");
@@ -1239,7 +1218,7 @@ $("saveMaterial")?.addEventListener("click",async()=>{
     active=parentIndex;
     resetMaterialForm();
     showPage("tutorial");renderTutorial();
-    await logActivity("EDIT MATERI","material",obj.title,`Video induk: ${targetTitle}`);say("Materi berhasil diperbarui");
+    say("Materi berhasil diperbarui");
     return;
   }
 
@@ -1251,7 +1230,7 @@ $("saveMaterial")?.addEventListener("click",async()=>{
   if($("materialParentVideo"))$("materialParentVideo").disabled=false;
   resetMaterialForm();
   showPage("tutorial");renderTutorial();
-  await logActivity("TAMBAH MATERI","material",obj.title,`Video induk: ${targetTitle}`);say("Video dan materi berhasil disimpan dan sudah terhubung");
+  say("Video dan materi berhasil disimpan dan sudah terhubung");
 });
 function formatVideoDuration(seconds){
   seconds=Math.max(0,Math.round(Number(seconds)||0));
@@ -1334,10 +1313,9 @@ $("saveVideo")?.addEventListener("click",async()=>{
       if(oldTitle&&oldTitle!==title){const {error:me}=await sb.from("materials").update({video_title:title}).eq("video_title",oldTitle);if(me)console.warn(me)}
       await loadRemote();
     }else{const v=videos[editingVideoIndex];v[0]=title;v[1]=dur;v[2]=dur;v[3]=cat;v._description=desc;v._thumb=thumbUrl;v._videoUrl=videoUrl;persist();renderCarousel()}
-    active=Math.max(0,Math.min(editingVideoIndex,videos.length-1));await logActivity("EDIT VIDEO","video",title,oldTitle&&oldTitle!==title?`Judul sebelumnya: ${oldTitle}`:`Kategori: ${cat}`);resetVideoForm();setActive(active,false,true);showPage("dashboard");say("Perubahan video disimpan");return;
+    active=Math.max(0,Math.min(editingVideoIndex,videos.length-1));resetVideoForm();setActive(active,false,true);showPage("dashboard");say("Perubahan video disimpan");return;
   }
   if(sb&&isAdmin){const {error}=await sb.from("videos").insert(remote);if(error){console.error(error);say("Gagal menyimpan video");return}await loadRemote();active=videos.length-1}else{const a=[title,dur,dur,cat];a._description=desc;a._thumb=thumbUrl;a._videoUrl=videoUrl;a._language=remote.language;a._tags=remote.tags;videos.push(a);persist();active=videos.length-1;renderCarousel()}
-  await logActivity("TAMBAH VIDEO","video",title,`Kategori: ${cat}`);
   pendingTutorialVideoTitle=title;
   const exactIndex=videos.findIndex(v=>v[0]===title);
   if(exactIndex>=0)active=exactIndex;
@@ -1359,7 +1337,7 @@ async function deleteVideo(i){
     const {error:me}=await sb.from("materials").delete().eq("video_title",v[0]);if(me)console.warn(me);
     await loadRemote();
   }else{videos.splice(i,1);materials=materials.filter(m=>(m.videoTitle||m.video_title)!==v[0]);persist();renderCarousel()}
-  active=Math.max(0,Math.min(active,videos.length-1));if(videos.length)setActive(active,false,false);await logActivity("HAPUS VIDEO","video",v[0],`Kategori: ${v[3]||"-"}`);say("Video dihapus");
+  active=Math.max(0,Math.min(active,videos.length-1));if(videos.length)setActive(active,false,false);say("Video dihapus");
 }
 
 const search=$("globalSearch"),results=$("searchResults");if(search&&results){search.addEventListener("input",()=>{const q=search.value.trim().toLowerCase();if(!q){results.classList.remove("show");return}const a=videos.map((v,i)=>({v,i})).filter(x=>(x.v[0]+" "+x.v[3]).toLowerCase().includes(q)).slice(0,8);results.innerHTML=a.length?a.map(x=>`<div class="search-item" data-i="${x.i}"><b>${esc(x.v[0])}</b><small>${esc(x.v[3])}</small></div>`).join(""):`<div class="search-empty">Tidak ditemukan</div>`;results.classList.add("show");results.querySelectorAll(".search-item").forEach(x=>x.onclick=()=>{setActive(+x.dataset.i,false);showPage("dashboard");results.classList.remove("show")})});document.addEventListener("click",e=>{if(!e.target.closest(".search-wrap"))results.classList.remove("show")})}
@@ -1390,7 +1368,7 @@ function setAuthMode(mode){authMode=mode==="register"?"register":"login";setAuth
 function openAuth(help){setAuthStatus("");if(help&&$("authHelp"))$("authHelp").textContent=help;$("authModal")?.classList.add("show");$("authModal")?.setAttribute("aria-hidden","false")}
 function closeAuth(){setAuthStatus("");$("authModal")?.classList.remove("show");$("authModal")?.setAttribute("aria-hidden","true")}
 $("authLoginTab")?.addEventListener("click",()=>setAuthMode("login"));$("authRegisterTab")?.addEventListener("click",()=>setAuthMode("register"));
-$("adminAuthBtn")?.addEventListener("click",async()=>{if(currentSession&&sb){await logActivity("LOGOUT","account",currentSession.user?.email||"","Keluar dari PNG Dashboard");await sb.auth.signOut();say("Logout berhasil");return}setAuthMode("login");openAuth(supabaseReady()?"Masuk atau daftar akun PNG.":"Supabase belum disambungkan. Isi config.js terlebih dahulu.")});$("closeAuth")?.addEventListener("click",closeAuth);$("authModal")?.addEventListener("click",e=>{if(e.target.id==="authModal")closeAuth()});
+$("adminAuthBtn")?.addEventListener("click",async()=>{if(currentSession&&sb){await sb.auth.signOut();say("Logout berhasil");return}setAuthMode("login");openAuth(supabaseReady()?"Masuk atau daftar akun PNG.":"Supabase belum disambungkan. Isi config.js terlebih dahulu.")});$("closeAuth")?.addEventListener("click",closeAuth);$("authModal")?.addEventListener("click",e=>{if(e.target.id==="authModal")closeAuth()});
 $("doLogin")?.addEventListener("click",async()=>{
   if(!supabaseReady()){setAuthStatus("Supabase belum terhubung. Periksa config.js terlebih dahulu.","error");return}
   if(!sb)await initSupabase();
@@ -1412,78 +1390,47 @@ $("doLogin")?.addEventListener("click",async()=>{
   try{const res=await sb.from("user_roles").select("role,is_owner,approved").eq("user_id",data.user.id).maybeSingle();if(res.error)throw res.error;access=res.data}catch(e){console.warn(e)}
   const approved=!!(access?.is_owner||access?.approved);
   if(!approved){await sb.auth.signOut();setAuthStatus("Permintaan akun masih dalam peninjauan Owner. Silakan coba Login lagi setelah akun disetujui.","pending");return}
-  await logActivity("LOGIN","account",email,access?.is_owner?"Login sebagai Owner":access?.role==="admin"?"Login sebagai Admin":"Login sebagai Viewer");closeAuth();say(access?.is_owner?"Login berhasil sebagai Owner":access?.role==="admin"?"Login berhasil sebagai Admin":"Login berhasil sebagai Viewer");
+  closeAuth();say(access?.is_owner?"Login berhasil sebagai Owner":access?.role==="admin"?"Login berhasil sebagai Admin":"Login berhasil sebagai Viewer");
 });
+
+async function renderActivityLogs(){
+  const root=$("activityLogList");
+  if(!root)return;
+  if(!isOwner||!sb){
+    root.innerHTML='<div class="page-empty">Hanya Owner yang dapat melihat log aktivitas.</div>';
+    return;
+  }
+  root.innerHTML='<div class="page-empty">Memuat log...</div>';
+  try{
+    const {data,error}=await sb
+      .from("activity_logs")
+      .select("id,created_at,actor_email,actor_role,action,target_type,target_name,detail")
+      .order("created_at",{ascending:false})
+      .limit(200);
+    if(error)throw error;
+    const rows=data||[];
+    root.innerHTML=rows.length?rows.map(r=>`
+      <article class="doc-item">
+        <h3>${esc(r.action||"Aktivitas")} ${r.target_name?`— ${esc(r.target_name)}`:""}</h3>
+        <p>${esc(r.detail||r.target_type||"-")}</p>
+        <div class="doc-meta">${esc(r.actor_email||"akun")} · ${esc((r.actor_role||"viewer").toUpperCase())} · ${esc(new Date(r.created_at).toLocaleString("id-ID"))}</div>
+      </article>
+    `).join(""):'<div class="page-empty">Belum ada log aktivitas.</div>';
+  }catch(e){
+    console.error(e);
+    root.innerHTML='<div class="page-empty">Log belum tersedia. Jalankan UPGRADE-ACTIVITY-LOG-SAFE.sql di Supabase terlebih dahulu.</div>';
+  }
+}
+$("refreshActivityLog")?.addEventListener("click",renderActivityLogs);
+
 async function renderUserManagement(){
   const root=$("userAdminList");if(!root)return;if(!isOwner){root.innerHTML='<div class="page-empty">Hanya pemilik dashboard yang dapat mengelola pengguna.</div>';return}
   root.innerHTML='<div class="page-empty">Memuat pengguna...</div>';
   const {data,error}=await sb.from("user_roles").select("user_id,email,role,is_owner,approved,created_at").order("created_at",{ascending:true});if(error){console.error(error);root.innerHTML='<div class="page-empty">Gagal memuat pengguna. Jalankan UPGRADE-PERSETUJUAN-AKUN.sql.</div>';return}
   root.innerHTML=(data||[]).map(u=>{const pending=!u.is_owner&&!u.approved;const badge=u.is_owner?'<span class="role-badge owner">OWNER</span>':pending?'<span class="role-badge pending">MENUNGGU TINJAUAN</span>':u.role==="admin"?'<span class="role-badge admin">ADMIN</span>':'<span class="role-badge viewer">VIEWER</span>';const controls=u.is_owner?'':`${pending?`<button class="promote" data-user="${u.user_id}" data-role="viewer">✓ Setujui Viewer</button>`:''}<button class="promote" data-user="${u.user_id}" data-role="admin">${u.role==="admin"&&u.approved?'Admin Aktif':'Jadikan Admin'}</button>${u.approved&&u.role==="admin"?`<button class="demote" data-user="${u.user_id}" data-role="viewer">Jadikan Viewer</button>`:''}<button class="delete-user" data-delete-user="${u.user_id}" data-email="${esc(u.email||"")}">🗑 Hapus Akun</button>`;return `<div class="user-admin-row"><div><strong>${esc(u.email||u.user_id)}</strong><br><small>${pending?'Permintaan masih dalam tinjauan':u.is_owner?'Pemilik dashboard':u.role==="admin"?'Akses admin aktif':'Akses viewer aktif'}</small></div><div class="user-admin-actions">${badge}${controls}</div></div>`}).join("")||'<div class="page-empty">Belum ada pengguna.</div>';
-  root.querySelectorAll("button[data-role][data-user]").forEach(b=>b.onclick=async()=>{const userId=b.dataset.user,role=b.dataset.role;if(b.textContent.trim()==="Admin Aktif")return;const msg=role==="admin"?"Setujui akun ini dan berikan izin Admin?":"Setujui akun ini sebagai Viewer?";if(!confirm(msg))return;const {error}=await sb.rpc("owner_set_user_access",{target_user_id:userId,target_role:role});if(error){console.error(error);say("Gagal mengubah izin: "+(error.message||"izin ditolak"));return}await logActivity("UBAH AKSES","account",userId,role==="admin"?"Disetujui / diubah menjadi Admin":"Disetujui / diubah menjadi Viewer");say(role==="admin"?"Akun disetujui sebagai Admin":"Akun disetujui sebagai Viewer");await renderUserManagement()});
-  root.querySelectorAll("button[data-delete-user]").forEach(b=>b.onclick=async()=>{const userId=b.dataset.deleteUser,email=b.dataset.email||"akun ini";if(!confirm(`Hapus ${email} secara permanen? Akun ini tidak akan bisa login lagi.`))return;const {data,error}=await sb.rpc("owner_delete_user",{target_user_id:userId});if(error){console.error(error);say("Gagal hapus akun: "+(error.message||"izin ditolak"));return}await logActivity("HAPUS AKUN","account",email,"Akun dihapus permanen oleh Owner");say("Akun berhasil dihapus");await renderUserManagement()})
+  root.querySelectorAll("button[data-role][data-user]").forEach(b=>b.onclick=async()=>{const userId=b.dataset.user,role=b.dataset.role;if(b.textContent.trim()==="Admin Aktif")return;const msg=role==="admin"?"Setujui akun ini dan berikan izin Admin?":"Setujui akun ini sebagai Viewer?";if(!confirm(msg))return;const {error}=await sb.rpc("owner_set_user_access",{target_user_id:userId,target_role:role});if(error){console.error(error);say("Gagal mengubah izin: "+(error.message||"izin ditolak"));return}say(role==="admin"?"Akun disetujui sebagai Admin":"Akun disetujui sebagai Viewer");await renderUserManagement()});
+  root.querySelectorAll("button[data-delete-user]").forEach(b=>b.onclick=async()=>{const userId=b.dataset.deleteUser,email=b.dataset.email||"akun ini";if(!confirm(`Hapus ${email} secara permanen? Akun ini tidak akan bisa login lagi.`))return;const {data,error}=await sb.rpc("owner_delete_user",{target_user_id:userId});if(error){console.error(error);say("Gagal hapus akun: "+(error.message||"izin ditolak"));return}say("Akun berhasil dihapus");await renderUserManagement()})
 }
-
-async function logActivity(action,targetType="",targetName="",detail=""){
-  if(!sb||!currentSession)return;
-  try{
-    const {error}=await sb.rpc("log_activity",{
-      p_action:String(action||"").slice(0,80),
-      p_target_type:String(targetType||"").slice(0,80),
-      p_target_name:String(targetName||"").slice(0,240),
-      p_detail:String(detail||"").slice(0,1000)
-    });
-    if(error)console.warn("Log aktivitas gagal:",error.message||error);
-  }catch(e){console.warn("Log aktivitas gagal:",e)}
-}
-let activityLogRows=[];
-function formatLogTime(v){
-  try{return new Intl.DateTimeFormat("id-ID",{dateStyle:"medium",timeStyle:"medium"}).format(new Date(v))}
-  catch(_e){return String(v||"")}
-}
-function drawActivityLogs(){
-  const root=$("activityLogList");if(!root)return;
-  const q=($("logSearch")?.value||"").trim().toLowerCase();
-  const action=$("logActionFilter")?.value||"";
-  const rows=activityLogRows.filter(r=>{
-    if(action&&r.action!==action)return false;
-    if(!q)return true;
-    return [r.actor_email,r.actor_role,r.action,r.target_type,r.target_name,r.detail].some(x=>String(x||"").toLowerCase().includes(q));
-  });
-  if(!rows.length){root.innerHTML='<div class="page-empty">Tidak ada log yang cocok.</div>';return}
-  root.innerHTML=`<div class="log-table-wrap"><table class="log-table"><thead><tr><th>Waktu</th><th>Akun</th><th>Role</th><th>Aktivitas</th><th>Target</th><th>Detail</th></tr></thead><tbody>${rows.map(r=>`<tr>
-    <td>${esc(formatLogTime(r.created_at))}</td>
-    <td>${esc(r.actor_email||"-")}</td>
-    <td><span class="log-role">${esc(r.actor_role||"-")}</span></td>
-    <td><span class="log-action">${esc(r.action||"-")}</span></td>
-    <td>${esc(r.target_type||"-")}${r.target_name?`<br><small>${esc(r.target_name)}</small>`:""}</td>
-    <td class="log-detail">${esc(r.detail||"-")}</td>
-  </tr>`).join("")}</tbody></table></div>`;
-}
-async function renderActivityLogs(){
-  const root=$("activityLogList");if(!root)return;
-  if(!isOwner||!sb){root.innerHTML='<div class="page-empty">Hanya Owner yang dapat melihat log aktivitas.</div>';return}
-  root.innerHTML='<div class="page-empty">Memuat log...</div>';
-  try{
-    const {data,error}=await sb.from("activity_logs").select("id,created_at,actor_user_id,actor_email,actor_role,action,target_type,target_name,detail").order("created_at",{ascending:false}).limit(300);
-    if(error)throw error;
-    activityLogRows=data||[];
-    const sel=$("logActionFilter");
-    if(sel){
-      const current=sel.value;
-      const actions=[...new Set(activityLogRows.map(r=>r.action).filter(Boolean))].sort();
-      sel.innerHTML='<option value="">Semua aktivitas</option>'+actions.map(a=>`<option value="${esc(a)}">${esc(a)}</option>`).join("");
-      if(actions.includes(current))sel.value=current;
-    }
-    drawActivityLogs();
-  }catch(e){
-    console.error(e);
-    root.innerHTML='<div class="page-empty">Log belum tersedia. Jalankan file UPGRADE-ACTIVITY-LOG-OWNER.sql di Supabase terlebih dahulu.</div>';
-  }
-}
-$("logSearch")?.addEventListener("input",drawActivityLogs);
-$("logActionFilter")?.addEventListener("change",drawActivityLogs);
-$("refreshActivityLog")?.addEventListener("click",renderActivityLogs);
-
 async function uploadMedia(file,folder){
   if(!file)return "";
   if(!sb||!isAdmin)return "";
