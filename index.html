@@ -1340,7 +1340,96 @@ async function deleteVideo(i){
   active=Math.max(0,Math.min(active,videos.length-1));if(videos.length)setActive(active,false,false);say("Video dihapus");
 }
 
-const search=$("globalSearch"),results=$("searchResults");if(search&&results){search.addEventListener("input",()=>{const q=search.value.trim().toLowerCase();if(!q){results.classList.remove("show");return}const a=videos.map((v,i)=>({v,i})).filter(x=>(x.v[0]+" "+x.v[3]).toLowerCase().includes(q)).slice(0,8);results.innerHTML=a.length?a.map(x=>`<div class="search-item" data-i="${x.i}"><b>${esc(x.v[0])}</b><small>${esc(x.v[3])}</small></div>`).join(""):`<div class="search-empty">Tidak ditemukan</div>`;results.classList.add("show");results.querySelectorAll(".search-item").forEach(x=>x.onclick=()=>{setActive(+x.dataset.i,false);showPage("dashboard");results.classList.remove("show")})});document.addEventListener("click",e=>{if(!e.target.closest(".search-wrap"))results.classList.remove("show")})}
+const search=$("globalSearch"),results=$("searchResults");
+if(search&&results){
+  search.addEventListener("input",()=>{
+    const q=search.value.trim().toLowerCase();
+    if(!q){results.classList.remove("show");results.innerHTML="";return}
+
+    const found=[];
+
+    videos.forEach((v,i)=>{
+      const hay=[
+        v?.[0],v?.[3],v?._description,
+        ...(Array.isArray(v?._tags)?v._tags:[])
+      ].join(" ").toLowerCase();
+      if(hay.includes(q))found.push({
+        type:"video",i,
+        title:v?.[0]||"Video",
+        meta:`Video · ${v?.[3]||"Tutorial"}`
+      });
+    });
+
+    faqs.forEach((x,i)=>{
+      const title=x?.question||x?.q||"FAQ";
+      const hay=[
+        title,
+        x?.answer||x?.a,
+        x?.important_note
+      ].join(" ").toLowerCase();
+      if(hay.includes(q))found.push({
+        type:"faq",i,
+        title,
+        meta:"FAQ"
+      });
+    });
+
+    sops.forEach((x,i)=>{
+      const title=x?.title||"SOP";
+      const hay=[title,x?.content].join(" ").toLowerCase();
+      if(hay.includes(q))found.push({
+        type:"sop",i,
+        title,
+        meta:"SOP"
+      });
+    });
+
+    const shown=found.slice(0,12);
+    results.innerHTML=shown.length
+      ?shown.map(x=>`<div class="search-item" data-type="${esc(x.type)}" data-i="${x.i}"><b>${esc(x.title)}</b><small>${esc(x.meta)}</small></div>`).join("")
+      :`<div class="search-empty">Tidak ditemukan</div>`;
+    results.classList.add("show");
+
+    results.querySelectorAll(".search-item").forEach(item=>item.onclick=()=>{
+      const type=item.dataset.type;
+      const i=Number(item.dataset.i);
+
+      if(type==="video"&&videos[i]){
+        setActive(i,false);
+        showPage("dashboard");
+      }else if(type==="faq"&&faqs[i]){
+        showPage("faq");
+        requestAnimationFrame(()=>{
+          const card=document.querySelector(`#faqList .faq-doc[data-doc-index="${i}"]`);
+          if(card){
+            card.classList.add("open");
+            const hint=card.querySelector(".doc-hint");
+            if(hint)hint.textContent="Klik untuk tutup";
+            card.scrollIntoView({behavior:"smooth",block:"center"});
+          }
+        });
+      }else if(type==="sop"&&sops[i]){
+        showPage("sop");
+        requestAnimationFrame(()=>{
+          const card=document.querySelector(`#sopList .sop-doc[data-doc-index="${i}"]`);
+          if(card){
+            card.classList.add("open");
+            const hint=card.querySelector(".doc-hint");
+            if(hint)hint.textContent="Klik untuk tutup";
+            card.scrollIntoView({behavior:"smooth",block:"center"});
+          }
+        });
+      }
+
+      search.value="";
+      results.classList.remove("show");
+      results.innerHTML="";
+    });
+  });
+  document.addEventListener("click",e=>{
+    if(!e.target.closest(".search-wrap"))results.classList.remove("show")
+  });
+}
 function supabaseReady(){const c=window.PNG_CONFIG||{};return !!(window.supabase&&c.supabaseUrl&&c.supabaseAnonKey&&!c.supabaseUrl.includes("YOUR_")&&!c.supabaseAnonKey.includes("YOUR_"))}
 async function initSupabase(){if(!supabaseReady()){if($("syncBadge"))$("syncBadge").textContent="Mode lokal";return}try{sb=window.supabase.createClient(window.PNG_CONFIG.supabaseUrl,window.PNG_CONFIG.supabaseAnonKey);const {data}=await sb.auth.getSession();await applySession(data.session);sb.auth.onAuthStateChange(async(_e,s)=>{await applySession(s)});await loadRemote();if($("syncBadge"))$("syncBadge").textContent="Online"}catch(e){console.error(e);say("Supabase gagal tersambung")}}
 async function applySession(session){
