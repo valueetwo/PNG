@@ -514,7 +514,7 @@ body.is-owner .owner-only{display:block!important}
       <button class="active" data-page="dashboard">⌂ &nbsp; Home</button>
       <button data-page="tutorial">▣ &nbsp; Tutorial Video</button>
       <button data-page="faq">ⓘ &nbsp; FAQ</button>
-      <button data-page="sop">▤ &nbsp; SOP</button>
+      <button data-page="Notes">▤ &nbsp; Notes</button>
       <button data-page="kategori">□ &nbsp; Kategori</button>
       <button data-page="favorit">☆ &nbsp; Favorit</button>
       <button data-page="riwayat">◷ &nbsp; Riwayat</button>
@@ -527,7 +527,7 @@ body.is-owner .owner-only{display:block!important}
       <div class="mascot-wrap"><img class="mascot" src="mascot.png" alt="Maskot kecil"></div>
       <div class="help">
         <strong>🎧 Pusat Tutorial & Dokumentasi</strong>
-        Temukan tutorial, FAQ, dan SOP yang kamu butuhkan dengan mudah.
+        Temukan tutorial, FAQ, dan Notes yang kamu butuhkan dengan mudah.
       </div>
     </div>
   </aside>
@@ -585,7 +585,7 @@ body.is-owner .owner-only{display:block!important}
 
     <div id="tutorial" class="page-view simple-page"><h2>Tutorial Video</h2><p class="lead">Pilih tutorial yang ingin dipelajari.</p><div class="content-grid"><div class="content-box"><h3>Manajemen Data</h3><p>Panduan mengelola data pada PNG Dashboard.</p></div><div class="content-box"><h3>Pengaturan Akun</h3><p>Panduan pengaturan profil dan akun.</p></div><div class="content-box"><h3>Keamanan Data</h3><p>Materi dasar menjaga keamanan data.</p></div><div class="content-box"><h3>Backup & Restore</h3><p>Panduan pencadangan dan pemulihan data.</p></div></div></div>
     <div id="faq" class="page-view simple-page"><div class="admin-split"><section><h2>FAQ</h2><p class="lead">Pertanyaan yang sering ditanyakan.</p><div id="faqList" class="doc-list"></div></section><aside class="admin-side"><div class="nezha-brand"><img src="nezha-png.png" alt="Nezha bersandar di PNG"></div><div class="admin-card"><h3>Tambah FAQ</h3><p>Tambahkan pertanyaan dan jawaban baru.</p><button class="admin-add admin-only" id="openFaqForm" type="button">＋ Tambah FAQ</button><div class="form-panel" id="faqForm"><input id="faqQuestion" placeholder="Pertanyaan"><textarea id="faqAnswer" placeholder="Jawaban FAQ"></textarea><textarea id="faqImportantNote" placeholder="Catatan penting (opsional)"></textarea><div class="form-actions"><button class="ghost-btn" id="cancelFaq" type="button">Batal</button><button class="red-btn" id="saveFaq" type="button">Simpan</button></div></div></div></aside></div></div>
-    <div id="sop" class="page-view simple-page"><div class="admin-split"><section><h2>SOP</h2><p class="lead">Dokumen prosedur kerja PNG.</p><div id="sopList" class="doc-list"></div></section><aside class="admin-side"><div class="nezha-brand"><img src="nezha-png.png" alt="Nezha bersandar di PNG"></div><div class="admin-card"><h3>Tambah SOP</h3><p>Tambahkan prosedur kerja baru.</p><button class="admin-add admin-only" id="openSopForm" type="button">＋ Tambah SOP</button><div class="form-panel" id="sopForm"><input id="sopTitle" placeholder="Judul SOP"><textarea id="sopContent" placeholder="Isi / langkah SOP"></textarea><div class="form-actions"><button class="ghost-btn" id="cancelSop" type="button">Batal</button><button class="red-btn" id="saveSop" type="button">Simpan</button></div></div></div></aside></div></div>
+    <div id="Notes" class="page-view simple-page"><div class="admin-split"><section><h2>Notes</h2><p class="lead">Dokumen prosedur kerja PNG.</p><div id="NotesList" class="doc-list"></div></section><aside class="admin-side"><div class="nezha-brand"><img src="nezha-png.png" alt="Nezha bersandar di PNG"></div><div class="admin-card"><h3>Tambah Notes</h3><p>Tambahkan prosedur kerja baru.</p><button class="admin-add admin-only" id="openNotesForm" type="button">＋ Tambah Notes</button><div class="form-panel" id="NotesForm"><input id="NotesTitle" placeholder="Judul Notes"><textarea id="NotesContent" placeholder="Isi / langkah Notes"></textarea><div class="form-actions"><button class="ghost-btn" id="cancelNotes" type="button">Batal</button><button class="red-btn" id="saveNotes" type="button">Simpan</button></div></div></div></aside></div></div>
     <div id="kategori" class="page-view simple-page"><h2>Kategori</h2><p class="lead">Cari materi berdasarkan kategori.</p><div class="content-grid"><div class="content-box"><h3>Dasar Sistem</h3><p>Login, navigasi, dan penggunaan dasar.</p></div><div class="content-box"><h3>Manajemen Data</h3><p>Pengelolaan, laporan, backup, dan keamanan.</p></div></div></div>
     <div id="favorit" class="page-view simple-page"><h2>Favorit</h2><p class="lead">Tutorial yang kamu simpan akan tampil di sini.</p><div class="content-box"><h3>Belum ada favorit</h3><p>Nanti kita bisa tambahkan tombol bintang pada setiap tutorial.</p></div></div>
     <div id="riwayat" class="page-view simple-page"><h2>Riwayat</h2><p class="lead">Daftar tutorial yang terakhir dibuka.</p><div class="content-box"><h3>Manajemen Data</h3><p>Terakhir dilihat • 7 menit 12 detik</p></div></div>
@@ -739,9 +739,9 @@ const DEFAULT_FAQ=[
   {question:"Bagaimana cara login?",answer:"Gunakan akun yang sudah diberikan lalu masuk melalui halaman login."},
   {question:"Lupa kata sandi?",answer:"Hubungi admin atau gunakan alur pemulihan akun yang tersedia."}
 ];
-const DEFAULT_SOP=[
-  {title:"SOP Pengelolaan Data",content:"Alur dasar input, pemeriksaan, dan pembaruan data."},
-  {title:"SOP Backup",content:"Langkah pencadangan data secara berkala."}
+const DEFAULT_Notes=[
+  {title:"Notes Pengelolaan Data",content:"Alur dasar input, pemeriksaan, dan pembaruan data."},
+  {title:"Notes Backup",content:"Langkah pencadangan data secara berkala."}
 ];
 const KEY="png-dashboard-ui-v3";
 let saved={}; try{saved=JSON.parse(localStorage.getItem(KEY)||"{}")}catch(e){}
@@ -750,12 +750,12 @@ function videoFromRow(r){const a=[r.title,r.duration||"5:00",r.duration_label||r
 let videos=Array.isArray(saved.videos)&&saved.videos.length?saved.videos:baseVideos.map(makeBaseVideo);
 let materials=Array.isArray(saved.materials)?saved.materials:[];
 let faqs=Array.isArray(saved.faqs)?saved.faqs:[...DEFAULT_FAQ];
-let sops=Array.isArray(saved.sops)&&saved.sops.length?saved.sops:[...DEFAULT_SOP];
+let Notes=Array.isArray(saved.Notes)&&saved.Notes.length?saved.Notes:[...DEFAULT_Notes];
 let favorites=new Set(saved.favorites||[]), playlist=new Set(saved.playlist||[]), history=saved.history||[];
 let active=Math.min(Number.isInteger(saved.active)?saved.active:3,videos.length-1);
 let playing=false, elapsed=0, timer=null, muted=false, subtitle=false, dragMoved=false;
-let isAdmin=false, isOwner=false, currentSession=null, currentRole="viewer", authMode="login", sb=null, editingVideoIndex=null, editingMaterialIndex=null, editingFaqIndex=null, editingSopIndex=null;
-function persist(){try{localStorage.setItem(KEY,JSON.stringify({videos,materials,faqs,sops,favorites:[...favorites],playlist:[...playlist],history,active}))}catch(e){/* private/blocked storage: UI tetap jalan */}}
+let isAdmin=false, isOwner=false, currentSession=null, currentRole="viewer", authMode="login", sb=null, editingVideoIndex=null, editingMaterialIndex=null, editingFaqIndex=null, editingNotesIndex=null;
+function persist(){try{localStorage.setItem(KEY,JSON.stringify({videos,materials,faqs,Notes,favorites:[...favorites],playlist:[...playlist],history,active}))}catch(e){/* private/blocked storage: UI tetap jalan */}}
 function say(msg){const t=$("toast"); if(!t)return; t.textContent=msg;t.classList.add("show");clearTimeout(t._timer);t._timer=setTimeout(()=>t.classList.remove("show"),1800)}
 function secs(t){const a=String(t||"0:00").split(":").map(Number);return (a[0]||0)*60+(a[1]||0)}
 function clock(s){s=Math.max(0,Math.floor(s));return Math.floor(s/60)+":"+String(s%60).padStart(2,"0")}
@@ -764,7 +764,7 @@ function showPage(id){
   $$(".page-view").forEach(p=>p.classList.toggle("active",p.id===id));
   const info=document.querySelector(".info"); if(info)info.style.display=id==="dashboard"?"block":"none";
   const layout=document.querySelector(".layout"); if(layout)layout.classList.toggle("content-mode",id!=="dashboard");
-  if(id==="tutorial")renderTutorial(); if(id==="faq")renderFAQ(); if(id==="sop")renderSOP(); if(id==="kategori")renderCategories(); if(id==="favorit")renderListPage("favorit"); if(id==="playlist")renderListPage("playlist"); if(id==="riwayat")renderListPage("riwayat"); if(id==="pengguna")renderUserManagement(); if(id==="activity-log")renderActivityLogs();
+  if(id==="tutorial")renderTutorial(); if(id==="faq")renderFAQ(); if(id==="Notes")renderNotes(); if(id==="kategori")renderCategories(); if(id==="favorit")renderListPage("favorit"); if(id==="playlist")renderListPage("playlist"); if(id==="riwayat")renderListPage("riwayat"); if(id==="pengguna")renderUserManagement(); if(id==="activity-log")renderActivityLogs();
   if(id==="tambah-konten")selectTab("video");
   if(id==="dashboard")requestAnimationFrame(()=>{centerCard(active,false);updateCoverFlow()});
 }
@@ -1109,7 +1109,7 @@ $("openMaterialDetail")?.addEventListener("click",()=>{
 });
 $("materialDetailBack")?.addEventListener("click",()=>showPage("dashboard"));
 function renderFAQ(){const l=$("faqList");if(!l)return;l.innerHTML=faqs.length?faqs.map((x,i)=>`<article class="doc-item clickable-doc faq-doc" tabindex="0" data-doc-index="${i}"><h3>${esc(x.question||x.q)}</h3><span class="doc-hint">Klik untuk buka jawaban</span><div class="doc-answer"><p class="faq-answer-text">${esc(x.answer||x.a)}</p>${x.important_note?`<div class="faq-important"><b>💡 Catatan penting</b><div class="faq-important-text">${esc(x.important_note)}</div></div>`:""}</div><div class="doc-admin-row"><button class="ghost-btn doc-edit-btn edit-faq admin-only" type="button" data-i="${i}">✏ Edit FAQ</button><button class="ghost-btn doc-delete-btn delete-faq admin-only" type="button" data-i="${i}">🗑 Hapus FAQ</button></div></article>`).join(""):`<div class="page-empty">Belum ada FAQ.</div>`}
-function renderSOP(){const l=$("sopList");if(!l)return;l.innerHTML=sops.map((x,i)=>`<article class="doc-item clickable-doc sop-doc" tabindex="0" data-doc-index="${i}"><h3>${esc(x.title)}</h3><span class="doc-hint">Klik untuk buka SOP</span><div class="doc-answer"><p>${esc(x.content)}</p></div><div class="doc-admin-row"><button class="ghost-btn doc-edit-btn edit-sop admin-only" type="button" data-i="${i}">✏ Edit SOP</button><button class="ghost-btn doc-delete-btn delete-sop admin-only" type="button" data-i="${i}">🗑 Hapus SOP</button></div></article>`).join("")}
+function renderNotes(){const l=$("NotesList");if(!l)return;l.innerHTML=Notes.map((x,i)=>`<article class="doc-item clickable-doc Notes-doc" tabindex="0" data-doc-index="${i}"><h3>${esc(x.title)}</h3><span class="doc-hint">Klik untuk buka Notes</span><div class="doc-answer"><p>${esc(x.content)}</p></div><div class="doc-admin-row"><button class="ghost-btn doc-edit-btn edit-Notes admin-only" type="button" data-i="${i}">✏ Edit Notes</button><button class="ghost-btn doc-delete-btn delete-Notes admin-only" type="button" data-i="${i}">🗑 Hapus Notes</button></div></article>`).join("")}
 function requireAdmin(action){if(isAdmin){action();return true}if(currentSession){say("Akun Viewer tidak punya izin Admin");return false}openAuth("Login diperlukan. Akun Viewer hanya dapat melihat konten.");return false}
 async function deleteFaq(i){
   if(!isAdmin)return openAuth();
@@ -1144,12 +1144,12 @@ async function deleteMaterial(i){
   renderTutorial();renderMaterialsMini();
   say("Materi berhasil dihapus");
 }
-async function deleteSop(i){
+async function deleteNotes(i){
   if(!isAdmin)return openAuth();
-  const x=sops[i];if(!x)return;
-  if(!confirm(`Hapus SOP “${x.title||"ini"}”?`))return;
-  if(sb&&x.id){try{const {error}=await sb.from("sop").delete().eq("id",x.id);if(error)throw error;await loadRemote();say("SOP dihapus");return}catch(e){console.error(e);say("Gagal menghapus SOP");return}}
-  sops.splice(i,1);persist();renderSOP();say("SOP dihapus");
+  const x=Notes[i];if(!x)return;
+  if(!confirm(`Hapus Notes “${x.title||"ini"}”?`))return;
+  if(sb&&x.id){try{const {error}=await sb.from("Notes").delete().eq("id",x.id);if(error)throw error;await loadRemote();say("Notes dihapus");return}catch(e){console.error(e);say("Gagal menghapus Notes");return}}
+  Notes.splice(i,1);persist();renderNotes();say("Notes dihapus");
 }
 function resetFaqForm(){
   editingFaqIndex=null;
@@ -1225,79 +1225,79 @@ $("saveFaq")?.addEventListener("click",async()=>{
   renderFAQ();
   say("FAQ disimpan");
 });
-function resetSopForm(){
-  editingSopIndex=null;
-  if($("sopTitle"))$("sopTitle").value="";
-  if($("sopContent"))$("sopContent").value="";
-  if($("saveSop"))$("saveSop").textContent="Simpan";
+function resetNotesForm(){
+  editingNotesIndex=null;
+  if($("NotesTitle"))$("NotesTitle").value="";
+  if($("NotesContent"))$("NotesContent").value="";
+  if($("saveNotes"))$("saveNotes").textContent="Simpan";
 }
-function openSopEditor(i){
+function openNotesEditor(i){
   if(!isAdmin)return openAuth();
-  const x=sops[i];
+  const x=Notes[i];
   if(!x)return;
-  editingSopIndex=i;
-  $("sopTitle").value=x.title||"";
-  $("sopContent").value=x.content||"";
-  if($("saveSop"))$("saveSop").textContent="✓ Simpan Perubahan";
-  $("sopForm")?.classList.add("open");
-  $("sopTitle")?.focus();
-  $("sopForm")?.scrollIntoView({behavior:"smooth",block:"center"});
+  editingNotesIndex=i;
+  $("NotesTitle").value=x.title||"";
+  $("NotesContent").value=x.content||"";
+  if($("saveNotes"))$("saveNotes").textContent="✓ Simpan Perubahan";
+  $("NotesForm")?.classList.add("open");
+  $("NotesTitle")?.focus();
+  $("NotesForm")?.scrollIntoView({behavior:"smooth",block:"center"});
 }
-$("openSopForm")?.addEventListener("click",()=>requireAdmin(()=>{
-  resetSopForm();
-  $("sopForm").classList.add("open");
+$("openNotesForm")?.addEventListener("click",()=>requireAdmin(()=>{
+  resetNotesForm();
+  $("NotesForm").classList.add("open");
 }));
-$("cancelSop")?.addEventListener("click",()=>{
-  resetSopForm();
-  $("sopForm")?.classList.remove("open");
+$("cancelNotes")?.addEventListener("click",()=>{
+  resetNotesForm();
+  $("NotesForm")?.classList.remove("open");
 });
-$("saveSop")?.addEventListener("click",async()=>{
+$("saveNotes")?.addEventListener("click",async()=>{
   if(!isAdmin)return openAuth();
 
-  const title=$("sopTitle").value.trim();
-  const content=$("sopContent").value.trim();
-  if(!title||!content)return say("Isi judul dan SOP");
+  const title=$("NotesTitle").value.trim();
+  const content=$("NotesContent").value.trim();
+  if(!title||!content)return say("Isi judul dan Notes");
 
   const obj={title,content};
 
-  if(editingSopIndex!==null){
-    const i=editingSopIndex;
-    const old=sops[i];
-    if(!old)return resetSopForm();
+  if(editingNotesIndex!==null){
+    const i=editingNotesIndex;
+    const old=Notes[i];
+    if(!old)return resetNotesForm();
 
     if(sb&&old.id){
       try{
-        const {error}=await sb.from("sop").update(obj).eq("id",old.id);
+        const {error}=await sb.from("Notes").update(obj).eq("id",old.id);
         if(error)throw error;
         await loadRemote();
       }catch(e){
         console.error(e);
-        say("Gagal mengedit SOP");
+        say("Gagal mengedit Notes");
         return;
       }
     }else{
-      sops[i]={...old,...obj};
+      Notes[i]={...old,...obj};
       persist();
     }
 
-    resetSopForm();
-    $("sopForm")?.classList.remove("open");
-    renderSOP();
-    say("SOP berhasil diperbarui");
+    resetNotesForm();
+    $("NotesForm")?.classList.remove("open");
+    renderNotes();
+    say("Notes berhasil diperbarui");
     return;
   }
 
-  const rr=await remoteInsert("sop",obj);
+  const rr=await remoteInsert("Notes",obj);
   if(rr===false)return;
   if(rr===null){
-    sops.unshift(obj);
+    Notes.unshift(obj);
     persist();
   }
 
-  resetSopForm();
-  $("sopForm")?.classList.remove("open");
-  renderSOP();
-  say("SOP disimpan");
+  resetNotesForm();
+  $("NotesForm")?.classList.remove("open");
+  renderNotes();
+  say("Notes disimpan");
 });
 function populateMaterialParentSelect(selected=""){
   const sel=$("materialParentVideo");if(!sel)return;
@@ -1513,11 +1513,11 @@ if(search&&results){
       }
     });
 
-    sops.forEach((x,i)=>{
-      const title=x?.title||"SOP";
+    Notes.forEach((x,i)=>{
+      const title=x?.title||"Notes";
       const hay=[title,x?.content].filter(Boolean).join(" ").toLowerCase();
       if(hay.includes(q)){
-        found.push({type:"sop",i,title,meta:"SOP"});
+        found.push({type:"Notes",i,title,meta:"Notes"});
       }
     });
 
@@ -1546,10 +1546,10 @@ if(search&&results){
               card.scrollIntoView({behavior:"smooth",block:"center"});
             }
           });
-        }else if(type==="sop"&&sops[i]){
-          showPage("sop");
+        }else if(type==="Notes"&&Notes[i]){
+          showPage("Notes");
           requestAnimationFrame(()=>{
-            const card=document.querySelector(`#sopList .sop-doc[data-doc-index="${i}"]`);
+            const card=document.querySelector(`#NotesList .Notes-doc[data-doc-index="${i}"]`);
             if(card){
               card.classList.add("open");
               const hint=card.querySelector(".doc-hint");
@@ -1673,7 +1673,7 @@ async function uploadMedia(file,folder){
   }catch(e){console.error(e);say("Upload file gagal");return ""}
 }
 async function remoteInsert(table,obj){if(!sb||!isAdmin)return null;try{const {error}=await sb.from(table).insert(obj);if(error)throw error;await loadRemote();return true}catch(e){console.error(e);say("Gagal simpan online — jalankan SUPABASE-UPGRADE.sql");return false}}
-async function loadRemote(){if(!sb)return;try{const [v,m,f,s]=await Promise.all([sb.from("videos").select("*").order("created_at"),sb.from("materials").select("*").order("created_at"),sb.from("faq").select("*").order("created_at"),sb.from("sop").select("*").order("created_at")]);const rows=v.data||[];const overrides=new Map(rows.filter(r=>r.base_key).map(r=>[r.base_key,r]));const merged=[];baseVideos.forEach((bv,i)=>{const key=`base-${i}`,r=overrides.get(key);if(r?.is_deleted)return;if(r){const a=videoFromRow(r);a._isBase=true;merged.push(a)}else merged.push(makeBaseVideo(bv,i))});rows.filter(r=>!r.base_key&&!r.is_deleted).forEach(r=>merged.push(videoFromRow(r)));videos=merged;if(m.data)materials=m.data.map(x=>({...x,videoTitle:x.video_title}));if(f.data)faqs=f.data;if(s.data)sops=s.data;active=Math.min(active,Math.max(0,videos.length-1));renderCarousel();if(videos.length)setActive(active,false,false);renderFAQ();renderSOP()}catch(e){console.error(e);say("Data Supabase gagal dimuat")}}
+async function loadRemote(){if(!sb)return;try{const [v,m,f,s]=await Promise.all([sb.from("videos").select("*").order("created_at"),sb.from("materials").select("*").order("created_at"),sb.from("faq").select("*").order("created_at"),sb.from("Notes").select("*").order("created_at")]);const rows=v.data||[];const overrides=new Map(rows.filter(r=>r.base_key).map(r=>[r.base_key,r]));const merged=[];baseVideos.forEach((bv,i)=>{const key=`base-${i}`,r=overrides.get(key);if(r?.is_deleted)return;if(r){const a=videoFromRow(r);a._isBase=true;merged.push(a)}else merged.push(makeBaseVideo(bv,i))});rows.filter(r=>!r.base_key&&!r.is_deleted).forEach(r=>merged.push(videoFromRow(r)));videos=merged;if(m.data)materials=m.data.map(x=>({...x,videoTitle:x.video_title}));if(f.data)faqs=f.data;if(s.data)Notes=s.data;active=Math.min(active,Math.max(0,videos.length-1));renderCarousel();if(videos.length)setActive(active,false,false);renderFAQ();renderNotes()}catch(e){console.error(e);say("Data Supabase gagal dimuat")}}
 // Event delegation tunggal: tombol yang dirender ulang tetap selalu aktif.
 document.addEventListener("click",e=>{
   const nav=e.target.closest(".nav button[data-page]");
@@ -1709,15 +1709,15 @@ document.addEventListener("click",e=>{
   if(editFaqBtn){e.preventDefault();e.stopPropagation();openFaqEditor(+editFaqBtn.dataset.i);return;}
   const deleteFaqBtn=e.target.closest(".delete-faq");
   if(deleteFaqBtn){e.preventDefault();e.stopPropagation();deleteFaq(+deleteFaqBtn.dataset.i);return;}
-  const editSopBtn=e.target.closest(".edit-sop");
-  if(editSopBtn){e.preventDefault();e.stopPropagation();openSopEditor(+editSopBtn.dataset.i);return;}
-  const deleteSopBtn=e.target.closest(".delete-sop");
-  if(deleteSopBtn){e.preventDefault();e.stopPropagation();deleteSop(+deleteSopBtn.dataset.i);return;}
+  const editNotesBtn=e.target.closest(".edit-Notes");
+  if(editNotesBtn){e.preventDefault();e.stopPropagation();openNotesEditor(+editNotesBtn.dataset.i);return;}
+  const deleteNotesBtn=e.target.closest(".delete-Notes");
+  if(deleteNotesBtn){e.preventDefault();e.stopPropagation();deleteNotes(+deleteNotesBtn.dataset.i);return;}
 
   const faq=e.target.closest(".faq-doc");
   if(faq){faq.classList.toggle("open");const hint=faq.querySelector(".doc-hint");if(hint)hint.textContent=faq.classList.contains("open")?"Klik untuk tutup":"Klik untuk buka jawaban";return;}
-  const sop=e.target.closest(".sop-doc");
-  if(sop){sop.classList.toggle("open");const hint=sop.querySelector(".doc-hint");if(hint)hint.textContent=sop.classList.contains("open")?"Klik untuk tutup":"Klik untuk buka SOP";return;}
+  const Notes=e.target.closest(".Notes-doc");
+  if(Notes){Notes.classList.toggle("open");const hint=Notes.querySelector(".doc-hint");if(hint)hint.textContent=Notes.classList.contains("open")?"Klik untuk tutup":"Klik untuk buka Notes";return;}
 
   const row=e.target.closest(".video-row");
   if(row && !e.target.closest("button")){const i=+row.dataset.videoIndex;if(videos[i]){setActive(i,false);showPage("dashboard")}return;}
@@ -1744,7 +1744,7 @@ window.addEventListener("resize",()=>{if(window.innerWidth>760)setMobileMenu(fal
 
 window.addEventListener("resize",updateCoverFlow);
 window.addEventListener("png-supabase-ready",initSupabase);
-renderCarousel();setupDrag();renderFAQ();renderSOP();renderCategories();setActive(active,false);syncMaterialPreview();syncVideoPreview();initSupabase();
+renderCarousel();setupDrag();renderFAQ();renderNotes();renderCategories();setActive(active,false);syncMaterialPreview();syncVideoPreview();initSupabase();
 populateCategorySelects();
 })();
 
