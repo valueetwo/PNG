@@ -497,6 +497,13 @@ body.is-owner .owner-only{display:block!important}
   line-height:1.7;
 }
 
+/* Notes: pertahankan Enter/baris baru dari input */
+.notes-content{
+  white-space:pre-wrap;
+  overflow-wrap:anywhere;
+  line-height:1.7;
+}
+
 </style>
 </head>
 <body>
@@ -1109,7 +1116,7 @@ $("openMaterialDetail")?.addEventListener("click",()=>{
 });
 $("materialDetailBack")?.addEventListener("click",()=>showPage("dashboard"));
 function renderFAQ(){const l=$("faqList");if(!l)return;l.innerHTML=faqs.length?faqs.map((x,i)=>`<article class="doc-item clickable-doc faq-doc" tabindex="0" data-doc-index="${i}"><h3>${esc(x.question||x.q)}</h3><span class="doc-hint">Klik untuk buka jawaban</span><div class="doc-answer"><p class="faq-answer-text">${esc(x.answer||x.a)}</p>${x.important_note?`<div class="faq-important"><b>💡 Catatan penting</b><div class="faq-important-text">${esc(x.important_note)}</div></div>`:""}</div><div class="doc-admin-row"><button class="ghost-btn doc-edit-btn edit-faq admin-only" type="button" data-i="${i}">✏ Edit FAQ</button><button class="ghost-btn doc-delete-btn delete-faq admin-only" type="button" data-i="${i}">🗑 Hapus FAQ</button></div></article>`).join(""):`<div class="page-empty">Belum ada FAQ.</div>`}
-function renderNotes(){const l=$("NotesList");if(!l)return;l.innerHTML=Notes.map((x,i)=>`<article class="doc-item clickable-doc Notes-doc" tabindex="0" data-doc-index="${i}"><h3>${esc(x.title)}</h3><span class="doc-hint">Klik untuk buka Notes</span><div class="doc-answer"><p>${esc(x.content)}</p></div><div class="doc-admin-row"><button class="ghost-btn doc-edit-btn edit-Notes admin-only" type="button" data-i="${i}">✏ Edit Notes</button><button class="ghost-btn doc-delete-btn delete-Notes admin-only" type="button" data-i="${i}">🗑 Hapus Notes</button></div></article>`).join("")}
+function renderNotes(){const l=$("NotesList");if(!l)return;l.innerHTML=Notes.map((x,i)=>`<article class="doc-item clickable-doc Notes-doc" tabindex="0" data-doc-index="${i}"><h3>${esc(x.title)}</h3><span class="doc-hint">Klik untuk buka Notes</span><div class="doc-answer"><p class="notes-content">${esc(x.content)}</p></div><div class="doc-admin-row"><button class="ghost-btn doc-edit-btn edit-Notes admin-only" type="button" data-i="${i}">✏ Edit Notes</button><button class="ghost-btn doc-delete-btn delete-Notes admin-only" type="button" data-i="${i}">🗑 Hapus Notes</button></div></article>`).join("")}
 function requireAdmin(action){if(isAdmin){action();return true}if(currentSession){say("Akun Viewer tidak punya izin Admin");return false}openAuth("Login diperlukan. Akun Viewer hanya dapat melihat konten.");return false}
 async function deleteFaq(i){
   if(!isAdmin)return openAuth();
