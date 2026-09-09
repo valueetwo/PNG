@@ -592,7 +592,7 @@ body.is-owner .owner-only{display:block!important}
 
     <div id="tutorial" class="page-view simple-page"><h2>Tutorial Video</h2><p class="lead">Pilih tutorial yang ingin dipelajari.</p><div class="content-grid"><div class="content-box"><h3>Manajemen Data</h3><p>Panduan mengelola data pada PNG Dashboard.</p></div><div class="content-box"><h3>Pengaturan Akun</h3><p>Panduan pengaturan profil dan akun.</p></div><div class="content-box"><h3>Keamanan Data</h3><p>Materi dasar menjaga keamanan data.</p></div><div class="content-box"><h3>Backup & Restore</h3><p>Panduan pencadangan dan pemulihan data.</p></div></div></div>
     <div id="faq" class="page-view simple-page"><div class="admin-split"><section><h2>FAQ</h2><p class="lead">Pertanyaan yang sering ditanyakan.</p><div id="faqList" class="doc-list"></div></section><aside class="admin-side"><div class="nezha-brand"><img src="nezha-png.png" alt="Nezha bersandar di PNG"></div><div class="admin-card"><h3>Tambah FAQ</h3><p>Tambahkan pertanyaan dan jawaban baru.</p><button class="admin-add admin-only" id="openFaqForm" type="button">＋ Tambah FAQ</button><div class="form-panel" id="faqForm"><input id="faqQuestion" placeholder="Pertanyaan"><textarea id="faqAnswer" placeholder="Jawaban FAQ"></textarea><textarea id="faqImportantNote" placeholder="Catatan penting (opsional)"></textarea><div class="form-actions"><button class="ghost-btn" id="cancelFaq" type="button">Batal</button><button class="red-btn" id="saveFaq" type="button">Simpan</button></div></div></div></aside></div></div>
-    <div id="Notes" class="page-view simple-page"><div class="admin-split"><section><h2>Notes</h2><p class="lead">Catatan PNG.</p><div id="NotesList" class="doc-list"></div></section><aside class="admin-side"><div class="nezha-brand"><img src="nezha-png.png" alt="Nezha bersandar di PNG"></div><div class="admin-card"><h3>Tambah Notes</h3><p>Tambahkan prosedur kerja baru.</p><button class="admin-add admin-only" id="openNotesForm" type="button">＋ Tambah Notes</button><div class="form-panel" id="NotesForm"><input id="NotesTitle" placeholder="Judul Notes"><textarea id="NotesContent" placeholder="Isi / langkah Notes"></textarea><div class="form-actions"><button class="ghost-btn" id="cancelNotes" type="button">Batal</button><button class="red-btn" id="saveNotes" type="button">Simpan</button></div></div></div></aside></div></div>
+    <div id="Notes" class="page-view simple-page"><div class="admin-split"><section><h2>Notes</h2><p class="lead">Dokumen prosedur kerja PNG.</p><div id="NotesList" class="doc-list"></div></section><aside class="admin-side"><div class="nezha-brand"><img src="nezha-png.png" alt="Nezha bersandar di PNG"></div><div class="admin-card"><h3>Tambah Notes</h3><p>Tambahkan prosedur kerja baru.</p><button class="admin-add admin-only" id="openNotesForm" type="button">＋ Tambah Notes</button><div class="form-panel" id="NotesForm"><input id="NotesTitle" placeholder="Judul Notes"><textarea id="NotesContent" placeholder="Isi / langkah Notes"></textarea><div class="form-actions"><button class="ghost-btn" id="cancelNotes" type="button">Batal</button><button class="red-btn" id="saveNotes" type="button">Simpan</button></div></div></div></aside></div></div>
     <div id="kategori" class="page-view simple-page"><h2>Kategori</h2><p class="lead">Cari materi berdasarkan kategori.</p><div class="content-grid"><div class="content-box"><h3>Dasar Sistem</h3><p>Login, navigasi, dan penggunaan dasar.</p></div><div class="content-box"><h3>Manajemen Data</h3><p>Pengelolaan, laporan, backup, dan keamanan.</p></div></div></div>
     <div id="favorit" class="page-view simple-page"><h2>Favorit</h2><p class="lead">Tutorial yang kamu simpan akan tampil di sini.</p><div class="content-box"><h3>Belum ada favorit</h3><p>Nanti kita bisa tambahkan tombol bintang pada setiap tutorial.</p></div></div>
     <div id="riwayat" class="page-view simple-page"><h2>Riwayat</h2><p class="lead">Daftar tutorial yang terakhir dibuka.</p><div class="content-box"><h3>Manajemen Data</h3><p>Terakhir dilihat • 7 menit 12 detik</p></div></div>
@@ -767,6 +767,7 @@ function say(msg){const t=$("toast"); if(!t)return; t.textContent=msg;t.classLis
 function secs(t){const a=String(t||"0:00").split(":").map(Number);return (a[0]||0)*60+(a[1]||0)}
 function clock(s){s=Math.max(0,Math.floor(s));return Math.floor(s/60)+":"+String(s%60).padStart(2,"0")}
 function showPage(id){
+  if(id==="Notes"&&!isAdmin){say("Notes hanya dapat dilihat Admin dan Owner");id="dashboard";}
   $$(".nav button[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===id));
   $$(".page-view").forEach(p=>p.classList.toggle("active",p.id===id));
   const info=document.querySelector(".info"); if(info)info.style.display=id==="dashboard"?"block":"none";
@@ -1049,8 +1050,18 @@ $("settingsBtn")?.addEventListener("click",e=>{e.stopPropagation();$("settingsMe
 $("resolutionSelect")?.addEventListener("change",e=>say("Resolusi: "+e.target.value));
 $("subtitleBtn")?.addEventListener("click",()=>{subtitle=!subtitle;$("subtitleStatus").textContent=subtitle?"Aktif":"Mati";$("subtitleOverlay")?.classList.toggle("on",subtitle)});
 $("fullscreenBtn")?.addEventListener("click",async()=>{const p=document.querySelector(".player");try{if(!document.fullscreenElement)await p.requestFullscreen();else await document.exitFullscreen()}catch(e){say("Fullscreen tidak didukung browser ini")}});
-function toggleFav(i){favorites.has(i)?favorites.delete(i):favorites.add(i);persist();refreshFavButtons();renderListPageIfOpen();say(favorites.has(i)?"Ditambahkan ke Favorit":"Dihapus dari Favorit")}
-function togglePlaylist(i){playlist.has(i)?playlist.delete(i):playlist.add(i);persist();refreshFavButtons();renderListPageIfOpen();say(playlist.has(i)?"Ditambahkan ke Playlist":"Dihapus dari Playlist")}
+function toggleFav(i){
+  if(!currentSession){setAuthMode("login");openAuth("Login atau daftar akun untuk menambahkan video ke Favorit.");return;}
+  favorites.has(i)?favorites.delete(i):favorites.add(i);
+  persist();refreshFavButtons();renderListPageIfOpen();
+  say(favorites.has(i)?"Ditambahkan ke Favorit":"Dihapus dari Favorit");
+}
+function togglePlaylist(i){
+  if(!currentSession){setAuthMode("login");openAuth("Login atau daftar akun untuk menambahkan video ke Playlist.");return;}
+  playlist.has(i)?playlist.delete(i):playlist.add(i);
+  persist();refreshFavButtons();renderListPageIfOpen();
+  say(playlist.has(i)?"Ditambahkan ke Playlist":"Dihapus dari Playlist");
+}
 function refreshFavButtons(){
  $$("#scroller .card").forEach(c=>{const i=+c.dataset.real;const f=c.querySelector(".fav-btn"),p=c.querySelector(".list-btn");if(f)f.textContent=favorites.has(i)?"★ Favorit":"☆ Favorit";if(p)p.textContent=playlist.has(i)?"✓ Playlist":"＋ Playlist"});
  if($("playerFavStatus"))$("playerFavStatus").textContent=favorites.has(active)?"★":"☆";if($("playerPlaylistStatus"))$("playerPlaylistStatus").textContent=playlist.has(active)?"✓":"＋";
@@ -1520,13 +1531,15 @@ if(search&&results){
       }
     });
 
-    Notes.forEach((x,i)=>{
-      const title=x?.title||"Notes";
-      const hay=[title,x?.content].filter(Boolean).join(" ").toLowerCase();
-      if(hay.includes(q)){
-        found.push({type:"Notes",i,title,meta:"Notes"});
-      }
-    });
+    if(isAdmin){
+      Notes.forEach((x,i)=>{
+        const title=x?.title||"Notes";
+        const hay=[title,x?.content].filter(Boolean).join(" ").toLowerCase();
+        if(hay.includes(q)){
+          found.push({type:"Notes",i,title,meta:"Notes"});
+        }
+      });
+    }
 
     const shown=found.slice(0,12);
     results.innerHTML=shown.length
@@ -1587,7 +1600,9 @@ async function applySession(session){
   document.body.classList.toggle("is-admin",isAdmin);document.body.classList.toggle("is-owner",isOwner);
   if($("adminAuthBtn"))$("adminAuthBtn").textContent=session?"🔓 Logout":"🔒 Login / Daftar";
   if($("adminUserLabel"))$("adminUserLabel").innerHTML=session?`${esc(session.user?.email||"User")} <span class="role-badge ${isOwner?"owner":isAdmin?"admin":""}">${isOwner?"OWNER":isAdmin?"ADMIN":"VIEWER"}</span>`:"";
-  const activePage=document.querySelector(".page-view.active");if(["pengguna","activity-log"].includes(activePage?.id)&&!isOwner)showPage("dashboard");
+  const activePage=document.querySelector(".page-view.active");
+  if(activePage?.id==="Notes"&&!isAdmin)showPage("dashboard");
+  else if(["pengguna","activity-log"].includes(activePage?.id)&&!isOwner)showPage("dashboard");
 }
 function setAuthStatus(message,type="pending"){const el=$("authStatus");if(!el)return;el.textContent=message||"";el.className="auth-status"+(message?` show ${type}`:"")}
 function friendlyAuthError(error,mode="login"){
