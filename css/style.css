@@ -179,6 +179,7 @@ button {
   right: -12%;
   border-radius: 50%;
   transform: rotate(-4deg);
+  pointer-events: none;
 }
 .wave {
   top: 47%;
@@ -197,6 +198,11 @@ button {
   height: 150px;
   border-top: 1px solid #8d1118;
   opacity: 0.6;
+}
+.video-fake-player .wave,
+.video-fake-player .wave2,
+.video-fake-player .wave3 {
+  display: none;
 }
 .hero {
   position: absolute;
