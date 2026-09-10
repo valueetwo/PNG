@@ -199,10 +199,13 @@ button {
   border-top: 1px solid #8d1118;
   opacity: 0.6;
 }
+.page-view:not(#dashboard) .wave,
+.page-view:not(#dashboard) .wave2,
+.page-view:not(#dashboard) .wave3,
 .video-fake-player .wave,
 .video-fake-player .wave2,
 .video-fake-player .wave3 {
-  display: none;
+  display: none !important;
 }
 .hero {
   position: absolute;
