@@ -1,225 +1,63 @@
-<!doctype html>
-<html lang="id">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>PNG Dashboard</title>
-<link rel="stylesheet" href="css/style.css">
-</head>
-<body>
-<header class="topbar">
-  <button class="mobile-menu-btn" id="mobileMenuBtn" type="button" aria-label="Buka menu" aria-expanded="false">☰</button>
-  <div class="brand"><span class="brand-mark"></span>PNG</div>
-  <div class="search-wrap"><input class="search" id="globalSearch" autocomplete="off" placeholder="Cari video, FAQ, atau Notes..."><div class="search-results" id="searchResults"></div></div>
-  <div class="user"><button id="adminAuthBtn" class="admin-auth-btn" type="button">🔒 Admin Login</button><span id="adminUserLabel" class="admin-user-label"></span></div>
-</header>
-<div class="mobile-menu-backdrop" id="mobileMenuBackdrop"></div>
-
-<div class="layout">
-  <aside class="sidebar">
-    <div class="nav">
-      <button class="active" data-page="dashboard">⌂ &nbsp; Home</button>
-      <button data-page="tutorial">▣ &nbsp; Tutorial Video</button>
-      <button data-page="faq">ⓘ &nbsp; FAQ</button>
-      <button class="admin-only" data-page="Notes">▤ &nbsp; Notes</button>
-      <button data-page="kategori">□ &nbsp; Kategori</button>
-      <button data-page="favorit">☆ &nbsp; Favorit</button>
-      <button data-page="riwayat">◷ &nbsp; Riwayat</button>
-      <button data-page="playlist">☷ &nbsp; Playlist Saya</button>
-      <button class="owner-only" data-page="pengguna">⚙ &nbsp; Account</button>
-      <button class="owner-only" data-page="activity-log">◷ &nbsp; Log Aktivitas</button>
-    </div>
-
-    <div class="sidebar-bottom">
-      <div class="mascot-wrap"><img class="mascot" src="mascot.png" alt="Maskot kecil"></div>
-      <div class="help">
-        <strong>🎧 Pusat Tutorial & Dokumentasi</strong>
-        Temukan tutorial, FAQ, dan Notes yang kamu butuhkan dengan mudah.
-      </div>
-    </div>
-  </aside>
-
-  <main class="main">
-    <div id="dashboard" class="page-view active">
-    <div class="main-head">
-      <h2>Tutorial Video</h2>
-    </div>
-
-    <section class="player" id="mainPlayer">
-      <div class="media-layer" id="mediaLayer"></div>
-      <div class="wave"></div><div class="wave2"></div><div class="wave3"></div>
-      <div class="subtitle-overlay" id="subtitleOverlay">Subtitle aktif</div>
-      <div class="hero">
-        <div>
-          <h1 id="heroTitle">Manajemen Data</h1>
-          <p>PNG DASHBOARD</p>
-        </div>
-      </div>
-      <div class="controls">
-        <button class="play" id="playBtn" aria-label="Putar atau jeda">▶</button>
-        <span id="playerTime">0:00 / 7:12</span>
-        <div class="track" id="playerTrack"><span id="playerProgress"></span></div>
-        <div class="player-actions">
-          <button class="control-icon" id="volumeBtn" type="button" title="Suara">🔊</button>
-          <div class="settings-wrap">
-            <button class="control-icon" id="settingsBtn" type="button" title="Pengaturan">⚙</button>
-            <div class="settings-menu" id="settingsMenu">
-              <div class="settings-title">Pengaturan Video</div>
-              <label class="settings-row">
-                <span>Resolusi</span>
-                <select id="resolutionSelect">
-                  <option>Auto</option><option>1080p</option><option>720p</option><option>480p</option><option>360p</option>
-                </select>
-              </label>
-              <button class="settings-row settings-action" id="subtitleBtn" type="button"><span>Subtitle</span><b id="subtitleStatus">Mati</b></button>
-              <button class="settings-row settings-action" id="playerFavBtn" type="button"><span>Favorit</span><b id="playerFavStatus">☆</b></button>
-              <button class="settings-row settings-action" id="playerPlaylistBtn" type="button"><span>Playlist</span><b id="playerPlaylistStatus">＋</b></button>
-            </div>
-          </div>
-          <button class="control-icon" id="fullscreenBtn" type="button" title="Layar penuh">⛶</button>
-        </div>
-      </div>
-    </section>
-
-    <section class="related">
-      <div class="related-head">
-        <h3>Video Lainnya</h3>
-        <span>Geser untuk melihat lainnya →</span>
-      </div>
-      <div class="scroller" id="scroller"></div>
-    </section>
-    </div>
-
-    <div id="tutorial" class="page-view simple-page"><h2>Tutorial Video</h2><p class="lead">Pilih tutorial yang ingin dipelajari.</p><div class="content-grid"><div class="content-box"><h3>Manajemen Data</h3><p>Panduan mengelola data pada PNG Dashboard.</p></div><div class="content-box"><h3>Pengaturan Akun</h3><p>Panduan pengaturan profil dan akun.</p></div><div class="content-box"><h3>Keamanan Data</h3><p>Materi dasar menjaga keamanan data.</p></div><div class="content-box"><h3>Backup & Restore</h3><p>Panduan pencadangan dan pemulihan data.</p></div></div></div>
-    <div id="faq" class="page-view simple-page"><div class="admin-split"><section><h2>FAQ</h2><p class="lead">Pertanyaan yang sering ditanyakan.</p><div id="faqList" class="doc-list"></div></section><aside class="admin-side"><div class="nezha-brand"><img src="nezha-png.png" alt="Nezha bersandar di PNG"></div><div class="admin-card"><h3>Tambah FAQ</h3><p>Tambahkan pertanyaan dan jawaban baru.</p><button class="admin-add admin-only" id="openFaqForm" type="button">＋ Tambah FAQ</button><div class="form-panel" id="faqForm"><input id="faqQuestion" placeholder="Pertanyaan"><textarea id="faqAnswer" placeholder="Jawaban FAQ"></textarea><textarea id="faqImportantNote" placeholder="Catatan penting (opsional)"></textarea><div class="form-actions"><button class="ghost-btn" id="cancelFaq" type="button">Batal</button><button class="red-btn" id="saveFaq" type="button">Simpan</button></div></div></div></aside></div></div>
-    <div id="Notes" class="page-view simple-page"><div class="admin-split"><section><h2>Notes</h2><p class="lead">Dokumen prosedur kerja PNG.</p><div id="NotesList" class="doc-list"></div></section><aside class="admin-side"><div class="nezha-brand"><img src="nezha-png.png" alt="Nezha bersandar di PNG"></div><div class="admin-card"><h3>Tambah Notes</h3><p>Tambahkan prosedur kerja baru.</p><button class="admin-add admin-only" id="openNotesForm" type="button">＋ Tambah Notes</button><div class="form-panel" id="NotesForm"><input id="NotesTitle" placeholder="Judul Notes"><textarea id="NotesContent" placeholder="Isi / langkah Notes"></textarea><div class="form-actions"><button class="ghost-btn" id="cancelNotes" type="button">Batal</button><button class="red-btn" id="saveNotes" type="button">Simpan</button></div></div></div></aside></div></div>
-    <div id="kategori" class="page-view simple-page"><h2>Kategori</h2><p class="lead">Cari materi berdasarkan kategori.</p><div class="content-grid"><div class="content-box"><h3>Dasar Sistem</h3><p>Login, navigasi, dan penggunaan dasar.</p></div><div class="content-box"><h3>Manajemen Data</h3><p>Pengelolaan, laporan, backup, dan keamanan.</p></div></div></div>
-    <div id="favorit" class="page-view simple-page"><h2>Favorit</h2><p class="lead">Tutorial yang kamu simpan akan tampil di sini.</p><div class="content-box"><h3>Belum ada favorit</h3><p>Nanti kita bisa tambahkan tombol bintang pada setiap tutorial.</p></div></div>
-    <div id="riwayat" class="page-view simple-page"><h2>Riwayat</h2><p class="lead">Daftar tutorial yang terakhir dibuka.</p><div class="content-box"><h3>Manajemen Data</h3><p>Terakhir dilihat • 7 menit 12 detik</p></div></div>
-    <div id="playlist" class="page-view simple-page"><h2>Playlist Saya</h2><p class="lead">Kumpulan tutorial pilihanmu.</p><div class="content-box"><h3>Playlist masih kosong</h3><p>Nanti tutorial bisa ditambahkan ke playlist dari halaman video.</p></div></div>
-
-    <div id="materi-detail" class="page-view simple-page article-page"><div class="content-page-head"><button class="content-back" id="materialDetailBack" type="button">←</button><div><h2>Materi Video</h2><p class="lead" id="materialDetailVideo">Materi tertulis untuk video aktif.</p></div></div><article class="article-card"><span class="preview-category" id="materialDetailCategory">Materi</span><h1 id="materialDetailTitle">Belum ada materi</h1><p class="article-summary" id="materialDetailSummary"></p><div class="preview-divider"></div><div class="article-body" id="materialDetailBody">Tambahkan materi dari dashboard.</div><div class="article-material-nav" id="materialDetailNav"></div></article></div>
-
-    <div id="tambah-konten" class="page-view simple-page"><div class="admin-lock-note">Halaman ini khusus admin. Login sebagai admin untuk menambah atau mengubah konten.</div>
-      <div class="content-page-head">
-        <button class="content-back" id="contentBack" type="button">←</button>
-        <div><h2>Tambah Konten</h2><p class="lead">Tambahkan materi tulisan atau video tutorial baru.</p></div>
-      </div>
-      <div class="content-tabs">
-        <button class="content-tab active" data-content-tab="video" type="button">1. Video</button>
-        <button class="content-tab" data-content-tab="materi" type="button">2. Materi</button>
-      </div>
-
-      <div id="tab-materi" class="content-tab-page">
-        <div class="content-editor-layout">
-          <section class="content-editor-box">
-            <h3>Informasi Materi</h3><div class="video-edit-note" id="materialEditNote">✏ Mode Edit Materi — perubahan akan mengganti sub materi yang dipilih.</div><div class="editor-field"><label>Video Induk <b>*</b></label><select id="materialParentVideo"><option value="">Pilih video untuk sub materi</option></select></div>
-            <div class="editor-field"><label>Judul Materi <b>*</b></label><input id="materialPageTitle" type="text" placeholder="Masukkan judul materi"></div>
-            <div class="editor-field"><label>Kategori <b>*</b></label><select id="materialPageCategory"><option value="">Pilih kategori</option></select></div>
-            <div class="editor-field"><label>Peringatan</label><textarea id="materialSummary" class="small-textarea" placeholder="Tuliskan pesan peringatan..."></textarea></div>
-            <div class="editor-field"><label>Isi Materi <b>*</b></label><div class="text-toolbar"><button type="button"><b>B</b></button><button type="button"><i>I</i></button><button type="button"><u>U</u></button><button type="button">☷</button><button type="button">🔗</button></div><textarea id="materialContent" class="material-textarea" placeholder="Tulis materi lengkap di sini..."></textarea></div>
-            <div class="editor-field"><label>File Pendukung</label><input id="materialAttachment" type="file" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt"></div>
-          </section>
-          <aside class="content-preview-box">
-            <h3>Preview Materi</h3>
-            <div class="article-preview"><span class="preview-category" id="previewMaterialCategory">Kategori</span><h2 id="previewMaterialTitle">Judul Materi</h2><p id="previewMaterialSummary">Ringkasan materi akan tampil di sini.</p><div class="preview-divider"></div><div class="preview-article-text" id="previewMaterialContent">Isi materi yang ditulis akan muncul sebagai preview di bagian ini.</div></div>
-          </aside>
-        </div>
-        <div class="content-save-bar"><button class="content-cancel" id="cancelMaterial" type="button">Batal</button><button class="content-save" id="saveMaterial" type="button">▣ &nbsp; Simpan Materi</button></div>
-      </div>
-
-      <div id="tab-video" class="content-tab-page active">
-        <div class="video-editor-layout">
-          <section class="content-editor-box">
-            <h3>Informasi Video</h3>
-            <div class="video-edit-note" id="videoEditNote">✏ Mode Edit — perubahan akan mengganti video yang dipilih.</div>
-            <div class="editor-field"><label>Judul Video <b>*</b></label><input id="newVideoTitle" type="text" placeholder="Masukkan judul video tutorial"></div>
-            <div class="editor-field"><label>Kategori <b>*</b></label><select id="newVideoCategory"><option value="">Pilih kategori</option></select></div>
-            <div class="editor-field"><label>Deskripsi Video</label><textarea id="newVideoDescription" class="small-textarea" maxlength="500" placeholder="Tuliskan deskripsi singkat tentang video..."></textarea></div>
-            <div class="editor-two"><div class="editor-field"><label>Durasi Video <small style="color:#7f8892">(otomatis)</small></label><input id="newVideoDuration" type="text" placeholder="Otomatis dari video" readonly></div><div class="editor-field"><label>Bahasa</label><select id="newVideoLanguage"><option>Indonesia</option><option>English</option></select></div></div>
-            <div class="editor-field"><label>Thumbnail Video</label><label class="upload-box" for="newVideoThumbnail"><strong>▧</strong><span>Klik untuk upload thumbnail</span><small>JPG atau PNG</small></label><input id="newVideoThumbnail" type="file" accept="image/png,image/jpeg" hidden></div>
-            <div class="editor-field"><label>Atau URL Thumbnail</label><input id="newVideoThumbnailUrl" type="url" placeholder="https://.../thumbnail.jpg"></div>
-            <div class="editor-field"><label>Upload Video</label><label class="upload-box" for="newVideoFile"><strong>⇧</strong><span>Klik untuk memilih video</span><small>MP4, MOV, AVI atau MKV</small></label><input id="newVideoFile" type="file" accept="video/*" hidden></div>
-            <div class="editor-field"><label>Link Video</label><input id="newVideoUrl" type="url" placeholder="YouTube / Vimeo / link lainnya"></div>
-            <div class="editor-field"><label>Tag</label><input id="newVideoTags" type="text" placeholder="login, akun, keamanan"></div>
-          </section>
-          <section class="content-preview-box">
-            <h3>Preview Video</h3>
-            <div class="video-thumb-preview" id="videoThumbPreview"><span>▧</span><strong>Preview Thumbnail</strong><small>Thumbnail video akan muncul di sini</small></div>
-            <div class="video-fake-player"><div class="wave"></div><div class="wave2"></div><button type="button">▶</button></div>
-            <h3 class="video-info-heading">Informasi Video</h3>
-            <div class="video-preview-info"><span>Judul</span><b id="previewVideoTitle">-</b><span>Kategori</span><b id="previewVideoCategory">-</b><span>Durasi</span><b id="previewVideoDuration">-</b></div>
-          </section>
-          <aside class="video-guide">
-            <h3>ⓘ &nbsp; Panduan Tambah Video</h3>
-            <div class="guide-item"><b>1. Informasi Video</b><p>Lengkapi judul, kategori, deskripsi dan durasi video.</p></div>
-            <div class="guide-item"><b>2. Upload Video</b><p>Pilih file video atau gunakan link video yang tersedia.</p></div>
-            <div class="guide-item"><b>3. Thumbnail</b><p>Gunakan gambar yang jelas dan sesuai dengan isi tutorial.</p></div>
-            <div class="guide-item"><b>4. Publikasi</b><p>Periksa kembali informasi sebelum menyimpan video.</p></div>
-          </aside>
-        </div>
-        <div class="content-save-bar"><button class="content-cancel" id="cancelVideo" type="button">Batal</button><button class="content-save" id="saveVideo" type="button">▣ &nbsp; Simpan Video</button></div>
-      </div>
-    </div>
-
-    <div id="pengguna" class="page-view simple-page">
-      <div class="page-toolbar"><div><h2>Account</h2><p class="lead" style="margin:4px 0 0">Hanya pemilik dashboard yang dapat memberi atau mencabut izin admin.</p></div></div>
-      <div class="content-box"><h3>Akun terdaftar</h3><p>Semua akun baru masuk sebagai permintaan Viewer dan harus disetujui Owner. Owner juga dapat memberikan izin Admin dari halaman ini.</p><div id="userAdminList" class="user-admin-list"></div></div>
-    </div>
-
-    <div id="activity-log" class="page-view simple-page">
-      <div class="page-toolbar">
-        <div><h2>Log Aktivitas</h2><p class="lead" style="margin:4px 0 0">Khusus Owner — perubahan data terbaru di PNG Dashboard.</p></div>
-        <button class="admin-add owner-only" id="refreshActivityLog" type="button" style="width:auto;padding:8px 12px">↻ Refresh</button>
-      </div>
-      <div id="activityLogList" class="doc-list"><div class="page-empty">Memuat log...</div></div>
-    </div>
-
-  </main>
-
-  <aside class="info">
-    <h2>Informasi Video</h2>
-    <h3 class="info-title" id="infoTitle">Manajemen Data</h3>
-    <p class="desc" id="infoDesc">Panduan manajemen data pada sistem PNG Dashboard.</p>
-    <div class="meta">
-      <div class="label">◷ Durasi</div><div id="duration">7 menit 12 detik</div>
-      <div class="label">□ Kategori</div><div><span class="tag" id="category">Manajemen Data</span></div>
-      <div class="label">▣ Dibuat pada</div><div>02 September 2026</div>
-      <div class="label">◉ Diperbarui</div><div>06 September 2026</div>
-      <div class="label">♙ Penulis</div><div>Tim Dokumentasi</div>
-    </div>
-    <h3>Deskripsi</h3>
-    <p class="desc">Geser daftar video. Kartu yang berada paling dekat dengan tengah akan otomatis menjadi fokus seperti Cover Flow.</p>
-    <h3>Materi yang Dibahas</h3>
-    <div class="topics material-list-mini" id="activeMaterialList"></div>
-    <button class="material-more" id="openMaterialDetail" type="button">Selengkapnya</button>
-    <button class="download admin-only" id="addMaterialBtn" type="button">＋ &nbsp; Tambahkan materi</button>
-  </aside>
-</div>
-
-<footer>© 2026 <b>PNG</b> Dashboard. Semua hak dilindungi.</footer>
 
 
-<div class="auth-modal" id="authModal" aria-hidden="true">
-  <div class="auth-card">
-    <h3 id="authTitle">Masuk ke PNG</h3>
-    <p id="authHelp">Akun baru otomatis menjadi Viewer. Hanya pemilik dashboard yang dapat memberikan izin Admin.</p>
-    <div class="auth-mode-tabs"><button id="authLoginTab" class="active" type="button">Login</button><button id="authRegisterTab" type="button">Daftar</button></div>
-    <div id="authStatus" class="auth-status" role="status" aria-live="polite"></div>
-    <div id="authForm">
-      <input id="adminEmail" type="email" autocomplete="username" placeholder="Email">
-      <input id="adminPassword" type="password" autocomplete="current-password" placeholder="Password">
-      <div class="auth-actions"><button class="ghost-btn" id="closeAuth" type="button">Batal</button><button class="red-btn" id="doLogin" type="button">Login</button></div>
-    </div>
-    <div class="sync-badge local" id="syncBadge">Mode lokal / Supabase belum dihubungkan</div>
-  </div>
-</div>
+(()=>{
+"use strict";
+const $=id=>document.getElementById(id);
+const $$=sel=>Array.from(document.querySelectorAll(sel));
+const baseVideos=[
+  ["Cara Login ke Sistem","6:12","6 menit 12 detik","Login"],
+  ["Cara Membuat Laporan","6:30","6 menit 30 detik","Laporan"],
+  ["Tutorial Penggunaan Sistem","8:45","8 menit 45 detik","Penggunaan Sistem"],
+  ["Manajemen Data","7:12","7 menit 12 detik","Manajemen Data"],
+  ["Pengaturan Akun","5:45","5 menit 45 detik","Akun"],
+  ["Keamanan Data","6:23","6 menit 23 detik","Keamanan"],
+  ["Backup & Restore Data","9:15","9 menit 15 detik","Backup"],
+  ["Membuat Pengguna Baru","5:18","5 menit 18 detik","Pengguna"],
+  ["Mengatur Hak Akses","7:05","7 menit 5 detik","Akses"],
+  ["Export Data ke Excel","4:52","4 menit 52 detik","Data"],
+  ["Import Data","6:41","6 menit 41 detik","Data"],
+  ["Membuat Dashboard","10:08","10 menit 8 detik","Dashboard"],
+  ["Membuat Notifikasi","5:36","5 menit 36 detik","Notifikasi"],
+  ["Pengaturan Profil","4:27","4 menit 27 detik","Profil"]
+];
+const CATEGORIES=["ADMIN","GAMES","QRIS","CLOUDFRONT"];
 
-<div class="toast" id="toast"></div>
-<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" onload="window.dispatchEvent(new Event('png-supabase-ready'))"></script>
-<script src="config.js"></script>
-<script src="js/app.js"></script>
-
+const DEFAULT_FAQ=[
+  {question:"Bagaimana cara login?",answer:"Gunakan akun yang sudah diberikan lalu masuk melalui halaman login."},
+  {question:"Lupa kata sandi?",answer:"Hubungi admin atau gunakan alur pemulihan akun yang tersedia."}
+];
+const DEFAULT_Notes=[
+  {title:"Notes Pengelolaan Data",content:"Alur dasar input, pemeriksaan, dan pembaruan data."},
+  {title:"Notes Backup",content:"Langkah pencadangan data secara berkala."}
+];
+const KEY="png-dashboard-ui-v3";
+let saved={}; try{saved=JSON.parse(localStorage.getItem(KEY)||"{}")}catch(e){}
+function makeBaseVideo(v,i){const a=[...v];a._baseKey=`base-${i}`;a._isBase=true;a._description="";a._thumb="";a._videoUrl="";a._language="Indonesia";a._tags=[];return a}
+function videoFromRow(r){const a=[r.title,r.duration||"5:00",r.duration_label||r.duration||"5:00",r.category||"Tutorial"];a._id=r.id;a._baseKey=r.base_key||"";a._remote=true;a._description=r.description||"";a._thumb=r.thumbnail_url||"";a._videoUrl=r.video_url||"";a._language=r.language||"Indonesia";a._tags=Array.isArray(r.tags)?r.tags:[];return a}
+let videos=Array.isArray(saved.videos)&&saved.videos.length?saved.videos:baseVideos.map(makeBaseVideo);
+let materials=Array.isArray(saved.materials)?saved.materials:[];
+let faqs=Array.isArray(saved.faqs)?saved.faqs:[...DEFAULT_FAQ];
+let Notes=Array.isArray(saved.Notes)&&saved.Notes.length?saved.Notes:[...DEFAULT_Notes];
+let favorites=new Set(saved.favorites||[]), playlist=new Set(saved.playlist||[]), history=saved.history||[];
+let active=Math.min(Number.isInteger(saved.active)?saved.active:3,videos.length-1);
+let playing=false, elapsed=0, timer=null, muted=false, subtitle=false, dragMoved=false;
+let isAdmin=false, isOwner=false, currentSession=null, currentRole="viewer", authMode="login", sb=null, editingVideoIndex=null, editingMaterialIndex=null, editingFaqIndex=null, editingNotesIndex=null;
+function persist(){try{localStorage.setItem(KEY,JSON.stringify({videos,materials,faqs,Notes,favorites:[...favorites],playlist:[...playlist],history,active}))}catch(e){/* private/blocked storage: UI tetap jalan */}}
+function say(msg){const t=$("toast"); if(!t)return; t.textContent=msg;t.classList.add("show");clearTimeout(t._timer);t._timer=setTimeout(()=>t.classList.remove("show"),1800)}
+function secs(t){const a=String(t||"0:00").split(":").map(Number);return (a[0]||0)*60+(a[1]||0)}
+function clock(s){s=Math.max(0,Math.floor(s));return Math.floor(s/60)+":"+String(s%60).padStart(2,"0")}
+function showPage(id){
+  if(id==="Notes"&&!isAdmin){say("Notes hanya dapat dilihat Admin dan Owner");id="dashboard";}
+  $$(".nav button[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===id));
+  $$(".page-view").forEach(p=>p.classList.toggle("active",p.id===id));
+  const info=document.querySelector(".info"); if(info)info.style.display=id==="dashboard"?"block":"none";
+  const layout=document.querySelector(".layout"); if(layout)layout.classList.toggle("content-mode",id!=="dashboard");
+  if(id==="tutorial")renderTutorial(); if(id==="faq")renderFAQ(); if(id==="Notes")renderNotes(); if(id==="kategori")renderCategories(); if(id==="favorit")renderListPage("favorit"); if(id==="playlist")renderListPage("playlist"); if(id==="riwayat")renderListPage("riwayat"); if(id==="pengguna")renderUserManagement(); if(id==="activity-log")renderActivityLogs();
+  if(id==="tambah-konten")selectTab("video");
+  if(id==="dashboard")requestAnimationFrame(()=>{centerCard(active,false);updateCoverFlow()});
+}
+window.showPage=showPage;
+$$(".nav button[data-page]").forEach(b=>b.addEventListener("click",()=>showPage(b.dataset.page)));
 function parseVideoSource(url){
   const raw=String(url||"").trim(); if(!raw)return null;
   try{
@@ -1212,6 +1050,3 @@ renderCarousel();setupDrag();renderFAQ();renderNotes();renderCategories();setAct
 populateCategorySelects();
 })();
 
-</script>
-</body>
-</html>
