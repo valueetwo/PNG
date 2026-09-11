@@ -8,32 +8,32 @@
 </head>
 <body>
 <header class="topbar">
-  <button class="mobile-menu-btn" id="mobileMenuBtn" type="button" aria-label="Buka menu" aria-expanded="false">â˜°</button>
+  <button class="mobile-menu-btn" id="mobileMenuBtn" type="button" aria-label="Buka menu" aria-expanded="false">☀</button>
   <div class="brand"><span class="brand-mark"></span>PNG</div>
   <div class="search-wrap"><input class="search" id="globalSearch" autocomplete="off" placeholder="Cari video, FAQ, atau Notes..."><div class="search-results" id="searchResults"></div></div>
-  <div class="user"><button id="adminAuthBtn" class="admin-auth-btn" type="button">ðŸ”’ Admin Login</button><span id="adminUserLabel" class="admin-user-label"></span></div>
+  <div class="user"><button id="adminAuthBtn" class="admin-auth-btn" type="button">🔐 Admin Login</button><span id="adminUserLabel" class="admin-user-label"></span></div>
 </header>
 <div class="mobile-menu-backdrop" id="mobileMenuBackdrop"></div>
 
 <div class="layout">
   <aside class="sidebar">
     <div class="nav">
-      <button class="active" data-page="dashboard">âŒ‚ &nbsp; Home</button>
-      <button data-page="tutorial">â–£ &nbsp; Tutorial Video</button>
-      <button data-page="faq">â“˜ &nbsp; FAQ</button>
-      <button class="admin-only" data-page="Notes">â–¤ &nbsp; Notes</button>
-      <button data-page="kategori">â–¡ &nbsp; Kategori</button>
-      <button data-page="favorit">â˜† &nbsp; Favorit</button>
-      <button data-page="riwayat">â—· &nbsp; Riwayat</button>
-      <button data-page="playlist">â˜· &nbsp; Playlist Saya</button>
-      <button class="owner-only" data-page="pengguna">âš™ &nbsp; Account</button>
-      <button class="owner-only" data-page="activity-log">â—· &nbsp; Log Aktivitas</button>
+      <button class="active" data-page="dashboard">⌂ &nbsp; Home</button>
+      <button data-page="tutorial">▣ &nbsp; Tutorial Video</button>
+      <button data-page="faq">ⓘ &nbsp; FAQ</button>
+      <button class="admin-only" data-page="Notes">▤ &nbsp; Notes</button>
+      <button data-page="kategori">□ &nbsp; Kategori</button>
+      <button data-page="favorit">☆  &nbsp; Favorit</button>
+      <button data-page="riwayat">◷ &nbsp; Riwayat</button>
+      <button data-page="playlist">☷ &nbsp; Playlist Saya</button>
+      <button class="owner-only" data-page="pengguna">⚙ &nbsp; Account</button>
+      <button class="owner-only" data-page="activity-log">◷ &nbsp; Log Aktivitas</button>
     </div>
 
     <div class="sidebar-bottom">
       <div class="mascot-wrap"><img class="mascot" src="mascot.png" alt="Maskot kecil"></div>
       <div class="help">
-        <strong>ðŸŽ§ Pusat Tutorial & Dokumentasi</strong>
+        <strong>🎧 Pusat Tutorial & Dokumentasi</strong>
         Temukan tutorial, FAQ, dan Notes yang kamu butuhkan dengan mudah.
       </div>
     </div>
@@ -56,13 +56,13 @@
         </div>
       </div>
       <div class="controls">
-        <button class="play" id="playBtn" aria-label="Putar atau jeda">â–¶</button>
+        <button class="play" id="playBtn" aria-label="Putar atau jeda">▶</button>
         <span id="playerTime">0:00 / 7:12</span>
         <div class="track" id="playerTrack"><span id="playerProgress"></span></div>
         <div class="player-actions">
-          <button class="control-icon" id="volumeBtn" type="button" title="Suara">ðŸ”Š</button>
+          <button class="control-icon" id="volumeBtn" type="button" title="Suara">🔊</button>
           <div class="settings-wrap">
-            <button class="control-icon" id="settingsBtn" type="button" title="Pengaturan">âš™</button>
+            <button class="control-icon" id="settingsBtn" type="button" title="Pengaturan">⚙</button>
             <div class="settings-menu" id="settingsMenu">
               <div class="settings-title">Pengaturan Video</div>
               <label class="settings-row">
@@ -72,11 +72,11 @@
                 </select>
               </label>
               <button class="settings-row settings-action" id="subtitleBtn" type="button"><span>Subtitle</span><b id="subtitleStatus">Mati</b></button>
-              <button class="settings-row settings-action" id="playerFavBtn" type="button"><span>Favorit</span><b id="playerFavStatus">â˜†</b></button>
-              <button class="settings-row settings-action" id="playerPlaylistBtn" type="button"><span>Playlist</span><b id="playerPlaylistStatus">ï¼‹</b></button>
+              <button class="settings-row settings-action" id="playerFavBtn" type="button"><span>Favorit</span><b id="playerFavStatus">＋</b></button>
+              <button class="settings-row settings-action" id="playerPlaylistBtn" type="button"><span>Playlist</span><b id="playerPlaylistStatus">＋</b></button>
             </div>
           </div>
-          <button class="control-icon" id="fullscreenBtn" type="button" title="Layar penuh">â›¶</button>
+          <button class="control-icon" id="fullscreenBtn" type="button" title="Layar penuh">⛶</button>
         </div>
       </div>
     </section>
@@ -84,25 +84,25 @@
     <section class="related">
       <div class="related-head">
         <h3>Video Lainnya</h3>
-        <span>Geser untuk melihat lainnya â†’</span>
+        <span>Geser untuk melihat lainnya →</span>
       </div>
       <div class="scroller" id="scroller"></div>
     </section>
     </div>
 
     <div id="tutorial" class="page-view simple-page"><h2>Tutorial Video</h2><p class="lead">Pilih tutorial yang ingin dipelajari.</p><div class="content-grid"><div class="content-box"><h3>Manajemen Data</h3><p>Panduan mengelola data pada PNG Dashboard.</p></div><div class="content-box"><h3>Pengaturan Akun</h3><p>Panduan pengaturan profil dan akun.</p></div><div class="content-box"><h3>Keamanan Data</h3><p>Materi dasar menjaga keamanan data.</p></div><div class="content-box"><h3>Backup & Restore</h3><p>Panduan pencadangan dan pemulihan data.</p></div></div></div>
-    <div id="faq" class="page-view simple-page"><div class="admin-split"><section><h2>FAQ</h2><p class="lead">Pertanyaan yang sering ditanyakan.</p><div id="faqList" class="doc-list"></div></section><aside class="admin-side"><div class="nezha-brand"><img src="nezha-png.png" alt="Nezha bersandar di PNG"></div><div class="admin-card"><h3>Tambah FAQ</h3><p>Tambahkan pertanyaan dan jawaban baru.</p><button class="admin-add admin-only" id="openFaqForm" type="button">ï¼‹ Tambah FAQ</button><div class="form-panel" id="faqForm"><input id="faqQuestion" placeholder="Pertanyaan"><textarea id="faqAnswer" placeholder="Jawaban FAQ"></textarea><textarea id="faqImportantNote" placeholder="Catatan penting (opsional)"></textarea><div class="form-actions"><button class="ghost-btn" id="cancelFaq" type="button">Batal</button><button class="red-btn" id="saveFaq" type="button">Simpan</button></div></div></div></aside></div></div>
-    <div id="Notes" class="page-view simple-page"><div class="admin-split"><section><h2>Notes</h2><p class="lead">Dokumen prosedur kerja PNG.</p><div id="NotesList" class="doc-list"></div></section><aside class="admin-side"><div class="nezha-brand"><img src="nezha-png.png" alt="Nezha bersandar di PNG"></div><div class="admin-card"><h3>Tambah Notes</h3><p>Tambahkan prosedur kerja baru.</p><button class="admin-add admin-only" id="openNotesForm" type="button">ï¼‹ Tambah Notes</button><div class="form-panel" id="NotesForm"><input id="NotesTitle" placeholder="Judul Notes"><textarea id="NotesContent" placeholder="Isi / langkah Notes"></textarea><div class="form-actions"><button class="ghost-btn" id="cancelNotes" type="button">Batal</button><button class="red-btn" id="saveNotes" type="button">Simpan</button></div></div></div></aside></div></div>
+    <div id="faq" class="page-view simple-page"><div class="admin-split"><section><h2>FAQ</h2><p class="lead">Pertanyaan yang sering ditanyakan.</p><div id="faqList" class="doc-list"></div></section><aside class="admin-side"><div class="nezha-brand"><img src="nezha-png.png" alt="Nezha bersandar di PNG"></div><div class="admin-card"><h3>Tambah FAQ</h3><p>Tambahkan pertanyaan dan jawaban baru.</p><button class="admin-add admin-only" id="openFaqForm" type="button">＋ Tambah FAQ</button><div class="form-panel" id="faqForm"><input id="faqQuestion" placeholder="Pertanyaan"><textarea id="faqAnswer" placeholder="Jawaban FAQ"></textarea><textarea id="faqImportantNote" placeholder="Catatan penting (opsional)"></textarea><div class="form-actions"><button class="ghost-btn" id="cancelFaq" type="button">Batal</button><button class="red-btn" id="saveFaq" type="button">Simpan</button></div></div></div></aside></div></div>
+    <div id="Notes" class="page-view simple-page"><div class="admin-split"><section><h2>Notes</h2><p class="lead">Dokumen prosedur kerja PNG.</p><div id="NotesList" class="doc-list"></div></section><aside class="admin-side"><div class="nezha-brand"><img src="nezha-png.png" alt="Nezha bersandar di PNG"></div><div class="admin-card"><h3>Tambah Notes</h3><p>Tambahkan prosedur kerja baru.</p><button class="admin-add admin-only" id="openNotesForm" type="button">＋ Tambah Notes</button><div class="form-panel" id="NotesForm"><input id="NotesTitle" placeholder="Judul Notes"><textarea id="NotesContent" placeholder="Isi / langkah Notes"></textarea><div class="form-actions"><button class="ghost-btn" id="cancelNotes" type="button">Batal</button><button class="red-btn" id="saveNotes" type="button">Simpan</button></div></div></div></aside></div></div>
     <div id="kategori" class="page-view simple-page"><h2>Kategori</h2><p class="lead">Cari materi berdasarkan kategori.</p><div class="content-grid"><div class="content-box"><h3>Dasar Sistem</h3><p>Login, navigasi, dan penggunaan dasar.</p></div><div class="content-box"><h3>Manajemen Data</h3><p>Pengelolaan, laporan, backup, dan keamanan.</p></div></div></div>
     <div id="favorit" class="page-view simple-page"><h2>Favorit</h2><p class="lead">Tutorial yang kamu simpan akan tampil di sini.</p><div class="content-box"><h3>Belum ada favorit</h3><p>Nanti kita bisa tambahkan tombol bintang pada setiap tutorial.</p></div></div>
-    <div id="riwayat" class="page-view simple-page"><h2>Riwayat</h2><p class="lead">Daftar tutorial yang terakhir dibuka.</p><div class="content-box"><h3>Manajemen Data</h3><p>Terakhir dilihat â€¢ 7 menit 12 detik</p></div></div>
+    <div id="riwayat" class="page-view simple-page"><h2>Riwayat</h2><p class="lead">Daftar tutorial yang terakhir dibuka.</p><div class="content-box"><h3>Manajemen Data</h3><p>Terakhir dilihat • 7 menit 12 detik</p></div></div>
     <div id="playlist" class="page-view simple-page"><h2>Playlist Saya</h2><p class="lead">Kumpulan tutorial pilihanmu.</p><div class="content-box"><h3>Playlist masih kosong</h3><p>Nanti tutorial bisa ditambahkan ke playlist dari halaman video.</p></div></div>
 
-    <div id="materi-detail" class="page-view simple-page article-page"><div class="content-page-head"><button class="content-back" id="materialDetailBack" type="button">â†</button><div><h2>Materi Video</h2><p class="lead" id="materialDetailVideo">Materi tertulis untuk video aktif.</p></div></div><article class="article-card"><span class="preview-category" id="materialDetailCategory">Materi</span><h1 id="materialDetailTitle">Belum ada materi</h1><p class="article-summary" id="materialDetailSummary"></p><div class="preview-divider"></div><div class="article-body" id="materialDetailBody">Tambahkan materi dari dashboard.</div><div class="article-material-nav" id="materialDetailNav"></div></article></div>
+    <div id="materi-detail" class="page-view simple-page article-page"><div class="content-page-head"><button class="content-back" id="materialDetailBack" type="button">←</button><div><h2>Materi Video</h2><p class="lead" id="materialDetailVideo">Materi tertulis untuk video aktif.</p></div></div><article class="article-card"><span class="preview-category" id="materialDetailCategory">Materi</span><h1 id="materialDetailTitle">Belum ada materi</h1><p class="article-summary" id="materialDetailSummary"></p><div class="preview-divider"></div><div class="article-body" id="materialDetailBody">Tambahkan materi dari dashboard.</div><div class="article-material-nav" id="materialDetailNav"></div></article></div>
 
     <div id="tambah-konten" class="page-view simple-page"><div class="admin-lock-note">Halaman ini khusus admin. Login sebagai admin untuk menambah atau mengubah konten.</div>
       <div class="content-page-head">
-        <button class="content-back" id="contentBack" type="button">â†</button>
+        <button class="content-back" id="contentBack" type="button">←</button>
         <div><h2>Tambah Konten</h2><p class="lead">Tambahkan materi tulisan atau video tutorial baru.</p></div>
       </div>
       <div class="content-tabs">
@@ -113,11 +113,11 @@
       <div id="tab-materi" class="content-tab-page">
         <div class="content-editor-layout">
           <section class="content-editor-box">
-            <h3>Informasi Materi</h3><div class="video-edit-note" id="materialEditNote">âœ Mode Edit Materi â€” perubahan akan mengganti sub materi yang dipilih.</div><div class="editor-field"><label>Video Induk <b>*</b></label><select id="materialParentVideo"><option value="">Pilih video untuk sub materi</option></select></div>
+            <h3>Informasi Materi</h3><div class="video-edit-note" id="materialEditNote">✏Mode Edit Materi — perubahan akan mengganti sub materi yang dipilih.</div><div class="editor-field"><label>Video Induk <b>*</b></label><select id="materialParentVideo"><option value="">Pilih video untuk sub materi</option></select></div>
             <div class="editor-field"><label>Judul Materi <b>*</b></label><input id="materialPageTitle" type="text" placeholder="Masukkan judul materi"></div>
             <div class="editor-field"><label>Kategori <b>*</b></label><select id="materialPageCategory"><option value="">Pilih kategori</option></select></div>
             <div class="editor-field"><label>Peringatan</label><textarea id="materialSummary" class="small-textarea" placeholder="Tuliskan pesan peringatan..."></textarea></div>
-            <div class="editor-field"><label>Isi Materi <b>*</b></label><div class="text-toolbar"><button type="button"><b>B</b></button><button type="button"><i>I</i></button><button type="button"><u>U</u></button><button type="button">â˜·</button><button type="button">ðŸ”—</button></div><textarea id="materialContent" class="material-textarea" placeholder="Tulis materi lengkap di sini..."></textarea></div>
+            <div class="editor-field"><label>Isi Materi <b>*</b></label><div class="text-toolbar"><button type="button"><b>B</b></button><button type="button"><i>I</i></button><button type="button"><u>U</u></button><button type="button">☷</button><button type="button">🔗</button></div><textarea id="materialContent" class="material-textarea" placeholder="Tulis materi lengkap di sini..."></textarea></div>
             <div class="editor-field"><label>File Pendukung</label><input id="materialAttachment" type="file" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt"></div>
           </section>
           <aside class="content-preview-box">
@@ -125,40 +125,40 @@
             <div class="article-preview"><span class="preview-category" id="previewMaterialCategory">Kategori</span><h2 id="previewMaterialTitle">Judul Materi</h2><p id="previewMaterialSummary">Ringkasan materi akan tampil di sini.</p><div class="preview-divider"></div><div class="preview-article-text" id="previewMaterialContent">Isi materi yang ditulis akan muncul sebagai preview di bagian ini.</div></div>
           </aside>
         </div>
-        <div class="content-save-bar"><button class="content-cancel" id="cancelMaterial" type="button">Batal</button><button class="content-save" id="saveMaterial" type="button">â–£ &nbsp; Simpan Materi</button></div>
+        <div class="content-save-bar"><button class="content-cancel" id="cancelMaterial" type="button">Batal</button><button class="content-save" id="saveMaterial" type="button">▣ &nbsp; Simpan Materi</button></div>
       </div>
 
       <div id="tab-video" class="content-tab-page active">
         <div class="video-editor-layout">
           <section class="content-editor-box">
             <h3>Informasi Video</h3>
-            <div class="video-edit-note" id="videoEditNote">âœ Mode Edit â€” perubahan akan mengganti video yang dipilih.</div>
+            <div class="video-edit-note" id="videoEditNote">✏️ Mode Edit — perubahan akan mengganti video yang dipilih.</div>
             <div class="editor-field"><label>Judul Video <b>*</b></label><input id="newVideoTitle" type="text" placeholder="Masukkan judul video tutorial"></div>
             <div class="editor-field"><label>Kategori <b>*</b></label><select id="newVideoCategory"><option value="">Pilih kategori</option></select></div>
             <div class="editor-field"><label>Deskripsi Video</label><textarea id="newVideoDescription" class="small-textarea" maxlength="500" placeholder="Tuliskan deskripsi singkat tentang video..."></textarea></div>
             <div class="editor-two"><div class="editor-field"><label>Durasi Video <small style="color:#7f8892">(otomatis)</small></label><input id="newVideoDuration" type="text" placeholder="Otomatis dari video" readonly></div><div class="editor-field"><label>Bahasa</label><select id="newVideoLanguage"><option>Indonesia</option><option>English</option></select></div></div>
-            <div class="editor-field"><label>Thumbnail Video</label><label class="upload-box" for="newVideoThumbnail"><strong>â–§</strong><span>Klik untuk upload thumbnail</span><small>JPG atau PNG</small></label><input id="newVideoThumbnail" type="file" accept="image/png,image/jpeg" hidden></div>
+            <div class="editor-field"><label>Thumbnail Video</label><label class="upload-box" for="newVideoThumbnail"><strong>▧</strong><span>Klik untuk upload thumbnail</span><small>JPG atau PNG</small></label><input id="newVideoThumbnail" type="file" accept="image/png,image/jpeg" hidden></div>
             <div class="editor-field"><label>Atau URL Thumbnail</label><input id="newVideoThumbnailUrl" type="url" placeholder="https://.../thumbnail.jpg"></div>
-            <div class="editor-field"><label>Upload Video</label><label class="upload-box" for="newVideoFile"><strong>â‡§</strong><span>Klik untuk memilih video</span><small>MP4, MOV, AVI atau MKV</small></label><input id="newVideoFile" type="file" accept="video/*" hidden></div>
+            <div class="editor-field"><label>Upload Video</label><label class="upload-box" for="newVideoFile"><strong>⇧</strong><span>Klik untuk memilih video</span><small>MP4, MOV, AVI atau MKV</small></label><input id="newVideoFile" type="file" accept="video/*" hidden></div>
             <div class="editor-field"><label>Link Video</label><input id="newVideoUrl" type="url" placeholder="YouTube / Vimeo / link lainnya"></div>
             <div class="editor-field"><label>Tag</label><input id="newVideoTags" type="text" placeholder="login, akun, keamanan"></div>
           </section>
           <section class="content-preview-box">
             <h3>Preview Video</h3>
-            <div class="video-thumb-preview" id="videoThumbPreview"><span>â–§</span><strong>Preview Thumbnail</strong><small>Thumbnail video akan muncul di sini</small></div>
-            <div class="video-fake-player"><div class="wave"></div><div class="wave2"></div><button type="button">â–¶</button></div>
+            <div class="video-thumb-preview" id="videoThumbPreview"><span>▧</span><strong>Preview Thumbnail</strong><small>Thumbnail video akan muncul di sini</small></div>
+            <div class="video-fake-player"><div class="wave"></div><div class="wave2"></div><button type="button">▶</button></div>
             <h3 class="video-info-heading">Informasi Video</h3>
             <div class="video-preview-info"><span>Judul</span><b id="previewVideoTitle">-</b><span>Kategori</span><b id="previewVideoCategory">-</b><span>Durasi</span><b id="previewVideoDuration">-</b></div>
           </section>
           <aside class="video-guide">
-            <h3>â“˜ &nbsp; Panduan Tambah Video</h3>
+            <h3>ⓘ &nbsp; Panduan Tambah Video</h3>
             <div class="guide-item"><b>1. Informasi Video</b><p>Lengkapi judul, kategori, deskripsi dan durasi video.</p></div>
             <div class="guide-item"><b>2. Upload Video</b><p>Pilih file video atau gunakan link video yang tersedia.</p></div>
             <div class="guide-item"><b>3. Thumbnail</b><p>Gunakan gambar yang jelas dan sesuai dengan isi tutorial.</p></div>
             <div class="guide-item"><b>4. Publikasi</b><p>Periksa kembali informasi sebelum menyimpan video.</p></div>
           </aside>
         </div>
-        <div class="content-save-bar"><button class="content-cancel" id="cancelVideo" type="button">Batal</button><button class="content-save" id="saveVideo" type="button">â–£ &nbsp; Simpan Video</button></div>
+        <div class="content-save-bar"><button class="content-cancel" id="cancelVideo" type="button">Batal</button><button class="content-save" id="saveVideo" type="button">▣ &nbsp; Simpan Video</button></div>
       </div>
     </div>
 
@@ -169,8 +169,8 @@
 
     <div id="activity-log" class="page-view simple-page">
       <div class="page-toolbar">
-        <div><h2>Log Aktivitas</h2><p class="lead" style="margin:4px 0 0">Khusus Owner â€” perubahan data terbaru di PNG Dashboard.</p></div>
-        <button class="admin-add owner-only" id="refreshActivityLog" type="button" style="width:auto;padding:8px 12px">â†» Refresh</button>
+        <div><h2>Log Aktivitas</h2><p class="lead" style="margin:4px 0 0">Khusus Owner — perubahan data terbaru di PNG Dashboard.</p></div>
+        <button class="admin-add owner-only" id="refreshActivityLog" type="button" style="width:auto;padding:8px 12px">⟳ Refresh</button>
       </div>
       <div id="activityLogList" class="doc-list"><div class="page-empty">Memuat log...</div></div>
     </div>
@@ -182,22 +182,22 @@
     <h3 class="info-title" id="infoTitle">Manajemen Data</h3>
     <p class="desc" id="infoDesc">Panduan manajemen data pada sistem PNG Dashboard.</p>
     <div class="meta">
-      <div class="label">â—· Durasi</div><div id="duration">7 menit 12 detik</div>
-      <div class="label">â–¡ Kategori</div><div><span class="tag" id="category">Manajemen Data</span></div>
-      <div class="label">â–£ Dibuat pada</div><div>02 September 2026</div>
-      <div class="label">â—‰ Diperbarui</div><div>06 September 2026</div>
-      <div class="label">â™™ Penulis</div><div>Tim Dokumentasi</div>
+      <div class="label">• Durasi</div><div id="duration">7 menit 12 detik</div>
+      <div class="label">▣ Kategori</div><div><span class="tag" id="category">Manajemen Data</span></div>
+      <div class="label">🗓 Dibuat pada</div><div>02 September 2026</div>
+      <div class="label">🕒 Diperbarui</div><div>06 September 2026</div>
+      <div class="label">✍️ Penulis</div><div>Tim Dokumentasi</div>
     </div>
     <h3>Deskripsi</h3>
     <p class="desc">Geser daftar video. Kartu yang berada paling dekat dengan tengah akan otomatis menjadi fokus seperti Cover Flow.</p>
     <h3>Materi yang Dibahas</h3>
     <div class="topics material-list-mini" id="activeMaterialList"></div>
     <button class="material-more" id="openMaterialDetail" type="button">Selengkapnya</button>
-    <button class="download admin-only" id="addMaterialBtn" type="button">ï¼‹ &nbsp; Tambahkan materi</button>
+    <button class="download admin-only" id="addMaterialBtn" type="button">＋ &nbsp; Tambahkan materi</button>
   </aside>
 </div>
 
-<footer>Â© 2026 <b>PNG</b> Dashboard. Semua hak dilindungi.</footer>
+<footer>© 2026 <b>PNG</b> Dashboard. Semua hak dilindungi.</footer>
 
 
 <div class="auth-modal" id="authModal" aria-hidden="true">
